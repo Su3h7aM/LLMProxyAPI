@@ -27,3 +27,9 @@ services:
       - ${LLM_PROXY_LOG_PATH:-./logs}:/LLMProxyAPI/logs
       - ${LLM_PROXY_PLUGIN_PATH:-./plugins}:/LLMProxyAPI/plugins
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8317/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

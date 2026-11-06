@@ -52,4 +52,7 @@ RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
 
 USER llmproxy
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:8317/healthz || exit 1
+
 CMD ["./llmproxy"]
