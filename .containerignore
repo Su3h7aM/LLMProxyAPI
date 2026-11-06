@@ -2,12 +2,13 @@
 .git
 .github
 
-# Docker and CI/CD related files
-docker-compose.yml
-.dockerignore
+# Container and CI/CD related files
+compose.yaml
+compose.cluster.yaml
+.containerignore
 .gitignore
 .goreleaser.yml
-Dockerfile
+Containerfile
 
 # Documentation and license
 docs
@@ -20,6 +21,9 @@ auths
 logs
 conv
 config.yaml
+
+# Mise project config
+.mise
 
 # Development/editor
 bin

@@ -4,6 +4,8 @@ TASKS.md
 .workspaces
 node_modules/
 apps/web/dist/
+node_modules/
+apps/web/dist/
 /llmproxy
 /config.local.yaml
 .mise/config.local.toml

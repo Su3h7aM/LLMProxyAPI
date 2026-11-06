@@ -45,6 +45,30 @@ commit and port the range you need.
 - `UPSTREAM_BASELINE.md` — pinned upstream commits.
 - `AGENTS.md` — agent workflow rules.
 
+## Panel
+
+The proxy binary serves the panel at `/management.html` from a single
+process. Build and stage the bundled panel with:
+
+```
+npm run build:panel
+```
+
+Then point the binary at the staged bundle and stop the remote asset
+sync. Example config and environment:
+
+```
+remote-management:
+  disable-auto-update-panel: true
+```
+
+```
+MANAGEMENT_STATIC_PATH=<repo>/apps/web/dist ./llmproxy -config config.yaml
+```
+
+The external management API (`/v0`, `/v8`) keeps working for other
+clients.
+
 ## Tools and tasks
 
 Tools (Go, Node) and tasks come from mise. The config lives in
