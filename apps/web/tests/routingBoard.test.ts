@@ -388,6 +388,15 @@ describe('route preview', () => {
     expect(loading.tiers[0].members[0].state).toBe('unknown');
   });
 
+  test('soonest-reset has no fixed split', () => {
+    const current = board();
+    const draft = draftFromBoard(current);
+    draft.settings = { ...draft.settings, strategy: 'soonest-reset' };
+    const preview = resolveRoute(current, draft, catalog, null, 0);
+    expect(preview.tiers[0].state).toBe('active');
+    expect(preview.tiers[0].members[0].share).toBeNull();
+  });
+
   test('fill-first has no fixed split', () => {
     const current = board();
     const draft = draftFromBoard(current);
