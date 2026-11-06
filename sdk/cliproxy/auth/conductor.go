@@ -108,6 +108,13 @@ type Selector interface {
 	Pick(ctx context.Context, provider, model string, opts cliproxyexecutor.Options, auths []*Auth) (*Auth, error)
 }
 
+// CandidateFilter is an optional fallback capability. SessionAffinitySelector calls it
+// before it reuses a bound credential, so a policy can keep a session off the credentials
+// it excludes. It must return a subset of auths; an error aborts the pick.
+type CandidateFilter interface {
+	FilterCandidates(ctx context.Context, provider, model string, opts cliproxyexecutor.Options, auths []*Auth) ([]*Auth, error)
+}
+
 type PluginScheduler interface {
 	PickAuth(context.Context, pluginapi.SchedulerPickRequest) (pluginapi.SchedulerPickResponse, bool, error)
 }

@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -973,6 +974,35 @@ func sessionAffinityTransientAuthIDsFromContext(ctx context.Context) map[string]
 	return authIDs
 }
 
+// withoutFilteredTransientAuthIDs removes from the transient set every credential that a
+// CandidateFilter excluded. Quota-only rebinding must not keep a binding to a credential the
+// policy rejected, even when the conductor marked that credential as transiently unavailable.
+func withoutFilteredTransientAuthIDs(ctx context.Context, offered, kept []*Auth) context.Context {
+	transient := sessionAffinityTransientAuthIDsFromContext(ctx)
+	if len(transient) == 0 {
+		return ctx
+	}
+	keptIDs := make(map[string]struct{}, len(kept))
+	for _, auth := range kept {
+		if auth != nil {
+			keptIDs[auth.ID] = struct{}{}
+		}
+	}
+	remaining := make(map[string]struct{}, len(transient))
+	for authID := range transient {
+		remaining[authID] = struct{}{}
+	}
+	for _, auth := range offered {
+		if auth == nil {
+			continue
+		}
+		if _, ok := keptIDs[auth.ID]; !ok {
+			delete(remaining, auth.ID)
+		}
+	}
+	return context.WithValue(ctx, sessionAffinityTransientAuthIDsKey{}, remaining)
+}
+
 func shouldRebindSessionAffinityOnError(err *Error) bool {
 	if err == nil || shouldSkipCredentialCooldown(err) {
 		return false
@@ -1121,6 +1151,17 @@ func (s *SessionAffinitySelector) Trees() *cliproxysession.InMemorySessionTreeSt
 // a session uses multiple models (e.g., gemini-2.5-pro and gemini-3-flash-preview)
 // that may be supported by different auth credentials, and to avoid cross-provider conflicts.
 func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model string, opts cliproxyexecutor.Options, auths []*Auth) (*Auth, error) {
+	if filter, ok := s.fallback.(CandidateFilter); ok {
+		// Filter a copy: a filter may compact its input in place, and the caller's slice
+		// must keep every offered credential.
+		kept, errFilter := filter.FilterCandidates(ctx, provider, model, opts, slices.Clone(auths))
+		if errFilter != nil {
+			return nil, errFilter
+		}
+		ctx = withoutFilteredTransientAuthIDs(ctx, auths, kept)
+		auths = kept
+	}
+
 	entry := selectorLogEntry(ctx)
 	if opts.Metadata == nil {
 		opts.Metadata = make(map[string]any)
