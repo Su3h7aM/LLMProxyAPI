@@ -130,6 +130,13 @@ type ClaudeConfig struct {
 	// KV) is active, session date pins are persisted permanently and
 	// session-date-pin-days is ignored.
 	SessionDatePinDays *int `yaml:"session-date-pin-days" json:"session-date-pin-days"`
+	// NativeOAuthPromptCache1h sets the 1h cache TTL on bare cache_control
+	// breakpoints of native Claude Code requests when the upstream credential is
+	// a Claude OAuth token. Explicit ttl values, subagent requests without a 1h
+	// choice, probes, and explicit prompt-cache mode are never changed. Default
+	// false leaves bare markers unchanged. Breakpoints that the proxy places
+	// itself are upgraded to 1h by the existing path, not by this option.
+	NativeOAuthPromptCache1h bool `yaml:"native-oauth-prompt-cache-1h" json:"native-oauth-prompt-cache-1h"`
 }
 
 // DefaultClaudeSessionDatePinDays is the session date pin retention applied

@@ -183,6 +183,9 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, auth *cliproxyauth.Auth, r
 	// This runs only while CPA owns placement, and it then owns the ttl of every
 	// breakpoint it can reach: a marker carrying no ttl is the wire default, not an
 	// opt-in to 5m, so a cloaked caller's bare {"type":"ephemeral"} is upgraded too.
+	// A confirmed native request takes the same upgrade only when
+	// claude.native-oauth-prompt-cache-1h is set and the credential is OAuth; its
+	// placement is otherwise left as the client sent it.
 	// Only a ttl the caller wrote out explicitly survives, because
 	// upgradeClaudeCacheControlTTL skips any block that already has one.
 	// claude-code-cli fingerprint profiles emit extended-cache-ttl and must use the same 1h pool.
@@ -190,7 +193,9 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, auth *cliproxyauth.Auth, r
 	// probes omit both 1h cache and extended-cache-ttl.
 	isSubagent := isClaudeSubagentRequestDoc(incomingHeaders, doc)
 	subagent1h := isSubagent && claudeSubagentRequests1hDoc(incomingHeaders, doc)
-	if cpaOwnsCacheControl && fp.ProfileClaudeCodeCLI && (!isSubagent || subagent1h) && !isProbeOrHelper {
+	ttlOwned := cpaOwnsCacheControl ||
+		(!explicitCacheMode && !claudeCodeDetection.HelperProfile && claudeNativeOAuthPromptCache1h(e.cfg, fp, confirmedClaudeCode))
+	if ttlOwned && fp.ProfileClaudeCodeCLI && (!isSubagent || subagent1h) && !isProbeOrHelper {
 		upgradeClaudeCacheControlTTLDoc(doc, claudeCacheControlTTL1h)
 	} else if (isProbeOrHelper || (isSubagent && !subagent1h)) && !explicitCacheMode {
 		stripClaudeCacheControlTTLDoc(doc)

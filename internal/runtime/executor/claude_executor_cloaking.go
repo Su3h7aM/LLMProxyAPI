@@ -2704,6 +2704,14 @@ var claudeCodeCacheControl = claudeCacheControl{
 // claudeCacheControlTTL1h is the only non-default ttl native ever selects.
 const claudeCacheControlTTL1h = "1h"
 
+// claudeNativeOAuthPromptCache1h reports whether a confirmed native Claude Code
+// request takes the 1h ttl upgrade. Native requests keep the breakpoints the
+// client placed, so the proxy sets only the ttl of bare markers, and only when
+// the operator opted in and the upstream credential is a Claude OAuth token.
+func claudeNativeOAuthPromptCache1h(cfg *config.Config, fp claudeFingerprintPolicy, confirmedClaudeCode bool) bool {
+	return cfg != nil && cfg.Claude.NativeOAuthPromptCache1h && confirmedClaudeCode && fp.AuthIsOAuthToken
+}
+
 // ensureCacheControl injects default cache_control breakpoints for translated
 // entrypoints (Responses/Chat/Gemini) after cloaking. Placement follows the
 // native request builder recovered from the installed binaries:

@@ -476,6 +476,12 @@ upstream:
     # permanently and session-date-pin-days is ignored.
     session-date-pin-days: 7
 
+    # When true, native Claude Code requests that use a Claude OAuth token get the 1h prompt-cache TTL
+    # on bare cache_control breakpoints. Explicit ttl values, subagent requests without a 1h choice,
+    # probes, and explicit prompt-cache mode are never changed. The extended-cache-ttl beta is sent
+    # with each 1h breakpoint. Default false leaves bare cache_control markers unchanged.
+    native-oauth-prompt-cache-1h: false
+
     # When true, disable Claude request cloaking on OAuth and API-key CLI profiles (the Claude Code CLI disguise and
     # system prompt replacement), so the original system prompt is passed through to Claude as-is.
     # Credential attributes and explicit per-key cloak modes override this shared default.

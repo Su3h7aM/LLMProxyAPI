@@ -195,7 +195,9 @@ func (e *ClaudeExecutor) ExecuteStream(ctx context.Context, auth *cliproxyauth.A
 	// probes omit both 1h cache and extended-cache-ttl.
 	isSubagent := isClaudeSubagentRequestDoc(incomingHeaders, doc)
 	subagent1h := isSubagent && claudeSubagentRequests1hDoc(incomingHeaders, doc)
-	if cpaOwnsCacheControl && fp.ProfileClaudeCodeCLI && (!isSubagent || subagent1h) && !isProbeOrHelper {
+	ttlOwned := cpaOwnsCacheControl ||
+		(!explicitCacheMode && !claudeCodeDetection.HelperProfile && claudeNativeOAuthPromptCache1h(e.cfg, fp, confirmedClaudeCode))
+	if ttlOwned && fp.ProfileClaudeCodeCLI && (!isSubagent || subagent1h) && !isProbeOrHelper {
 		upgradeClaudeCacheControlTTLDoc(doc, claudeCacheControlTTL1h)
 	} else if (isProbeOrHelper || (isSubagent && !subagent1h)) && !explicitCacheMode {
 		stripClaudeCacheControlTTLDoc(doc)
