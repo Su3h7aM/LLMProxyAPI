@@ -1,4 +1,4 @@
-FROM oven/bun:1.4-bookworm AS panel
+FROM oven/bun:1.4.4-debian AS panel
 
 WORKDIR /panel
 
@@ -34,7 +34,9 @@ FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata ca-certificates && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /LLMProxyAPI
+RUN useradd --create-home --shell /usr/sbin/nologin llmproxy \
+ && mkdir /LLMProxyAPI \
+ && chown llmproxy:llmproxy /LLMProxyAPI
 
 COPY --from=builder ./app/llmproxy /LLMProxyAPI/llmproxy
 
@@ -45,7 +47,10 @@ WORKDIR /LLMProxyAPI
 EXPOSE 8317
 
 ENV TZ=Asia/Shanghai
+ENV HOME=/home/llmproxy
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
+
+USER llmproxy
 
 CMD ["./llmproxy"]

@@ -15,7 +15,7 @@ services:
     ports:
       - "8317:8317"
     volumes:
-      - ${LLM_PROXY_HOME_PATH:-./home}:/root/.llm-proxy-api
+      - ${LLM_PROXY_HOME_PATH:-./home}:/home/llmproxy/.local/share/llm-proxy-api
       - ${LLM_PROXY_LOG_PATH:-./logs}:/LLMProxyAPI/logs
       - ${LLM_PROXY_PLUGIN_PATH:-./plugins}:/LLMProxyAPI/plugins
     command: >
