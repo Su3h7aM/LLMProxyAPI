@@ -170,6 +170,20 @@ func toggleConfigAPIKeyExcludedAll(cfg *config.Config, auth *coreauth.Auth, disa
 			return true, nil
 		}
 	}
+	for i := range cfg.OpenCodeGoKey {
+		entry := &cfg.OpenCodeGoKey[i]
+		key := strings.TrimSpace(entry.APIKey)
+		if key == "" {
+			continue
+		}
+		prefix := strings.TrimSpace(entry.Prefix)
+		idParts := []string{key, prefix}
+		id, _ := idGen.Next("opencode-go:apikey", idParts...)
+		if id == authID {
+			entry.ExcludedModels = setConfigAPIKeyExcludedAll(entry.ExcludedModels, disable)
+			return true, nil
+		}
+	}
 
 	return false, nil
 }

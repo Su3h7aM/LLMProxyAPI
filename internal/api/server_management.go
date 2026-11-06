@@ -152,6 +152,11 @@ func (s *Server) registerManagementRoutes() {
 		mgmt.PATCH("/meta-api-key", s.mgmt.PatchMetaKey)
 		mgmt.DELETE("/meta-api-key", s.mgmt.DeleteMetaKey)
 
+		mgmt.GET("/opencode-go-api-key", s.mgmt.GetOpenCodeGoKeys)
+		mgmt.PUT("/opencode-go-api-key", s.mgmt.PutOpenCodeGoKeys)
+		mgmt.PATCH("/opencode-go-api-key", s.mgmt.PatchOpenCodeGoKey)
+		mgmt.DELETE("/opencode-go-api-key", s.mgmt.DeleteOpenCodeGoKey)
+
 		mgmt.GET("/openai-compatibility", s.mgmt.GetOpenAICompat)
 		mgmt.PUT("/openai-compatibility", s.mgmt.PutOpenAICompat)
 		mgmt.PATCH("/openai-compatibility", s.mgmt.PatchOpenAICompat)

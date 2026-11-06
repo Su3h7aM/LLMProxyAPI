@@ -704,6 +704,8 @@ func (a *Auth) indexSeed() string {
 			apiPrefix = "claude-api-key"
 		case strings.EqualFold(provider, "meta"):
 			apiPrefix = "meta-api-key"
+		case strings.EqualFold(provider, "opencode-go"):
+			apiPrefix = "opencode-go-api-key"
 		}
 	}
 	if apiPrefix != "" {

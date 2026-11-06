@@ -698,6 +698,11 @@ func (h *Handler) buildAuthFileEntryLocked(auth *coreauth.Auth, quota authFileQu
 			entry["quota_plugin_id"] = pluginID
 		}
 	}
+	// OpenCode Go quota is fetched in core at the Go usage endpoint.
+	if strings.EqualFold(strings.TrimSpace(auth.Provider), "opencode-go") {
+		entry["supports_quota"] = true
+		entry["quota_provider"] = auth.Provider
+	}
 	// Declarative quota_probe is only executed by the v0 quota/fetch route.
 	if !quota.v8 && auth.Metadata != nil {
 		if probe, okProbe := auth.Metadata["quota_probe"]; okProbe && probe != nil {

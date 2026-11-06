@@ -379,6 +379,29 @@ func sanitizeCodexKeyEntries(entries []CodexKey) []CodexKey {
 	return out
 }
 
+// SanitizeOpenCodeGoKeys removes OpenCode Go entries missing an API key.
+// It trims whitespace and preserves order for remaining entries.
+func (cfg *Config) SanitizeOpenCodeGoKeys() {
+	if cfg == nil {
+		return
+	}
+	if len(cfg.OpenCodeGoKey) == 0 {
+		return
+	}
+	out := make([]OpenCodeGoKey, 0, len(cfg.OpenCodeGoKey))
+	for i := range cfg.OpenCodeGoKey {
+		e := cfg.OpenCodeGoKey[i]
+		e.APIKey = strings.TrimSpace(e.APIKey)
+		e.Prefix = normalizeModelPrefix(e.Prefix)
+		e.ExcludedModels = NormalizeExcludedModels(e.ExcludedModels)
+		if e.APIKey == "" {
+			continue
+		}
+		out = append(out, e)
+	}
+	cfg.OpenCodeGoKey = out
+}
+
 // NormalizeCloakConfig trims strings and removes blank sensitive words.
 func NormalizeCloakConfig(cloak *CloakConfig) *CloakConfig {
 	if cloak == nil {

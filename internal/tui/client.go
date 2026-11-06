@@ -346,6 +346,11 @@ func (c *Client) GetXAIKeys() ([]map[string]any, error) {
 	return c.getWrappedKeyList("/v0/management/xai-api-key", "xai-api-key")
 }
 
+// GetOpenCodeGoKeys fetches OpenCode Go subscription keys.
+func (c *Client) GetOpenCodeGoKeys() ([]map[string]any, error) {
+	return c.getWrappedKeyList("/v0/management/opencode-go-api-key", "opencode-go-api-key")
+}
+
 // GetVertexKeys fetches Vertex API keys.
 func (c *Client) GetVertexKeys() ([]map[string]any, error) {
 	return c.getWrappedKeyList("/v0/management/vertex-api-key", "vertex-api-key")

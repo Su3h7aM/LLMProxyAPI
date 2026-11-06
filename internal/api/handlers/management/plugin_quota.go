@@ -12,6 +12,7 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
@@ -39,6 +40,42 @@ func (r credentialQuotaRequest) resolveAuthIndex() string {
 		return strings.TrimSpace(*r.AuthIndexPascal)
 	}
 	return ""
+}
+
+// openCodeGoFetchUsage is opencode.FetchUsage, overridden in tests.
+var openCodeGoFetchUsage = opencode.FetchUsage
+
+// fetchOpenCodeGoQuota reads an OpenCode Go subscription's allowance windows
+// (5 hours, 7 days, month) at the Go usage endpoint with the credential's
+// key and returns them as normalized quota buckets.
+func (h *Handler) fetchOpenCodeGoQuota(c *gin.Context, auth *coreauth.Auth) (pluginapi.QuotaFetchResponse, error) {
+	token, errToken := h.resolveTokenForAuth(c.Request.Context(), auth, "")
+	if errToken != nil {
+		return pluginapi.QuotaFetchResponse{}, fmt.Errorf("probe authentication failed: %w", errToken)
+	}
+	if strings.TrimSpace(token) == "" {
+		return pluginapi.QuotaFetchResponse{}, fmt.Errorf("probe authentication token not found for credential")
+	}
+	usage, errFetch := openCodeGoFetchUsage(c.Request.Context(), strings.TrimSpace(token))
+	if errFetch != nil {
+		return pluginapi.QuotaFetchResponse{}, errFetch
+	}
+	group := pluginapi.QuotaGroup{DisplayName: "OpenCode Go"}
+	for _, w := range usage.Windows {
+		bucket := pluginapi.QuotaBucket{
+			Window:            w.Name,
+			RemainingFraction: 1 - w.UsedPercent/100,
+			Description:       "OpenCode Go subscription",
+		}
+		if !w.ResetsAt.IsZero() {
+			bucket.ResetTime = w.ResetsAt.UTC().Format(time.RFC3339)
+		}
+		group.Buckets = append(group.Buckets, bucket)
+	}
+	return pluginapi.QuotaFetchResponse{
+		Subscription: &pluginapi.QuotaSubscription{Plan: usage.Plan},
+		Groups:       []pluginapi.QuotaGroup{group},
+	}, nil
 }
 
 // GetQuotaProviders returns the list of registered quota providers.
@@ -114,6 +151,16 @@ func (h *Handler) FetchCredentialQuota(c *gin.Context) {
 	}
 
 	// Fallback to declarative quota probe if configured in metadata
+	if strings.EqualFold(strings.TrimSpace(auth.Provider), opencode.ProviderName) {
+		quotaResp, errFetch := h.fetchOpenCodeGoQuota(c, auth)
+		if errFetch != nil {
+			log.WithError(errFetch).Warnf("failed to fetch quota for credential %s", auth.Index)
+			c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to fetch quota: %v", errFetch)})
+			return
+		}
+		c.JSON(http.StatusOK, quotaResp)
+		return
+	}
 	if auth.Metadata != nil {
 		if rawProbe, okProbe := auth.Metadata["quota_probe"]; okProbe && rawProbe != nil {
 			if probeMap, okMap := rawProbe.(map[string]any); okMap {

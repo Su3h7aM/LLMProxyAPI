@@ -1718,6 +1718,151 @@ func (h *Handler) DeleteCodexKey(c *gin.Context) {
 	c.JSON(400, gin.H{"error": "missing api-key or index"})
 }
 
+// opencode-go-api-key: []OpenCodeGoKey
+func (h *Handler) GetOpenCodeGoKeys(c *gin.Context) {
+	c.JSON(200, gin.H{"opencode-go-api-key": h.opencodeGoKeysWithAuthIndex()})
+}
+
+func (h *Handler) PutOpenCodeGoKeys(c *gin.Context) {
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSON(400, gin.H{"error": "failed to read body"})
+		return
+	}
+	var arr []config.OpenCodeGoKey
+	if err = json.Unmarshal(data, &arr); err != nil {
+		var obj struct {
+			Items []config.OpenCodeGoKey `json:"items"`
+		}
+		if err2 := json.Unmarshal(data, &obj); err2 != nil || len(obj.Items) == 0 {
+			c.JSON(400, gin.H{"error": "invalid body"})
+			return
+		}
+		arr = obj.Items
+	}
+	// Filter out entries with empty api-key (treat as removed)
+	filtered := make([]config.OpenCodeGoKey, 0, len(arr))
+	for i := range arr {
+		entry := arr[i]
+		normalizeOpenCodeGoKey(&entry)
+		if entry.APIKey == "" {
+			continue
+		}
+		if rejectInvalidCredentialWeight(c, fmt.Sprintf("opencode-go-api-key[%d].weight", i), entry.Weight) {
+			return
+		}
+		filtered = append(filtered, entry)
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.cfg.OpenCodeGoKey = filtered
+	h.cfg.SanitizeOpenCodeGoKeys()
+	h.persistLocked(c)
+}
+
+func (h *Handler) PatchOpenCodeGoKey(c *gin.Context) {
+	type openCodeGoKeyPatch struct {
+		APIKey         *string         `json:"api-key"`
+		Priority       *int            `json:"priority"`
+		Weight         json.RawMessage `json:"weight"`
+		Prefix         *string         `json:"prefix"`
+		ExcludedModels *[]string       `json:"excluded-models"`
+	}
+	var body struct {
+		Index *int                `json:"index"`
+		Match *string             `json:"match"`
+		Value *openCodeGoKeyPatch `json:"value"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.Value == nil {
+		c.JSON(400, gin.H{"error": "invalid body"})
+		return
+	}
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	targetIndex := -1
+	if body.Index != nil && *body.Index >= 0 && *body.Index < len(h.cfg.OpenCodeGoKey) {
+		targetIndex = *body.Index
+	}
+	if targetIndex == -1 && body.Match != nil {
+		match := strings.TrimSpace(*body.Match)
+		for i := range h.cfg.OpenCodeGoKey {
+			if h.cfg.OpenCodeGoKey[i].APIKey == match {
+				targetIndex = i
+				break
+			}
+		}
+	}
+	if targetIndex == -1 {
+		c.JSON(404, gin.H{"error": "item not found"})
+		return
+	}
+
+	entry := h.cfg.OpenCodeGoKey[targetIndex]
+	if body.Value.APIKey != nil {
+		entry.APIKey = strings.TrimSpace(*body.Value.APIKey)
+	}
+	if body.Value.Priority != nil {
+		entry.Priority = *body.Value.Priority
+	}
+	if len(body.Value.Weight) > 0 {
+		weight, errWeight := parseCredentialWeightPatch(body.Value.Weight)
+		if errWeight != nil {
+			c.JSON(400, gin.H{"error": errWeight.Error()})
+			return
+		}
+		entry.Weight = weight
+	}
+	if body.Value.Prefix != nil {
+		entry.Prefix = strings.TrimSpace(*body.Value.Prefix)
+	}
+	if body.Value.ExcludedModels != nil {
+		entry.ExcludedModels = config.NormalizeExcludedModels(*body.Value.ExcludedModels)
+	}
+	normalizeOpenCodeGoKey(&entry)
+	h.cfg.OpenCodeGoKey[targetIndex] = entry
+	h.cfg.SanitizeOpenCodeGoKeys()
+	h.persistLocked(c)
+}
+
+func (h *Handler) DeleteOpenCodeGoKey(c *gin.Context) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if val := strings.TrimSpace(c.Query("api-key")); val != "" {
+		matchIndex := -1
+		matchCount := 0
+		for i := range h.cfg.OpenCodeGoKey {
+			if strings.TrimSpace(h.cfg.OpenCodeGoKey[i].APIKey) == val {
+				matchCount++
+				if matchIndex == -1 {
+					matchIndex = i
+				}
+			}
+		}
+		if matchCount > 1 {
+			c.JSON(400, gin.H{"error": "multiple items match api-key; index is required"})
+			return
+		}
+		if matchIndex != -1 {
+			h.cfg.OpenCodeGoKey = append(h.cfg.OpenCodeGoKey[:matchIndex], h.cfg.OpenCodeGoKey[matchIndex+1:]...)
+		}
+		h.cfg.SanitizeOpenCodeGoKeys()
+		h.persistLocked(c)
+		return
+	}
+	if idxStr := c.Query("index"); idxStr != "" {
+		var idx int
+		_, err := fmt.Sscanf(idxStr, "%d", &idx)
+		if err == nil && idx >= 0 && idx < len(h.cfg.OpenCodeGoKey) {
+			h.cfg.OpenCodeGoKey = append(h.cfg.OpenCodeGoKey[:idx], h.cfg.OpenCodeGoKey[idx+1:]...)
+			h.cfg.SanitizeOpenCodeGoKeys()
+			h.persistLocked(c)
+			return
+		}
+	}
+	c.JSON(400, gin.H{"error": "missing api-key or index"})
+}
+
 // xai-api-key: []XAIKey
 func (h *Handler) GetXAIKeys(c *gin.Context) {
 	c.JSON(200, gin.H{"xai-api-key": h.xaiKeysWithAuthIndex()})
@@ -2232,6 +2377,15 @@ func normalizeCodexKey(entry *config.CodexKey) {
 		normalized = append(normalized, model)
 	}
 	entry.Models = normalized
+}
+
+func normalizeOpenCodeGoKey(entry *config.OpenCodeGoKey) {
+	if entry == nil {
+		return
+	}
+	entry.APIKey = strings.TrimSpace(entry.APIKey)
+	entry.Prefix = strings.TrimSpace(entry.Prefix)
+	entry.ExcludedModels = config.NormalizeExcludedModels(entry.ExcludedModels)
 }
 
 func normalizeVertexCompatKey(entry *config.VertexCompatKey) {

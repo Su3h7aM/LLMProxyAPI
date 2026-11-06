@@ -951,6 +951,28 @@ type XAIModel = CodexModel
 // MetaKey uses the Codex API key structure for native Meta Muse execution.
 type MetaKey = CodexKey
 
+// OpenCodeGoKey is an OpenCode Go subscription key. The key both names the
+// subscription member and reads its allowance windows at the Go usage
+// endpoint, so no base URL or model map applies.
+type OpenCodeGoKey struct {
+	// APIKey is the workspace member's Go API key.
+	APIKey string `yaml:"api-key" json:"api-key"`
+
+	// Priority controls selection preference when multiple credentials match.
+	// Higher values are preferred; defaults to 0.
+	Priority int `yaml:"priority,omitempty" json:"priority,omitempty"`
+
+	// Weight controls proportional selection under weighted-round-robin.
+	// An omitted value defaults to 1; non-positive values exclude this credential; maximum 1,000,000.
+	Weight *int `yaml:"weight,omitempty" json:"weight,omitempty"`
+
+	// Prefix optionally namespaces models for this credential.
+	Prefix string `yaml:"prefix,omitempty" json:"prefix,omitempty"`
+
+	// ExcludedModels lists model IDs that should be excluded for this credential.
+	ExcludedModels []string `yaml:"excluded-models,omitempty" json:"excluded-models,omitempty"`
+}
+
 // MetaModel uses the Codex model mapping structure for Meta Muse models.
 type MetaModel = CodexModel
 

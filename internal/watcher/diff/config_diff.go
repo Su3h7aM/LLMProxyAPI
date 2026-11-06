@@ -474,6 +474,30 @@ func BuildConfigChangeDetails(oldCfg, newCfg *config.Config) []string {
 		}
 	}
 
+	// OpenCode Go keys (do not print key material)
+	if len(oldCfg.OpenCodeGoKey) != len(newCfg.OpenCodeGoKey) {
+		changes = append(changes, fmt.Sprintf("opencode-go-api-key count: %d -> %d", len(oldCfg.OpenCodeGoKey), len(newCfg.OpenCodeGoKey)))
+	} else {
+		for i := range oldCfg.OpenCodeGoKey {
+			o := oldCfg.OpenCodeGoKey[i]
+			n := newCfg.OpenCodeGoKey[i]
+			if strings.TrimSpace(o.Prefix) != strings.TrimSpace(n.Prefix) {
+				changes = append(changes, fmt.Sprintf("opencode-go[%d].prefix: %s -> %s", i, strings.TrimSpace(o.Prefix), strings.TrimSpace(n.Prefix)))
+			}
+			if o.Priority != n.Priority {
+				changes = append(changes, fmt.Sprintf("opencode-go[%d].priority: %d -> %d", i, o.Priority, n.Priority))
+			}
+			if strings.TrimSpace(o.APIKey) != strings.TrimSpace(n.APIKey) {
+				changes = append(changes, fmt.Sprintf("opencode-go[%d].api-key: updated", i))
+			}
+			oldExcluded := SummarizeExcludedModels(o.ExcludedModels)
+			newExcluded := SummarizeExcludedModels(n.ExcludedModels)
+			if oldExcluded.hash != newExcluded.hash {
+				changes = append(changes, fmt.Sprintf("opencode-go[%d].excluded-models: updated (%d -> %d entries)", i, oldExcluded.count, newExcluded.count))
+			}
+		}
+	}
+
 	if entries, _ := DiffOAuthExcludedModelChanges(oldCfg.OAuthExcludedModels, newCfg.OAuthExcludedModels); len(entries) > 0 {
 		changes = append(changes, entries...)
 	}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
 	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
@@ -648,6 +649,63 @@ func TestFilterUsableQuotaSummaryRequiresStringIdentifiers(t *testing.T) {
 	summary := filterUsableQuotaSummary([]byte(`{"summary":[{"key":123,"label":true,"value":1},{"key":"balance","label":"Balance","value":0}]}`))
 	if len(summary) != 1 || summary[0].Key != "balance" || summary[0].Value != 0 {
 		t.Fatalf("summary = %#v", summary)
+	}
+}
+
+func TestFetchCredentialQuota_OpenCodeGo(t *testing.T) {
+	restore := openCodeGoFetchUsage
+	openCodeGoFetchUsage = func(_ context.Context, key string) (opencode.Usage, error) {
+		if key != "go-key" {
+			t.Fatalf("unexpected key: %q", key)
+		}
+		return opencode.Usage{Plan: "OpenCode Go", Windows: []opencode.Window{
+			{Name: "5 hours", UsedPercent: 37},
+			{Name: "7 days", UsedPercent: 0},
+			{Name: "Month", UsedPercent: 100, RateLimited: true},
+		}}, nil
+	}
+	defer func() { openCodeGoFetchUsage = restore }()
+
+	manager := coreauth.NewManager(nil, nil, nil)
+	auth := &coreauth.Auth{
+		ID:         "opencode-go-auth",
+		FileName:   "opencode-go.json",
+		Provider:   "opencode-go",
+		Attributes: map[string]string{"api_key": "go-key"},
+	}
+	authIndex := auth.EnsureIndex()
+	_, _ = manager.Register(context.Background(), auth)
+
+	h := NewHandlerWithoutConfigFilePath(&config.Config{AuthDir: t.TempDir()}, manager)
+	h.SetPluginHost(pluginhost.New())
+	rec := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(rec)
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v0/management/quota/fetch", strings.NewReader(`{"auth_index":"`+authIndex+`"}`))
+	ctx.Request.Header.Set("Content-Type", "application/json")
+	h.FetchCredentialQuota(ctx)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var quotaResp pluginapi.QuotaFetchResponse
+	if errUnmarshal := json.Unmarshal(rec.Body.Bytes(), &quotaResp); errUnmarshal != nil {
+		t.Fatalf("failed to decode response: %v", errUnmarshal)
+	}
+	if quotaResp.Subscription == nil || quotaResp.Subscription.Plan != "OpenCode Go" {
+		t.Fatalf("unexpected subscription: %+v", quotaResp.Subscription)
+	}
+	if len(quotaResp.Groups) != 1 || len(quotaResp.Groups[0].Buckets) != 3 {
+		t.Fatalf("unexpected groups: %+v", quotaResp.Groups)
+	}
+	buckets := quotaResp.Groups[0].Buckets
+	if buckets[0].Window != "5 hours" || buckets[0].RemainingFraction != 0.63 {
+		t.Fatalf("unexpected rolling bucket: %+v", buckets[0])
+	}
+	if buckets[1].Window != "7 days" || buckets[1].RemainingFraction != 1 {
+		t.Fatalf("unexpected weekly bucket: %+v", buckets[1])
+	}
+	if buckets[2].Window != "Month" || buckets[2].RemainingFraction != 0 {
+		t.Fatalf("unexpected monthly bucket: %+v", buckets[2])
 	}
 }
 

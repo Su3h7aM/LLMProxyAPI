@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/synthesizer"
 	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
@@ -34,6 +35,11 @@ type xaiKeyWithAuthIndex struct {
 
 type metaKeyWithAuthIndex struct {
 	config.MetaKey
+	AuthIndex string `json:"auth-index,omitempty"`
+}
+
+type openCodeGoKeyWithAuthIndex struct {
+	config.OpenCodeGoKey
 	AuthIndex string `json:"auth-index,omitempty"`
 }
 
@@ -814,6 +820,38 @@ func (h *Handler) xaiKeysWithAuthIndex() []xaiKeyWithAuthIndex {
 		out[i] = xaiKeyWithAuthIndex{
 			XAIKey:    entry,
 			AuthIndex: authIndex,
+		}
+	}
+	return out
+}
+
+func (h *Handler) opencodeGoKeysWithAuthIndex() []openCodeGoKeyWithAuthIndex {
+	if h == nil {
+		return nil
+	}
+	liveIndexByID := h.liveAuthIndexByID()
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.cfg == nil {
+		return nil
+	}
+
+	idGen := synthesizer.NewStableIDGenerator()
+	out := make([]openCodeGoKeyWithAuthIndex, len(h.cfg.OpenCodeGoKey))
+	for i := range h.cfg.OpenCodeGoKey {
+		entry := h.cfg.OpenCodeGoKey[i]
+		authIndex := ""
+		key := strings.TrimSpace(entry.APIKey)
+		prefix := strings.TrimSpace(entry.Prefix)
+		if key != "" {
+			idParts := []string{key, prefix}
+			id, _ := idGen.Next(opencode.ProviderName+":apikey", idParts...)
+			authIndex = liveIndexByID[id]
+		}
+		out[i] = openCodeGoKeyWithAuthIndex{
+			OpenCodeGoKey: entry,
+			AuthIndex:     authIndex,
 		}
 	}
 	return out

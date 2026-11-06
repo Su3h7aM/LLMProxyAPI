@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
 	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
@@ -107,6 +108,8 @@ func (s *ConfigSynthesizer) Synthesize(ctx *SynthesisContext) ([]*coreauth.Auth,
 	out = append(out, s.synthesizeXAIKeys(ctx)...)
 	// Meta API Keys
 	out = append(out, s.synthesizeMetaKeys(ctx)...)
+	// OpenCode Go subscription keys
+	out = append(out, s.synthesizeOpenCodeGoKeys(ctx)...)
 	// OpenAI-compat
 	out = append(out, s.synthesizeOpenAICompat(ctx)...)
 	// Vertex-compat
@@ -281,6 +284,48 @@ func (s *ConfigSynthesizer) synthesizeXAIKeys(ctx *SynthesisContext) []*coreauth
 // synthesizeMetaKeys creates Auth entries for Meta API keys.
 func (s *ConfigSynthesizer) synthesizeMetaKeys(ctx *SynthesisContext) []*coreauth.Auth {
 	return s.synthesizeCodexStyleKeys(ctx, ctx.Config.MetaKey, "meta")
+}
+
+// synthesizeOpenCodeGoKeys creates Auth entries for OpenCode Go
+// subscription keys. The key reads its allowance windows at the Go usage
+// endpoint, so the auth carries the key and quota support, no routing model map.
+func (s *ConfigSynthesizer) synthesizeOpenCodeGoKeys(ctx *SynthesisContext) []*coreauth.Auth {
+	now := ctx.Now
+	idGen := ctx.IDGenerator
+
+	out := make([]*coreauth.Auth, 0, len(ctx.Config.OpenCodeGoKey))
+	for i := range ctx.Config.OpenCodeGoKey {
+		entry := ctx.Config.OpenCodeGoKey[i]
+		key := strings.TrimSpace(entry.APIKey)
+		if key == "" {
+			continue
+		}
+		prefix := strings.TrimSpace(entry.Prefix)
+		idParts := []string{key, prefix}
+		id, token := idGen.Next(opencode.ProviderName+":apikey", idParts...)
+		attrs := map[string]string{
+			"source":       fmt.Sprintf("config:%s[%s]", opencode.ProviderName, token),
+			"config_index": strconv.Itoa(i),
+			"api_key":      key,
+		}
+		if entry.Priority != 0 {
+			attrs["priority"] = strconv.Itoa(entry.Priority)
+		}
+		addWeightToAttrs(entry.Weight, attrs)
+		a := &coreauth.Auth{
+			ID:         id,
+			Provider:   opencode.ProviderName,
+			Label:      opencode.ProviderName + "-apikey",
+			Prefix:     prefix,
+			Status:     coreauth.StatusActive,
+			Attributes: attrs,
+			CreatedAt:  now,
+			UpdatedAt:  now,
+		}
+		ApplyAuthExcludedModelsMeta(a, entry.ExcludedModels, "apikey")
+		out = append(out, a)
+	}
+	return out
 }
 
 func (s *ConfigSynthesizer) synthesizeCodexStyleKeys(ctx *SynthesisContext, entries []config.CodexKey, provider string) []*coreauth.Auth {

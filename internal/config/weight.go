@@ -149,6 +149,11 @@ func (cfg *Config) ValidateCredentialWeights() error {
 			return fmt.Errorf("meta-api-key[%d].weight: %w", index, errValidate)
 		}
 	}
+	for index := range cfg.OpenCodeGoKey {
+		if errValidate := ValidateCredentialWeight(cfg.OpenCodeGoKey[index].Weight); errValidate != nil {
+			return fmt.Errorf("opencode-go-api-key[%d].weight: %w", index, errValidate)
+		}
+	}
 	for providerIndex := range cfg.OpenAICompatibility {
 		for keyIndex := range cfg.OpenAICompatibility[providerIndex].APIKeyEntries {
 			weight := cfg.OpenAICompatibility[providerIndex].APIKeyEntries[keyIndex].Weight
