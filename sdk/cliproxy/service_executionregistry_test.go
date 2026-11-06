@@ -2931,7 +2931,7 @@ func TestServiceApplyConfigRuntimeSessionAffinityRebindOnChangeRecreatesSelector
 		Strategy:                "round-robin",
 		SessionAffinity:         true,
 		SessionAffinityTTL:      "1h",
-		SessionAffinityRebindOn: "any",
+		SessionAffinityRebindOn: "",
 	}})
 	if !service.applyConfigRuntime(context.Background(), initial, false) {
 		t.Fatal("initial config runtime apply failed")
@@ -2942,7 +2942,7 @@ func TestServiceApplyConfigRuntimeSessionAffinityRebindOnChangeRecreatesSelector
 		Strategy:                "round-robin",
 		SessionAffinity:         true,
 		SessionAffinityTTL:      "1h",
-		SessionAffinityRebindOn: "",
+		SessionAffinityRebindOn: "quota",
 	}})
 	if !service.applyConfigRuntime(context.Background(), same, false) {
 		t.Fatal("same config runtime apply failed")
@@ -2955,7 +2955,7 @@ func TestServiceApplyConfigRuntimeSessionAffinityRebindOnChangeRecreatesSelector
 		Strategy:                "round-robin",
 		SessionAffinity:         true,
 		SessionAffinityTTL:      "1h",
-		SessionAffinityRebindOn: "quota",
+		SessionAffinityRebindOn: "any",
 	}})
 	if !service.applyConfigRuntime(context.Background(), changed, false) {
 		t.Fatal("changed config runtime apply failed")

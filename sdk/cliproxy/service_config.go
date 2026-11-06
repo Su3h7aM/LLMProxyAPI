@@ -68,7 +68,7 @@ func normalizedRoutingRuntimeState(cfg *config.Config) routingRuntimeState {
 		strategy:                 "round-robin",
 		sessionAffinityTTL:       time.Hour,
 		sessionAffinitySubagents: true,
-		sessionAffinityRebindOn:  coreauth.SessionAffinityRebindOnAny,
+		sessionAffinityRebindOn:  coreauth.SessionAffinityRebindOnQuota,
 	}
 	if cfg == nil {
 		return state
@@ -92,8 +92,9 @@ func normalizedRoutingRuntimeState(cfg *config.Config) routingRuntimeState {
 	if state.sessionAffinity && cfg.Routing.SessionAffinitySubagents != nil {
 		state.sessionAffinitySubagents = *cfg.Routing.SessionAffinitySubagents
 	}
-	if state.sessionAffinity && strings.EqualFold(strings.TrimSpace(cfg.Routing.SessionAffinityRebindOn), coreauth.SessionAffinityRebindOnQuota) {
-		state.sessionAffinityRebindOn = coreauth.SessionAffinityRebindOnQuota
+	// quota is the default. Only an explicit "any" selects the older rebind-on-any mode.
+	if state.sessionAffinity && strings.EqualFold(strings.TrimSpace(cfg.Routing.SessionAffinityRebindOn), coreauth.SessionAffinityRebindOnAny) {
+		state.sessionAffinityRebindOn = coreauth.SessionAffinityRebindOnAny
 	}
 	return state
 }

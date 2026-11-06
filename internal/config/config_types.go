@@ -562,10 +562,12 @@ type RoutingConfig struct {
 	// SessionAffinityRebindOn controls which credential failures rebind an established session
 	// to the failover credential.
 	// Supported values:
-	//   - "any" (default): any credential-attributed failure unbinds and rebinds on failover.
-	//   - "quota": transient errors (408, 5xx, empty stream, buffer limit) fail over for that
-	//     request only while keeping the session bound to its original credential; quota and
+	//   - "quota" (default): transient errors (408, 5xx, empty stream, buffer limit) fail over for
+	//     that request only while keeping the session bound to its original credential; quota and
 	//     auth errors (429, 401/402/403, 404/model support, invalid_grant) rebind as normal.
+	//     Two transient failures in a row on one credential mark it as dead, so the session rebinds.
+	//   - "any": any credential-attributed failure unbinds and rebinds on failover.
+	// Empty or unknown values use "quota".
 	// Ignored when SessionAffinity is false.
 	SessionAffinityRebindOn string `yaml:"session-affinity-rebind-on,omitempty" json:"session-affinity-rebind-on,omitempty"`
 }
