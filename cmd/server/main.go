@@ -103,6 +103,12 @@ func main() {
 		fmt.Printf("LLMProxyAPI Version: %s, Commit: %s, BuiltAt: %s\n", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
 	}
 
+	// Move pre-XDG data (~/.llm-proxy-api) to the XDG data directory.
+	// Explicit paths are untouched; missing destinations only.
+	if _, errMigrate := config.MigrateLegacyDataDir(); errMigrate != nil {
+		log.Warnf("legacy data directory migration failed: %v", errMigrate)
+	}
+
 	// Command-line flags to control the application's behavior.
 	var codexLogin bool
 	var codexDeviceLogin bool

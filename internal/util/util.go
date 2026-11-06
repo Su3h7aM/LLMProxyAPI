@@ -73,10 +73,10 @@ func SetLogLevel(cfg *config.Config) {
 
 // ResolveAuthDir normalizes the auth directory path for consistent reuse throughout the app.
 // It expands a leading tilde (~) to the user's home directory and returns a cleaned path.
-// If authDir is empty, it defaults to ~/.llm-proxy-api.
+// If authDir is empty, it defaults to the XDG data directory.
 func ResolveAuthDir(authDir string) (string, error) {
 	if authDir == "" {
-		authDir = config.DefaultAuthDir
+		authDir = config.DefaultDataDir()
 	}
 	if strings.HasPrefix(authDir, "~") {
 		home, err := os.UserHomeDir()

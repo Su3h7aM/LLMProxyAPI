@@ -45,7 +45,7 @@ func TestParseConfigBytes_ServerKVStoreV8AndLegacy(t *testing.T) {
 }
 
 func TestParseConfigBytes_ServerKVStoreDefaultsAndEffectivePath(t *testing.T) {
-	wantDefaultAuthPath := filepath.Join(DefaultAuthDir, DefaultKVStorePath)
+	wantDefaultAuthPath := filepath.Join(DefaultDataDir(), DefaultKVStorePath)
 
 	// Omitted kv-store section defaults to Disabled=false and Path="" (resolving to <auth-dir>/kv.db).
 	omittedCfg, errOmitted := ParseConfigBytes([]byte("config-version: 8\nserver:\n  port: 8317\n"))

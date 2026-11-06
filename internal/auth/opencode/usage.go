@@ -152,11 +152,13 @@ func newSessionID(now time.Time) string {
 	current := ^(uint64(ms)*0x1000 + sessionCounter.Add(1))
 	var raw [14]byte
 	if _, err := rand.Read(raw[:]); err != nil {
-		var fallback [16]byte
-		for i := range fallback {
-			fallback[i] = byte(sessionCounter.Add(1) * 2654435761 >> ((i % 4) * 8))
+		// Deterministic fallback without secret material: session ids only
+		// need uniqueness per request, not entropy.
+		seed := uint64(now.UnixNano()) + sessionCounter.Add(0x9E3779B9)
+		for i := range raw {
+			seed = seed*6364136223846793005 + 1442695040888963407
+			raw[i] = byte(seed >> 33)
 		}
-		copy(raw[:], fallback[:])
 	}
 	id := make([]byte, 0, 4+12+14)
 	id = append(id, "ses_"...)

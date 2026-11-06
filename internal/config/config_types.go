@@ -449,7 +449,7 @@ func (c KVStoreConfig) EffectivePath() string {
 }
 
 // EffectivePathForAuthDir returns the trimmed Path when explicitly configured,
-// or joins the given authDir (falling back to DefaultAuthDir when authDir is empty)
+// or joins the given authDir (falling back to the XDG data directory when authDir is empty)
 // with DefaultKVStorePath ("<auth-dir>/kv.db").
 func (c KVStoreConfig) EffectivePathForAuthDir(authDir string) string {
 	if trimmed := strings.TrimSpace(c.Path); trimmed != "" {
@@ -457,7 +457,7 @@ func (c KVStoreConfig) EffectivePathForAuthDir(authDir string) string {
 	}
 	baseDir := strings.TrimSpace(authDir)
 	if baseDir == "" {
-		baseDir = DefaultAuthDir
+		baseDir = DefaultDataDir()
 	}
 	return filepath.Join(baseDir, DefaultKVStorePath)
 }
@@ -465,7 +465,7 @@ func (c KVStoreConfig) EffectivePathForAuthDir(authDir string) string {
 // EffectiveKVStorePath returns the configured KVStore.Path or "<auth-dir>/kv.db" when empty.
 func (cfg *Config) EffectiveKVStorePath() string {
 	if cfg == nil {
-		return filepath.Join(DefaultAuthDir, DefaultKVStorePath)
+		return filepath.Join(DefaultDataDir(), DefaultKVStorePath)
 	}
 	return cfg.KVStore.EffectivePathForAuthDir(cfg.AuthDir)
 }
