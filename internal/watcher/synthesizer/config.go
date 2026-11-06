@@ -307,6 +307,9 @@ func (s *ConfigSynthesizer) synthesizeOpenCodeGoKeys(ctx *SynthesisContext) []*c
 			"source":       fmt.Sprintf("config:%s[%s]", opencode.ProviderName, token),
 			"config_index": strconv.Itoa(i),
 			"api_key":      key,
+			// Config-backed keys have no file path. Mark them runtime-only so the
+			// auth-files listing (and so the quota page) includes them.
+			"runtime_only": "true",
 		}
 		if entry.Priority != 0 {
 			attrs["priority"] = strconv.Itoa(entry.Priority)
