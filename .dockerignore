@@ -1,0 +1,16 @@
+.jj/
+.git/
+.refs/
+.workspaces/
+TASKS.md
+node_modules/
+apps/web/node_modules/
+apps/web/dist/
+bin/
+logs/
+plugins/
+auths/
+home/
+*.log
+.mise/cache/
+llmproxy
