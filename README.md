@@ -59,15 +59,11 @@ mise tasks ls          # list all tasks
 
 ## Panel
 
-The proxy binary serves the panel at `/management.html` from a single
-process. Stage the bundled panel with `mise run stage-panel`, then
-point the binary at it and stop the remote asset sync. Example
-config and run:
-
-```
-remote-management:
-  disable-auto-update-panel: true
-```
+The panel lives in `apps/web` and ships inside the proxy binary: one
+project, one binary. Build order is `build-web`, `stage-panel`,
+`build-server` (each depends on the previous). The binary serves the
+embedded panel at `/management.html`. Nothing is downloaded at runtime.
+Panel development can still point at a live bundle:
 
 ```
 MANAGEMENT_STATIC_PATH=$PWD/apps/web/dist ./llmproxy -config config.yaml
