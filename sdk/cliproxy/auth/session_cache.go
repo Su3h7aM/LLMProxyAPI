@@ -41,6 +41,7 @@ type SessionCache struct {
 	sessionGroups    map[string]map[string]struct{}
 	bindingSequence  uint64
 	failoverPins     map[string]sessionFailoverPin
+	persister        *AffinityPersister
 }
 
 // NewSessionCache creates a cache with the specified TTL.
@@ -225,6 +226,7 @@ func (c *SessionCache) replaceAliasGroupsLocked(authID string, expiresAt time.Ti
 	}
 	for _, alias := range aliases {
 		c.entries[alias] = entry
+		c.persister.Bind(alias, authID, expiresAt)
 	}
 	c.evictionElements[primaryKey] = c.evictionOrder.PushBack(primaryKey)
 	if c.maxEntries > 0 && len(c.entries) > c.maxEntries {
@@ -274,7 +276,25 @@ func (c *SessionCache) removeAliasGroupLocked(entry sessionEntry) {
 			continue
 		}
 		delete(c.entries, alias)
+		c.persister.Unbind(alias)
 	}
+}
+
+// SetPersister detaches the old persister and restores the new mirror.
+func (c *SessionCache) SetPersister(p *AffinityPersister) {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.ensureInitializedLocked()
+	c.persister = nil
+	if p != nil {
+		for key, binding := range p.Bindings() {
+			c.replaceAliasGroupsLocked(binding.AuthID, binding.ExpiresAt, []string{key}, sessionBinding{})
+		}
+	}
+	c.persister = p
 }
 
 func sameSessionEntryGroup(left, right sessionEntry) bool {
