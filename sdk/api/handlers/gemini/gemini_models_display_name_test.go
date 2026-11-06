@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
 )
 
 func TestGeminiModelsResponseUsesConfiguredDisplayName(t *testing.T) {

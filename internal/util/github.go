@@ -1,6 +1,6 @@
 package util
 
-import "github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
+import "github.com/Su3h7aM/LLMProxyAPI/internal/githubauth"
 
 // ResolveGitHubToken returns the GitHub API token in priority order:
 // 1. server.github-token

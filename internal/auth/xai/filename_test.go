@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 type credentialListStore struct {

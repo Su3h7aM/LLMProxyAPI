@@ -3,8 +3,8 @@ package cliproxy
 import (
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 func TestBuildOpenAICompatibilityConfigModels_InputModalities(t *testing.T) {

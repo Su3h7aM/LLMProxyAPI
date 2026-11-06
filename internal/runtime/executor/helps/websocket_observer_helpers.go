@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 // EmitWebSocketResponseEvent delivers an upstream WebSocket response frame to any configured observer.

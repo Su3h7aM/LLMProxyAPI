@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestDownloadAuthFile_ReturnsFile(t *testing.T) {

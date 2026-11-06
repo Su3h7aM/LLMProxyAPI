@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/antigravity"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/antigravity"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestSummaryIntentTranslation(t *testing.T) {

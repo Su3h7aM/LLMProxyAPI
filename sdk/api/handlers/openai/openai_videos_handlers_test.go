@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	apihandlers "github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	apihandlers "github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func performVideosEndpointRequest(t *testing.T, method string, endpointPath string, contentType string, body io.Reader, handler gin.HandlerFunc) *httptest.ResponseRecorder {

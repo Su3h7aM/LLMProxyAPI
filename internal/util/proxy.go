@@ -6,8 +6,8 @@ package util
 import (
 	"net/http"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/proxyutil"
 	log "github.com/sirupsen/logrus"
 )
 

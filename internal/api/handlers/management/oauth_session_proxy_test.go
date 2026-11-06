@@ -15,16 +15,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/antigravity"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/synthesizer"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/antigravity"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/synthesizer"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 )
 
 type proxyTestCodexOAuthService struct {

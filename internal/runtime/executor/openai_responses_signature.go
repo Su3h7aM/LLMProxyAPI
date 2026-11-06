@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 func openaiResponsesReasoningSummaryIsEmpty(summary ojson.Result) bool {

@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 const claudeIssue6698SSE = "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_test\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-opus-5-5\",\"content\":[],\"stop_reason\":null,\"usage\":{\"input_tokens\":1,\"output_tokens\":0}}}\n\n" +

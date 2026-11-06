@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/githubauth"
 )
 
 func TestGlobalGitHubTokenAuth(t *testing.T) {

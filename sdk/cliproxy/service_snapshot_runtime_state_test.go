@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	internalregistry "github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/synthesizer"
-	sdkauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	internalregistry "github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/synthesizer"
+	sdkauth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 // Service-level repro on dev: a file snapshot applied through handleAuthUpdates (the

@@ -7,15 +7,15 @@ import (
 	"context"
 	"fmt"
 
-	configaccess "github.com/router-for-me/LLMProxyAPI/v8/internal/access/config_access"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/api"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	configaccess "github.com/Su3h7aM/LLMProxyAPI/internal/access/config_access"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/api"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 // Builder constructs a Service instance with customizable providers.

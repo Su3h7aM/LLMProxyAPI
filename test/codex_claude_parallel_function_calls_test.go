@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestCodexToClaudeParallelFunctionCallsHaveValidLifecycle(t *testing.T) {

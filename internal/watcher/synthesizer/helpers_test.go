@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/diff"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/diff"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func TestNewStableIDGenerator(t *testing.T) {

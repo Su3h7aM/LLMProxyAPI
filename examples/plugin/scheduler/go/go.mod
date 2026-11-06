@@ -1,10 +1,10 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/plugin/scheduler/go
+module github.com/Su3h7aM/LLMProxyAPI/examples/plugin/scheduler/go
 
 go 1.26.10
 
 require (
-	github.com/router-for-me/LLMProxyAPI/v7 v7.0.0
+	github.com/Su3h7aM/LLMProxyAPI v0.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/router-for-me/LLMProxyAPI/v7 => ../../../..
+replace github.com/Su3h7aM/LLMProxyAPI => ../../../..

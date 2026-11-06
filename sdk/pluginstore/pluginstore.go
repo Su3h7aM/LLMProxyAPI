@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	internalpluginstore "github.com/router-for-me/LLMProxyAPI/v8/internal/pluginstore"
+	internalpluginstore "github.com/Su3h7aM/LLMProxyAPI/internal/pluginstore"
 )
 
 const (

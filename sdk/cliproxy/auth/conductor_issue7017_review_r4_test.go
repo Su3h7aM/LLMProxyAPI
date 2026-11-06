@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 // Review round 4 regressions: sibling-model quota must not re-impose the

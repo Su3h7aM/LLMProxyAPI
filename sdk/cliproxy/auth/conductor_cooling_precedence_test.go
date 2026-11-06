@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestManagerMarkResultUsesCredentialCoolingPrecedence(t *testing.T) {

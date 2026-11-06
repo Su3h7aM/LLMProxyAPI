@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	internallogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	coresession "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
 	"github.com/gin-gonic/gin"
-	internallogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	coresession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
-	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
 )
 
 func TestUsageQueuePluginPayloadIncludesStableFieldsAndSuccess(t *testing.T) {

@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers/gemini"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/gemini"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func TestApplyOAuthModelAlias_Rename(t *testing.T) {

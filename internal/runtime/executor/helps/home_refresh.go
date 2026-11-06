@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 type homeStatusErr struct {

@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"testing"
 
-	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	claudeauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/claude"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestClaudeExecutorDuplicateMetadataIsRequestScoped(t *testing.T) {

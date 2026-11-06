@@ -4,7 +4,7 @@
 // embed LLMProxyAPI without importing internal packages.
 package config
 
-import internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+import internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
 
 type SDKConfig = internalconfig.SDKConfig
 

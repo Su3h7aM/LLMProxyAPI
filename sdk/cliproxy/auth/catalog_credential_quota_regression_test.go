@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 func TestCredentialQuotaKeepsHealthyCatalogAcrossRestart(t *testing.T) {

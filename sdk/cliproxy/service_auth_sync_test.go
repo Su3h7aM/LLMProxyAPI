@@ -17,13 +17,13 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/api"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	internalregistry "github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/api"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	internalregistry "github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestRuntimeAuthSyncHook_SynchronousModelAndSchedulerRestoration(t *testing.T) {

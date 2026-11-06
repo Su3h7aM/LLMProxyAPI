@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	internalregistry "github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	internalregistry "github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func TestServiceRun_WatcherReloadConcurrentWithStartupModelRegistration_Issue6583(t *testing.T) {

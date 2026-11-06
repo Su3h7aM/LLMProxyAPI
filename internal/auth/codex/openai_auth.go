@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/singleflight"
 )

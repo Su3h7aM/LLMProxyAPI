@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 type exclusionFenceModelProvider struct {

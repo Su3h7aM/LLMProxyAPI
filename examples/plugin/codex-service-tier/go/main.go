@@ -40,8 +40,8 @@ import (
 	"unsafe"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"gopkg.in/yaml.v3"
 )
 

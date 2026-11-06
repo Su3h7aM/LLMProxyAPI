@@ -8,12 +8,12 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/constant"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"golang.org/x/net/context"
 )
 

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	xaiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/xai"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	xaiauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/xai"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

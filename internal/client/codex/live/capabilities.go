@@ -6,13 +6,13 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 	log "github.com/sirupsen/logrus"
 )
 

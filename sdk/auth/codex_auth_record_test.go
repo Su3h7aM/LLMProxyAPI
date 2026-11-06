@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
 )
 
 func makeTestCodexJWT(planType, accountID string) string {

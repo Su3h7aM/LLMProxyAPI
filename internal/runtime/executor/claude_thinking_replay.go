@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/diff"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/opencode"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/constant"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/diff"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 // ConfigSynthesizer generates Auth entries from configuration API keys.

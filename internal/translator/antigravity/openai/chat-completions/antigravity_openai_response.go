@@ -13,11 +13,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/MoeForge/moego/ojson"
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/gemini/openai/chat-completions"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/translator/gemini/openai/chat-completions"
 )
 
 // convertCliResponseToOpenAIChatParams holds parameters for response conversion.

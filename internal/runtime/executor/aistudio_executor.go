@@ -14,15 +14,15 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	internalsignature "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/wsrelay"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	internalsignature "github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/wsrelay"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 // AIStudioExecutor routes AI Studio requests through a websocket-backed transport.

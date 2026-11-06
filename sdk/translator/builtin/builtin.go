@@ -2,9 +2,9 @@
 package builtin
 
 import (
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
 )
 
 // Registry exposes the default registry populated with all built-in translators.

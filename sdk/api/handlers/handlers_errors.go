@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 	"golang.org/x/net/context"
 )
 

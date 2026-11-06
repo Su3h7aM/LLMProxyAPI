@@ -3,9 +3,9 @@ package api
 import (
 	"testing"
 
-	proxyconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	responsesclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/claude/openai/responses"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	proxyconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	responsesclaude "github.com/Su3h7aM/LLMProxyAPI/internal/translator/claude/openai/responses"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 // setClaudeToolSearchForTest sets upstream.claude.tool-search for one test.

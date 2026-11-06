@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	log "github.com/sirupsen/logrus"
 )
 

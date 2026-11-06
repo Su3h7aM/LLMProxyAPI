@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 // Keep text signature carriers off the client-visible reasoning timeline. The

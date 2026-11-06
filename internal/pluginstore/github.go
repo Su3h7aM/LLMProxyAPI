@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/httpfetch"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/httpfetch"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestBuildConfigChangeDetailsClientCodexEnableApplyPatch(t *testing.T) {

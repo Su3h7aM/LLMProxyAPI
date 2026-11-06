@@ -3,7 +3,7 @@ package auth
 import (
 	"testing"
 
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestResolveOAuthUpstreamModel_SuffixPreservation(t *testing.T) {

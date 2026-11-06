@@ -11,13 +11,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/claude"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/xai"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/xai"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 func TestSaveTokenRecord_PostPersistHookReceivesCanonicalClaudeOAuth(t *testing.T) {

@@ -9,11 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/vertex"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/vertex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

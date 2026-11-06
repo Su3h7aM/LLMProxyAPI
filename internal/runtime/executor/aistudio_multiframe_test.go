@@ -11,13 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/wsrelay"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/wsrelay"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 var multiFrameCalls atomic.Int64

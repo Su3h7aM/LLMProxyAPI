@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 // The dev golden was produced by running renderToolSearchGolden against the

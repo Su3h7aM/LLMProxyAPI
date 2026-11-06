@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 func goldenHash(b []byte) string { s := sha256.Sum256(b); return hex.EncodeToString(s[:]) }

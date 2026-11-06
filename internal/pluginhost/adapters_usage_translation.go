@@ -8,12 +8,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 

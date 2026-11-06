@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
 )
 
 const (

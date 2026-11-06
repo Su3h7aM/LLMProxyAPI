@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	auth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	core "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	translator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gorilla/websocket"
-	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	auth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	core "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	translator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 // The server waits for all explicit creates before rejecting one. This makes

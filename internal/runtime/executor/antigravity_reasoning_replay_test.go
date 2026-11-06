@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	internalsignature "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	internalsignature "github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestAntigravityReasoningReplayAccumulatorMultiToolSSEChunks(t *testing.T) {

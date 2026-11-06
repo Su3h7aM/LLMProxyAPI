@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/misc"
 	log "github.com/sirupsen/logrus"
 )
 

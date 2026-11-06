@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
 	log "github.com/sirupsen/logrus"
 )
 

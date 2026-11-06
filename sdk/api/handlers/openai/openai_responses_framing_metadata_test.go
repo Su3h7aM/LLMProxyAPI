@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
 )
 
 func TestResponsesSSEFramerFragmentedMetadataDataField(t *testing.T) {

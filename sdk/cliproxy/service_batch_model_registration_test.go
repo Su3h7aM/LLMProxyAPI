@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 type mockBatchTestExecutor struct {

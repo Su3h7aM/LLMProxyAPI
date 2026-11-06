@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	"github.com/gin-gonic/gin"
 	"github.com/klauspost/compress/zstd"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 	log "github.com/sirupsen/logrus"
 )
 

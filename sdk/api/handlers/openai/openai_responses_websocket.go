@@ -16,16 +16,16 @@ import (
 	"unicode/utf8"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
 	log "github.com/sirupsen/logrus"
 )
 

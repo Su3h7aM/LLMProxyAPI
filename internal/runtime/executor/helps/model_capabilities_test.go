@@ -6,17 +6,17 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	helps "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/claude"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/codex"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/gemini"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/openai"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	helps "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/claude"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/codex"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/gemini"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/openai"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 type configuredThinkingExecutor struct {

@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/kimi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/proxyutil"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/kimi"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
 )
 
 const (

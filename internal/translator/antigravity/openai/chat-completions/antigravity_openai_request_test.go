@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 func TestConvertOpenAIRequestToAntigravitySkipsEmptyTextPartsWithoutNulls(t *testing.T) {

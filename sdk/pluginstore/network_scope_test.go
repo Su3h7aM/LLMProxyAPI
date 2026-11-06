@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	internalpluginstore "github.com/router-for-me/LLMProxyAPI/v8/internal/pluginstore"
+	internalpluginstore "github.com/Su3h7aM/LLMProxyAPI/internal/pluginstore"
 )
 
 type networkScopeDoer func(*http.Request) (*http.Response, error)

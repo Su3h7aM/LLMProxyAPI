@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 // StripThinkingConfig removes thinking configuration fields from request body.

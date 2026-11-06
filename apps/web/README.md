@@ -9,7 +9,7 @@
 A lightweight Web UI for LLM Proxy API.<br>
 Manage providers, credentials, quotas, and logs — from a single HTML file.
 
-[![Backend: v8](https://img.shields.io/badge/Backend-v8-5865F2?style=flat-square)](https://github.com/router-for-me/LLMProxyAPI)
+[![Backend: v8](https://img.shields.io/badge/Backend-v8-5865F2?style=flat-square)](https://github.com/Su3h7aM/LLMProxyAPI)
 [![Single-file build](https://img.shields.io/badge/Build-single_HTML-0F766E?style=flat-square)](#deployment)
 [![License: MIT](https://img.shields.io/badge/License-MIT-64748B?style=flat-square)](LICENSE)
 
@@ -36,7 +36,7 @@ From everyday configuration to troubleshooting, keep the essentials close at han
 
 ## Quick start
 
-The UI is bundled with [LLM Proxy API](https://github.com/router-for-me/LLMProxyAPI). No separate frontend deployment is needed for the standard setup.
+The UI is bundled with [LLM Proxy API](https://github.com/Su3h7aM/LLMProxyAPI). No separate frontend deployment is needed for the standard setup.
 
 1. Start your LLM Proxy API service.
 2. Open `http://<host>:<api_port>/management.html`.
@@ -52,7 +52,7 @@ The API address is detected from the page URL and can be changed manually.
 
 The UI accepts addresses such as `localhost:8317`, `https://example.com:8317`, or `http://example.com:8317/v8/management`; the management suffix is removed automatically.
 
-Management requests use `Authorization: Bearer <MANAGEMENT_KEY>`. Remote access may require `management.allow-remote: true` on the server. See the [backend documentation](https://github.com/router-for-me/LLMProxyAPI) for authentication rules and server-side limits.
+Management requests use `Authorization: Bearer <MANAGEMENT_KEY>`. Remote access may require `management.allow-remote: true` on the server. See the [backend documentation](https://github.com/Su3h7aM/LLMProxyAPI) for authentication rules and server-side limits.
 
 </details>
 
@@ -157,6 +157,6 @@ Use a trusted device or dedicated browser profile. Enable remote management only
 
 <div align="center">
 
-[LLM Proxy API](https://github.com/router-for-me/LLMProxyAPI) · [Report an issue](https://github.com/router-for-me/LLMProxyAPI/issues) · [MIT License](LICENSE)
+[LLM Proxy API](https://github.com/Su3h7aM/LLMProxyAPI) · [Report an issue](https://github.com/Su3h7aM/LLMProxyAPI/issues) · [MIT License](LICENSE)
 
 </div>

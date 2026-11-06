@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/modelconfig"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/constant"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/modelconfig"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 // registerModelsForAuth (re)binds provider models in the global registry using the core auth ID as client identifier.

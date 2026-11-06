@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestRequestProxyOverridesCredentialProxyForWebsocketAndAntigravity(t *testing.T) {

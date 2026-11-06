@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestIsCodexMultiAgentClient(t *testing.T) {

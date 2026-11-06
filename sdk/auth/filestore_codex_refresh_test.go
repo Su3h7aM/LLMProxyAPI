@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func codexRefreshFixture() *cliproxyauth.Auth {

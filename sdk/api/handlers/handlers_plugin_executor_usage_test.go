@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 type noopUsagePlugin struct{}

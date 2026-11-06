@@ -356,7 +356,7 @@ export function SystemPage() {
           <p className={styles.sectionDescription}>{t('system_info.quick_links_desc')}</p>
           <div className={styles.quickLinks}>
             <a
-              href="https://github.com/router-for-me/LLMProxyAPI"
+              href="https://github.com/Su3h7aM/LLMProxyAPI"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.linkCard}

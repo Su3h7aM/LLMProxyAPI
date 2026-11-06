@@ -12,17 +12,17 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	runtimeexecutor "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	runtimeexecutor "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 type issue6332NestedLifecycle struct {

@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gin-gonic/gin"
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 type handlerModelRouterTestHost struct {

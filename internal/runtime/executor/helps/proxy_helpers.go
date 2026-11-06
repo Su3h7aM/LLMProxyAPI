@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/httptransport"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/httptransport"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/proxyutil"
 	log "github.com/sirupsen/logrus"
 )
 

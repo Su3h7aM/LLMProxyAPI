@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	helps "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/claude"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/codex"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	helps "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/claude"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/codex"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 type editUpdatePluginHooks struct {

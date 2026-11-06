@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
 )
 
 type mockRoundTripper func(req *http.Request) (*http.Response, error)

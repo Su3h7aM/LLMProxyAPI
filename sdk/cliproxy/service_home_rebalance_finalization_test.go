@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/homeplugins"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executionregistry"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/homeplugins"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executionregistry"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestServicePlannedRebalanceSettlesDispatchBeforeCancelingPluginFinalization(t *testing.T) {

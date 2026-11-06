@@ -17,14 +17,14 @@ import (
 	"testing"
 	"time"
 
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/homeplugins"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executionregistry"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/homeplugins"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executionregistry"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	sdkpluginstore "github.com/Su3h7aM/LLMProxyAPI/sdk/pluginstore"
 )
 
 type blockingServiceCooldownStore struct {

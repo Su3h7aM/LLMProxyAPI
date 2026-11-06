@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 // NormalizeApplyPatchResponsesRequest adapts declarations and explicit custom patch history.

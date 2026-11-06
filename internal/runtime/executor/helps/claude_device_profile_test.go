@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 type fakeClaudeDeviceProfileKVClient struct {

@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	runtimeexecutor "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	runtimeexecutor "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 // An unknown interrupt while a websocket response is running belongs to the

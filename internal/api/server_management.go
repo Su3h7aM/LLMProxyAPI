@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/managementasset"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/managementasset"
 	log "github.com/sirupsen/logrus"
 )
 

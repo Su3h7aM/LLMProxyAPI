@@ -11,9 +11,9 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestGetRequestDetails_PreservesSuffix(t *testing.T) {

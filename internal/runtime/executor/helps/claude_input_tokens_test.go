@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tiktoken-go/tokenizer"
 
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 type failingClaudeInputCodec struct{}

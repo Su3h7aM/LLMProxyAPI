@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	cliproxysession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	cliproxysession "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestFillFirstSelectorPick_Deterministic(t *testing.T) {

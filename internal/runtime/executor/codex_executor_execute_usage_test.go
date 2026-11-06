@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestCodexExecutorExecutePublishesMainUsageBeforeImageUsage(t *testing.T) {

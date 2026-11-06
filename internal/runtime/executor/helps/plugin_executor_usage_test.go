@@ -3,7 +3,7 @@ package helps
 import (
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
 )
 
 func TestObservePluginExecutorStreamUsageKeepsTopLevelResponsesTokensWhenServiceTierPresent(t *testing.T) {

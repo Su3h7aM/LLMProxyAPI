@@ -13,12 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/MoeForge/moego/ojson"
-	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	claudeauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/claude"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestResolveClaudeFingerprintPolicy(t *testing.T) {

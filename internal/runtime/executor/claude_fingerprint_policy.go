@@ -6,10 +6,10 @@ import (
 	"sync"
 
 	"github.com/MoeForge/moego/ojson"
-	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	claudeauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/claude"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

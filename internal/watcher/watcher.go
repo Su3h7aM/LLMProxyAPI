@@ -9,13 +9,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/synthesizer"
 	"github.com/fsnotify/fsnotify"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/synthesizer"
 	"gopkg.in/yaml.v3"
 
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

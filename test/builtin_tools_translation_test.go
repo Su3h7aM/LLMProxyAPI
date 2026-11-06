@@ -3,10 +3,10 @@ package test
 import (
 	"testing"
 
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
 
 	"github.com/MoeForge/moego/ojson"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestOpenAIToCodex_PreservesBuiltinTools(t *testing.T) {

@@ -15,10 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/pion/sdp/v3"
 	"github.com/pion/stun/v3"
 	"github.com/pion/webrtc/v4"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 type recordedProxyDial struct {

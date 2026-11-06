@@ -12,13 +12,13 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
+	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gin-gonic/gin"
-	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func validCodexReasoningEncryptedContentForTestSeed(seed byte) string {

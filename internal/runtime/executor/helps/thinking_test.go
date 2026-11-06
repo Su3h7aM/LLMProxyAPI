@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	helps "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/gemini"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	helps "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/gemini"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 type summaryRemovingPluginHooks struct {

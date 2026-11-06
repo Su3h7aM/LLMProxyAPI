@@ -3,7 +3,7 @@ package helps
 import (
 	"strings"
 
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
 )
 
 // CheckDevinUserTurns applies the shared user-turn policy to the parsed prompts.

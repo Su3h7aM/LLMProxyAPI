@@ -9,13 +9,13 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	sigcompat "github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 const (

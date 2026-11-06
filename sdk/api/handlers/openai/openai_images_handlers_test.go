@@ -15,15 +15,15 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	runtimeexecutor "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	runtimeexecutor "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func performImagesEndpointRequest(t *testing.T, endpointPath string, contentType string, body io.Reader, handler gin.HandlerFunc) *httptest.ResponseRecorder {

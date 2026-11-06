@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/go-git/go-git/v6"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 func TestRemoteStoresDisabledLoginReachesTokenStorage(t *testing.T) {

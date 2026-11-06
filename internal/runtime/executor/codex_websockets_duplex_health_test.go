@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	auth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	core "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	translator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	auth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	core "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	translator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestCodexDuplexConnectionTimeoutDoesNotCoolHealthyAccount(t *testing.T) {

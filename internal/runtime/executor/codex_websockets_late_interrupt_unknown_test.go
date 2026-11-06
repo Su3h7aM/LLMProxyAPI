@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 	"github.com/gorilla/websocket"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 // An unknown-id interrupt arriving after the upstream terminal event was

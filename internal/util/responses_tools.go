@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
 )
 
 // ResponsesToolIdentity represents the resolved identity of a tool in OpenAI Responses format.

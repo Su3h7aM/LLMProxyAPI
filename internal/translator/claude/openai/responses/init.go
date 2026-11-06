@@ -1,10 +1,10 @@
 package responses
 
 import (
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/translator/translator"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/constant"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/translator/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func init() {

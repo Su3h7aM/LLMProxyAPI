@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/api/handlers/management"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/api/handlers/management"
 )
 
 // registerManagementV8Routes defines the v8 contract independently of v0.

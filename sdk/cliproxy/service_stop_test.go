@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/api"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/api"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestServiceShutdown_ViolentShutdownImmediatelyClosesServer(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 type metaTestTransport func(*http.Request) (*http.Response, error)

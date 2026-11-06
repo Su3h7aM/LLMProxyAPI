@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/opencode"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/opencode"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 	xcurrency "golang.org/x/text/currency"
 )

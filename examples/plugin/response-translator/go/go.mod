@@ -1,3 +1,3 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/plugin/response-translator/go
+module github.com/Su3h7aM/LLMProxyAPI/examples/plugin/response-translator/go
 
 go 1.26

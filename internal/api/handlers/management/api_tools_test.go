@@ -16,13 +16,13 @@ import (
 	"testing"
 	"time"
 
+	xaiauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/xai"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	xaiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/xai"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func TestAPICallUsesRequestProxyURL(t *testing.T) {

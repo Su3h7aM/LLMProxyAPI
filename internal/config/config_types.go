@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	sdkpluginstore "github.com/Su3h7aM/LLMProxyAPI/sdk/pluginstore"
 	"gopkg.in/yaml.v3"
 )
 

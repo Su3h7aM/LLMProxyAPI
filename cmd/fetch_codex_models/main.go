@@ -30,13 +30,13 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	codexauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdkauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
+	codexauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdkauth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/proxyutil"
 	log "github.com/sirupsen/logrus"
 )
 

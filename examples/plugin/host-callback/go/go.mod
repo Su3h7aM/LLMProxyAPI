@@ -1,3 +1,3 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/plugin/host-callback/go
+module github.com/Su3h7aM/LLMProxyAPI/examples/plugin/host-callback/go
 
 go 1.26

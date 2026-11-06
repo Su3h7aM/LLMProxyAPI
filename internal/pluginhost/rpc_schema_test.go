@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 func TestRPCCapabilitiesIncludeFrontendAuthProviderExclusive(t *testing.T) {

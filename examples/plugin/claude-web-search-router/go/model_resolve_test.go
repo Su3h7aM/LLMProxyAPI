@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 func TestResolveCodexWebSearchTargetModelNeverUsesClaudeName(t *testing.T) {

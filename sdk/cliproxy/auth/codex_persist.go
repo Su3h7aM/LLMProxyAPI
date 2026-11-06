@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
 )
 
 // IsCodexAuthRecord reports whether auth represents a Codex credential record.

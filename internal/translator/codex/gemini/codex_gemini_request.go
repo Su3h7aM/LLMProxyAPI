@@ -12,9 +12,9 @@ import (
 
 	"github.com/MoeForge/moego/base64"
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 // ConvertGeminiRequestToCodex parses and transforms a Gemini API request into Codex API format.

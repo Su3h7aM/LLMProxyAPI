@@ -10,16 +10,16 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	runtimeexecutor "github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	openaihandlers "github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers/openai"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	runtimeexecutor "github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	openaihandlers "github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/openai"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 // TestCodexStreamDisconnectAfterHeadersFailsOver reproduces issue #6247:

@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 // NormalizeApplyPatchResponsesRequest opts a non-Codex executor into the patch contract.

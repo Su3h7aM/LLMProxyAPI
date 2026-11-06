@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/htmlsanitize"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/htmlsanitize"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 	"gopkg.in/yaml.v3"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/redisqueue"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/redisqueue"
 )
 
 type errorEvent struct {

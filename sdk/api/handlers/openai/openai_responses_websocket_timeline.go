@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	requestlogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	requestlogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
 	log "github.com/sirupsen/logrus"
 )
 

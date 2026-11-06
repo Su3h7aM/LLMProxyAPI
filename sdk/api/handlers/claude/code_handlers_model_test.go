@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func TestClaudeModelsResponseUsesConfiguredDisplayName(t *testing.T) {

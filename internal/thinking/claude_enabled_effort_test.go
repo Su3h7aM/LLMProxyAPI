@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/claude"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/openai"
-	openaiclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/openai/claude"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/claude"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/openai"
+	openaiclaude "github.com/Su3h7aM/LLMProxyAPI/internal/translator/openai/claude"
 )
 
 func TestApplyThinking_ClaudeEnabledWithOutputConfigEffort(t *testing.T) {

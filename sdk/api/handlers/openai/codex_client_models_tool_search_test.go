@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor"
-	responsesclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/claude/openai/responses"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	responsesclaude "github.com/Su3h7aM/LLMProxyAPI/internal/translator/claude/openai/responses"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 // countingToolSearchExecutor records native tool search capability checks.

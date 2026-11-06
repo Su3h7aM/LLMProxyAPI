@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	management "github.com/Su3h7aM/LLMProxyAPI/internal/api/handlers/management"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher/synthesizer"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
-	management "github.com/router-for-me/LLMProxyAPI/v8/internal/api/handlers/management"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher/synthesizer"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 func TestCodexExcludedModelsCredentialPriorityAfterPatchAndReload(t *testing.T) {

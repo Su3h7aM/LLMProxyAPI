@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
+	internallogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	"github.com/google/uuid"
-	internallogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
 	log "github.com/sirupsen/logrus"
 )
 

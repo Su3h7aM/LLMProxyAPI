@@ -17,7 +17,7 @@ import (
 	"context"
 	"unsafe"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
 )
 
 //export cliproxyHostCall

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestDiffOAuthSettingsChanges(t *testing.T) {

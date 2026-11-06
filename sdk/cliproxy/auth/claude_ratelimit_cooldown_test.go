@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 	"github.com/google/uuid"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
 )
 
 func TestAuthManager_ConcurrentSuccessDoesNotClearActiveCredentialCooldown(t *testing.T) {

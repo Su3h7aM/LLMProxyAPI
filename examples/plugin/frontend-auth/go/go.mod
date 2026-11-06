@@ -1,3 +1,3 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/plugin/frontend-auth/go
+module github.com/Su3h7aM/LLMProxyAPI/examples/plugin/frontend-auth/go
 
 go 1.26

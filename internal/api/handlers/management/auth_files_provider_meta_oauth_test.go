@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	metaauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/meta"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	metaauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/meta"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestBuildMetaAuthRecord_PreservesSubscriptionMetadata_Issue6117(t *testing.T) {

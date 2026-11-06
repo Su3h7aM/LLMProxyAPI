@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/kvstore"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/kvstore"
 )
 
 func TestServiceApplyKVStoreConfig_LifecycleAndHotReload(t *testing.T) {

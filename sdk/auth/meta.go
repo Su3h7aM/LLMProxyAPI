@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	metaauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/meta"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/browser"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	metaauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/meta"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/browser"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	auth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	executor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	auth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	executor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 type filteredPolicy struct {

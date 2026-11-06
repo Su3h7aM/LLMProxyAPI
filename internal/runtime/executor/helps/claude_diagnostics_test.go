@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
 	"github.com/google/uuid"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
 )
 
 func TestClaudeDiagnosticsTracksCompletedMessagePerCredentialSession(t *testing.T) {

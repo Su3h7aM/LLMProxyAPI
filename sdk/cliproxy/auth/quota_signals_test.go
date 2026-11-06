@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	internallogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	internallogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 )
 
 func TestQuotaStateObserveResponseHeadersKeepsProviderScopedSignals(t *testing.T) {

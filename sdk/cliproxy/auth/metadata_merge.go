@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
 )
 
 // IsAuthTokenPayloadKey returns true if key is a credential or token lifecycle field

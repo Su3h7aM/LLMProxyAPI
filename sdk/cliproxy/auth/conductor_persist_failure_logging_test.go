@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	internallogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	internallogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	log "github.com/sirupsen/logrus"
 	logtest "github.com/sirupsen/logrus/hooks/test"
 )

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 const interactionsCodexHistory = `{"type":"user_input","content":[{"type":"text","text":"a"}]},{"type":"model_output","content":[{"type":"text","text":"b"}]}`

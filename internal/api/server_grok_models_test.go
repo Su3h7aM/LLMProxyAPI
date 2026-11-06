@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/client/grokbuild"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/client/grokbuild"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
 )
 
 func TestModelsDispatchByGrokShellUserAgent(t *testing.T) {

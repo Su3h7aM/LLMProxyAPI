@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 

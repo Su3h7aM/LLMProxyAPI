@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	tls "github.com/refraction-networking/utls"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 type claudeTestDialer struct {

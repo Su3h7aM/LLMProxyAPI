@@ -3,7 +3,7 @@ package pluginhost
 import (
 	"testing"
 
-	internalregistry "github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	internalregistry "github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 func TestRegistryModelToPluginModelKeepsDisableType(t *testing.T) {

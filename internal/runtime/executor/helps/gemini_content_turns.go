@@ -2,7 +2,7 @@ package helps
 
 import (
 	"github.com/MoeForge/moego/ojson"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
 )
 
 var emptyGeminiUserTurnJSON = []byte(`{"role":"user","parts":[{"text":""}]}`)

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestPprofServerStopOwnedServerKeepsReplacement(t *testing.T) {

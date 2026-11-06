@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	coresession "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	coresession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
-	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 	"golang.org/x/net/context"
 )
 

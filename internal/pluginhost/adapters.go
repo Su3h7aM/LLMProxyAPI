@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator/builtin"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/sdk/translator/builtin"
 	log "github.com/sirupsen/logrus"
 )
 

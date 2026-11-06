@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 func TestApplyPatchCallStateInterleavedCalls(t *testing.T) {

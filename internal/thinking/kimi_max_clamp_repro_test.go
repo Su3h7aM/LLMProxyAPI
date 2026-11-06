@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/claude"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/kimi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/claude"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/kimi"
 )
 
 // TestKimiK28ClaudeMessagesMaxPreservesMax verifies that K2.8 models preserve effort=max

@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/buildinfo"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	"github.com/andybalholm/brotli"
 	"github.com/klauspost/compress/zstd"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/buildinfo"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 	log "github.com/sirupsen/logrus"
 )
 

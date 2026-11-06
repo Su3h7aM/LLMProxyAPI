@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 // TestConfigV8ETagIfMatch covers issue #6666: the v8 config endpoints must

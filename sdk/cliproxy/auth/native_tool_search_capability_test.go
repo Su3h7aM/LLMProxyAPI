@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 type toolSearchSupportExecutor struct {

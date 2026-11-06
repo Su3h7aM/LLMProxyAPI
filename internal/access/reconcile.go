@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	configaccess "github.com/router-for-me/LLMProxyAPI/v8/internal/access/config_access"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
+	configaccess "github.com/Su3h7aM/LLMProxyAPI/internal/access/config_access"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
 	log "github.com/sirupsen/logrus"
 )
 

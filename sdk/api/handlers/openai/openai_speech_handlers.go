@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/MoeForge/moego/ojson"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
 )
 
 const (

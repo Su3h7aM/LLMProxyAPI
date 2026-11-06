@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/api/handlers/management"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/api/handlers/management"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestManagementV8RoutesShareAccessControl(t *testing.T) {

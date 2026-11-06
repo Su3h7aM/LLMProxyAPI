@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 func TestAntigravityPublishedCacheDoesNotReconcileEmptyRegistry(t *testing.T) {

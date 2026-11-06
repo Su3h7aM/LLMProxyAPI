@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 // benchSSEEvents returns Responses-style SSE deltas whose text mixes common words and random

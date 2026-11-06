@@ -5,22 +5,22 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
 
 	// Import provider packages to trigger init() registration of ProviderAppliers
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/antigravity"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/claude"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/codex"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/gemini"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/interactions"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/kimi"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/openai"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/xai"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/antigravity"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/claude"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/codex"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/gemini"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/interactions"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/kimi"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/openai"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/xai"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 // thinkingTestCase represents a common test case structure for both suffix and body tests.

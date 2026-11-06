@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	devinauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/devin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	devinauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/devin"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 func TestDevinAuthenticatorProviderAndRefreshLead(t *testing.T) {

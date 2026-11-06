@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	cliproxysession "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
 	"github.com/google/uuid"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	cliproxysession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
 )
 
 // DerivedSessionID returns the first context-derived session identity in metadata order.

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	antigravitygemini "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/antigravity/gemini"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	antigravitygemini "github.com/Su3h7aM/LLMProxyAPI/internal/translator/antigravity/gemini"
 )
 
 func buildSynthetic4KAntigravitySSE() ([]byte, []byte) {

@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	coreexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"golang.org/x/net/context"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 func TestConvertClaudeResponseToOpenAINonStream_NativeMessagesJSON(t *testing.T) {

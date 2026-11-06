@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 	log "github.com/sirupsen/logrus"
 )
 

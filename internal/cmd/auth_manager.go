@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
 )
 
 // newAuthManager creates a new authentication manager instance with all supported

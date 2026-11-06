@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/proxyutil"
 	"golang.org/x/net/context"
 )
 

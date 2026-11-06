@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
 )
 
 // RefreshModelDefinitions triggers an immediate on-demand refresh of the model catalogs.

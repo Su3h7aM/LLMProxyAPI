@@ -6,7 +6,7 @@ package thinking
 
 import (
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 )
 
 // ThinkingMode represents the type of thinking configuration mode.

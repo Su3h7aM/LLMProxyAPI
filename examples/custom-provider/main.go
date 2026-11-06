@@ -23,15 +23,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	clipexec "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/logging"
+	sdktr "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api"
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	clipexec "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/logging"
-	sdktr "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 const (

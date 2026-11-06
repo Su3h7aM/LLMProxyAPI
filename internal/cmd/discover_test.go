@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/discovery"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/discovery"
 )
 
 type fakeBrowser struct {

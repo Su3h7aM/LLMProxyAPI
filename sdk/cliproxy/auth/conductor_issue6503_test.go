@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 	"github.com/google/uuid"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 type issue6503QuotaError struct {

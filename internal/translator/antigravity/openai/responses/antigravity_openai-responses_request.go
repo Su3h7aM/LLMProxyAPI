@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/antigravity/gemini"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/gemini/openai/responses"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	sigcompat "github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/translator/antigravity/gemini"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/translator/gemini/openai/responses"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,4 +1,4 @@
-module github.com/router-for-me/LLMProxyAPI/v8
+module github.com/Su3h7aM/LLMProxyAPI
 
 go 1.27.3
 

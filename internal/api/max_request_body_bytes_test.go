@@ -13,9 +13,9 @@ import (
 	"sync/atomic"
 	"testing"
 
+	proxyconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
 	"github.com/klauspost/compress/zstd"
-	proxyconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
 )
 
 type countingBodyReader struct {

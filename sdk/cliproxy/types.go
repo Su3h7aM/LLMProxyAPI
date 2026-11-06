@@ -7,10 +7,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/watcher"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 // TokenClientProvider loads clients backed by stored authentication tokens.

@@ -1,6 +1,6 @@
 package executor
 
-import "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+import "github.com/Su3h7aM/LLMProxyAPI/internal/config"
 
 // CodexExecutor is a stateless executor for Codex (OpenAI Responses API entrypoint).
 // If api_key is unavailable on auth, it falls back to legacy via ClientAdapter.

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
 )
 
 // Quota exceeded toggles

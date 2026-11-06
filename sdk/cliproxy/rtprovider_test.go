@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func TestRoundTripperForDirectBypassesProxy(t *testing.T) {

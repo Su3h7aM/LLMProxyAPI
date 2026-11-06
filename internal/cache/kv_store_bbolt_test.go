@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/kvstore"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/kvstore"
 )
 
 func TestKVStoreBBoltPersistenceAndRouting(t *testing.T) {

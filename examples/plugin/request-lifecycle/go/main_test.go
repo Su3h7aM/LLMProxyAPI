@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 )
 
 func TestConfigureRejectsLegacyHostSchema(t *testing.T) {

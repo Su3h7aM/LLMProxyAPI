@@ -15,13 +15,13 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
-	internalsignature "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
+	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
+	internalsignature "github.com/Su3h7aM/LLMProxyAPI/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
 	log "github.com/sirupsen/logrus"
 )
 

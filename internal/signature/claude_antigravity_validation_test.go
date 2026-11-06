@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature/signaturetest"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/signature/signaturetest"
 	"google.golang.org/protobuf/encoding/protowire"
 )
 

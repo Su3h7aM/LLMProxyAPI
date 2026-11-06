@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/htmlsanitize"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/htmlsanitize"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 

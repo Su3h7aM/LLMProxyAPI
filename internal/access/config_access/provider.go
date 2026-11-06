@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 )
 
 // Register ensures the config-access provider is available to the access manager.

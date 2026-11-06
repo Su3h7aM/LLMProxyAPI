@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

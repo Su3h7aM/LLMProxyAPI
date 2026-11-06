@@ -11,11 +11,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	sdkauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/misc"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	sdkauth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
 	"golang.org/x/sync/singleflight"
 )
 

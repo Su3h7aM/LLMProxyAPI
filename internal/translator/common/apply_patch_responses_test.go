@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	applypatch "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/apply-patch"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 var patchResponsesRequest = []byte(`{"tools":[{"type":"custom","name":"apply_patch"}]}`)

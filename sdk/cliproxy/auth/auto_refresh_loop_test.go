@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 type testRefreshEvaluator struct{}

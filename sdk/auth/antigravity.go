@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/antigravity"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/browser"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/antigravity"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/browser"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/misc"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	internallogging "github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	internalutil "github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	coresession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
+	internallogging "github.com/Su3h7aM/LLMProxyAPI/internal/logging"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	internalutil "github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	coresession "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/session"
 )
 
 type quotaAttemptIsolationSelector struct{}

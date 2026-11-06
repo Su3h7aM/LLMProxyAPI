@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/credentialweight"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/credentialweight"
 	"gopkg.in/yaml.v3"
 )
 

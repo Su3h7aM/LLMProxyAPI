@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
 	log "github.com/sirupsen/logrus"
 )
 

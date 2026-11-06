@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	webpanel "github.com/router-for-me/LLMProxyAPI/v8/apps/web"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	webpanel "github.com/Su3h7aM/LLMProxyAPI/apps/web"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 )
 
 // ManagementFileName exposes the control panel asset filename.

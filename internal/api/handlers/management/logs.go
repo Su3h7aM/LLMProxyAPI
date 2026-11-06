@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
 )
 
 const (

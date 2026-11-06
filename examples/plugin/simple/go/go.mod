@@ -1,7 +1,7 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/plugin/simple/go
+module github.com/Su3h7aM/LLMProxyAPI/examples/plugin/simple/go
 
-go 1.26.10
+go 1.27.3
 
-require github.com/router-for-me/LLMProxyAPI/v7 v7.0.0
+require github.com/Su3h7aM/LLMProxyAPI v0.0.0
 
-replace github.com/router-for-me/LLMProxyAPI/v7 => ../../../..
+replace github.com/Su3h7aM/LLMProxyAPI => ../../../..

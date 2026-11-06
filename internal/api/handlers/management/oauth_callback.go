@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
 	log "github.com/sirupsen/logrus"
 )
 

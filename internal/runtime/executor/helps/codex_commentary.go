@@ -3,8 +3,8 @@ package helps
 import (
 	"context"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
 )
 
 // WithCodexCommentaryPolicy keeps an in-flight stream's policy stable across

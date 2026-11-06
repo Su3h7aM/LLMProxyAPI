@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
 )
 
 func TestSetCodexCacheRequiredHomeUnavailableReturnsError(t *testing.T) {

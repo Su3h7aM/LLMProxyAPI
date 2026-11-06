@@ -24,10 +24,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginstore"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
 )
 
 func TestAuthDispatchRequestIncludesCount(t *testing.T) {

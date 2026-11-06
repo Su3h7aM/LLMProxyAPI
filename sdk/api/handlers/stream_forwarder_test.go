@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
 )
 
 func TestPendingStreamErrorReturnsBufferedError(t *testing.T) {

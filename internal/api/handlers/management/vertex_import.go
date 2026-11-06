@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/vertex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/vertex"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 // ImportVertexCredential handles uploading a Vertex service account JSON and saving it as an auth record.

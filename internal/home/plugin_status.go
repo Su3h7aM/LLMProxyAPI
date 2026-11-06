@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/homeplugins"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/homeplugins"
 )
 
 const pluginStatusReportTimeout = 10 * time.Second

@@ -9,12 +9,12 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
+	claudeauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/claude"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 	"github.com/google/uuid"
-	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 // ClaudeAgentSessionUUID maps the downstream agent conversation to one stable UUID,

@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/base64"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 )
 
 const (

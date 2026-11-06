@@ -6,7 +6,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 func TestExtractSessionInfoAllClients(t *testing.T) {

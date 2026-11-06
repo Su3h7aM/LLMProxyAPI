@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	sdkconfig "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	sdkpluginstore "github.com/Su3h7aM/LLMProxyAPI/sdk/pluginstore"
 	"gopkg.in/yaml.v3"
 )
 

@@ -5,7 +5,7 @@
 ## 安装与导入
 
 ```bash
-go get github.com/router-for-me/LLMProxyAPI/v6/sdk/cliproxy
+go get github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy
 ```
 
 ```go
@@ -14,8 +14,8 @@ import (
     "errors"
     "time"
 
-    "github.com/router-for-me/LLMProxyAPI/v6/internal/config"
-    "github.com/router-for-me/LLMProxyAPI/v6/sdk/cliproxy"
+    "github.com/Su3h7aM/LLMProxyAPI/v6/internal/config"
+    "github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy"
 )
 ```
 

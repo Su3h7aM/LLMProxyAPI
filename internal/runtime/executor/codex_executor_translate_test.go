@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestTranslateCodexRequestPairReusesEqualPayload(t *testing.T) {

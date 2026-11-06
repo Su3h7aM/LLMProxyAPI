@@ -16,15 +16,15 @@ import (
 	"sync"
 
 	"github.com/MoeForge/moego/ojson"
+	codexmodels "github.com/Su3h7aM/LLMProxyAPI/internal/client/codex/models"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/clienterror"
+	. "github.com/Su3h7aM/LLMProxyAPI/internal/constant"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	responsesconverter "github.com/Su3h7aM/LLMProxyAPI/internal/translator/openai/openai/responses"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
 	"github.com/gin-gonic/gin"
-	codexmodels "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/models"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
-	. "github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	responsesconverter "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/openai/openai/responses"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
 )
 
 // OpenAIAPIHandler contains the handlers for OpenAI API endpoints.

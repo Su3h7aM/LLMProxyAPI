@@ -3,7 +3,7 @@ package pluginhost
 import (
 	"context"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
 )
 
 const pluginHostABIVersion = pluginabi.ABIVersion

@@ -1,4 +1,4 @@
-module github.com/router-for-me/LLMProxyAPI/v7/examples/realtime-openai-go
+module github.com/Su3h7aM/LLMProxyAPI/examples/realtime-openai-go
 
 go 1.26.0
 

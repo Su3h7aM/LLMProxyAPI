@@ -5,8 +5,8 @@
 package xai
 
 import (
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/codex"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/thinking/provider/codex"
 )
 
 // Applier implements thinking.ProviderApplier for xAI models.

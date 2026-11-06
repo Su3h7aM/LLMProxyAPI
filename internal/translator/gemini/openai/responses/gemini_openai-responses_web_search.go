@@ -8,8 +8,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
 )
 
 // ModelSupportsWebSearch checks whether the given model supports native web search,

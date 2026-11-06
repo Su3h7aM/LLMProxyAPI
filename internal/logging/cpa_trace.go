@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/httpwire"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/httpwire"
 )
 
 // CPATraceIDHeader is the downstream response header used to correlate requests with selected credentials.

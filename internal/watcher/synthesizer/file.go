@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
-	kimiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/kimi"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/auth/codex"
+	kimiauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/kimi"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 

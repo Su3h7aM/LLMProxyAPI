@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/signature"
 	"google.golang.org/protobuf/encoding/protowire"
 )
 

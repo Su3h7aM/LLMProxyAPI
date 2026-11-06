@@ -3,8 +3,8 @@ package cliproxy
 import (
 	"testing"
 
-	internalconfig "github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	internalconfig "github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func TestSoonestResetRoutingSelector(t *testing.T) {

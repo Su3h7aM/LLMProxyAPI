@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
 	log "github.com/sirupsen/logrus"
 )
 

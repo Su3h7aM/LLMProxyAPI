@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
-	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
+	sdktranslator "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 func TestApplyPatchTranslationError(t *testing.T) {

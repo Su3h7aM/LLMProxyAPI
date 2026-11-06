@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	kimiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/kimi"
-	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	kimiauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/kimi"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 // ResolveKimiBaseURL resolves the upstream API base URL for Kimi API requests based on auth.

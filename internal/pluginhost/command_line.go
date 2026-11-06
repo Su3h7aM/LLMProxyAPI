@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
+	sdkAuth "github.com/Su3h7aM/LLMProxyAPI/sdk/auth"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 

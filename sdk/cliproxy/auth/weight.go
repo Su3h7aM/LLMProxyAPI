@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/credentialweight"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/credentialweight"
 )
 
 // ValidateAuthWeight validates every explicit credential weight source.

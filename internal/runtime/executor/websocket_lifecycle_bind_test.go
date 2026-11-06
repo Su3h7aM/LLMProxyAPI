@@ -4,8 +4,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	cliproxyexecutor "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 	"github.com/gorilla/websocket"
-	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 type countingWebsocketLifecycle struct {

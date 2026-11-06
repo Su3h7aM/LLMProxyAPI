@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestDecodeLogCursorRejectsUnsafeFiles(t *testing.T) {

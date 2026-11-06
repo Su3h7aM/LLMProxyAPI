@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 // claudeCode2_1_220WireHeaderOrder is the header name sequence captured from a

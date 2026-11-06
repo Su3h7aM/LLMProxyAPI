@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 )
 
 func TestUtlsFallbackProxyConnectionPool(t *testing.T) {

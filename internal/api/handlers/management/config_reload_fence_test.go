@@ -10,8 +10,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 // newIssue6631Handler returns a handler backed by a legacy config file and a router

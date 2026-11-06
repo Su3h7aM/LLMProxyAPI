@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
 )
 
 type fakeClaudeWebSearchResultKVClient struct {

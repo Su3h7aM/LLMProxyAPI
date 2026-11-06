@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
-	_ "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator/builtin"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
+	_ "github.com/Su3h7aM/LLMProxyAPI/sdk/translator/builtin"
 )
 
 func main() {

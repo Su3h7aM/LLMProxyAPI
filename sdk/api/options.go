@@ -7,11 +7,11 @@ package api
 import (
 	"time"
 
+	internalapi "github.com/Su3h7aM/LLMProxyAPI/internal/api"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/logging"
 	"github.com/gin-gonic/gin"
-	internalapi "github.com/router-for-me/LLMProxyAPI/v8/internal/api"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/logging"
 )
 
 // ServerOption customises HTTP server construction.

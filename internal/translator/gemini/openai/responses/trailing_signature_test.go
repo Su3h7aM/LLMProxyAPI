@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	homekv "github.com/Su3h7aM/LLMProxyAPI/internal/home"
 )
 
 func TestGeminiResponsesLateSignaturePreservesSummary(t *testing.T) {

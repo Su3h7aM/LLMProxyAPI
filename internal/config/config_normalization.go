@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
+	sdkpluginstore "github.com/Su3h7aM/LLMProxyAPI/sdk/pluginstore"
 	log "github.com/sirupsen/logrus"
 )
 

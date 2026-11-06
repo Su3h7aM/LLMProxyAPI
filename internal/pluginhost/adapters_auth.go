@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginabi"
+	"github.com/Su3h7aM/LLMProxyAPI/sdk/pluginapi"
 	"github.com/klauspost/compress/zstd"
-	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
-	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 )
 
 // Decoding runs before authentication, so what it allocates, produces and runs at once is bounded.
