@@ -321,12 +321,15 @@ func (s *Server) serveManagementControlPanel(c *gin.Context) {
 		return
 	}
 	// The panel ships inside the binary. A staged on-disk copy (panel
-	// development via MANAGEMENT_STATIC_PATH) wins when present.
-	filePath := managementasset.FilePath(s.configFilePath)
-	if strings.TrimSpace(filePath) != "" {
-		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
-			c.File(filePath)
-			return
+	// development via MANAGEMENT_STATIC_PATH) wins when present. Anything
+	// else ignores stale downloaded bundles from earlier versions.
+	if override := strings.TrimSpace(os.Getenv("MANAGEMENT_STATIC_PATH")); override != "" {
+		filePath := managementasset.FilePath(s.configFilePath)
+		if strings.TrimSpace(filePath) != "" {
+			if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
+				c.File(filePath)
+				return
+			}
 		}
 	}
 	if embedded := managementasset.EmbeddedManagementHTML(); len(embedded) > 0 {
