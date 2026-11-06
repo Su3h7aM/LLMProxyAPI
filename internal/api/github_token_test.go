@@ -3,9 +3,9 @@ package api
 import (
 	"testing"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/githubauth"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 func TestServerGitHubTokenReload(t *testing.T) {

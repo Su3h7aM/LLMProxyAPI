@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/discovery"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/discovery"
 	log "github.com/sirupsen/logrus"
 )
 

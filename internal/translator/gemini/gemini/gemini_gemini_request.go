@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/translator/gemini/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/translator/gemini/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 	log "github.com/sirupsen/logrus"
 )
 

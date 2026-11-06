@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	kimiauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/kimi"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	kimiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/kimi"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 func TestResolveKimiResponsesURL(t *testing.T) {

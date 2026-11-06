@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/session"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
 )
 
 var antigravityInteractionsSessions = cache.NewInteractionsSessionCache()

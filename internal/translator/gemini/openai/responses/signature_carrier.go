@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	sigcompat "github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	homekv "github.com/router-for-me/CLIProxyAPI/v8/internal/home"
+	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
 )
 
 type fakeAntigravityReasoningReplayKVClient struct {

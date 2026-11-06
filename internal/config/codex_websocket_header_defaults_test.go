@@ -93,8 +93,8 @@ func TestParseConfigBytes_CodexSignInWithChatGPTIdentifier(t *testing.T) {
 	if errDefault != nil {
 		t.Fatalf("ParseConfigBytes (default) error: %v", errDefault)
 	}
-	if got := defaultCfg.Codex.EffectiveSignInWithChatGPTIdentifier(); got != "CLIProxyAPI" {
-		t.Fatalf("EffectiveSignInWithChatGPTIdentifier (default) = %q, want CLIProxyAPI", got)
+	if got := defaultCfg.Codex.EffectiveSignInWithChatGPTIdentifier(); got != "LLMProxyAPI" {
+		t.Fatalf("EffectiveSignInWithChatGPTIdentifier (default) = %q, want LLMProxyAPI", got)
 	}
 
 	rawV8 := []byte(`oauth:

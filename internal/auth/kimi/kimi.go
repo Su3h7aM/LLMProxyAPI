@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/buildinfo"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/buildinfo"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/singleflight"
 )
@@ -400,7 +400,7 @@ func getHostname() string {
 // commonHeaders returns headers required for Kimi API requests.
 func (c *DeviceFlowClient) commonHeaders() map[string]string {
 	return map[string]string{
-		"X-Msh-Platform":     "CLIProxyAPI",
+		"X-Msh-Platform":     "LLMProxyAPI",
 		"X-Msh-Version":      buildinfo.Version,
 		"X-Msh-Device-Name":  getHostname(),
 		"X-Msh-Device-Model": getDeviceModel(),

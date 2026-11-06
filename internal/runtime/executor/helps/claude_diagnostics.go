@@ -14,7 +14,7 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/google/uuid"
-	homekv "github.com/router-for-me/CLIProxyAPI/v8/internal/home"
+	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
 )
 
 const (

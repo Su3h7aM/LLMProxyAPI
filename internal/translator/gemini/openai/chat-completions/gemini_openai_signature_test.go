@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
 )
 
 const capturedGeminiToolCallThoughtSignature = "EjQKMgEMOdbHO0Gd+c9Mxk4ELwPGbpCEcp2mFfYYLix2UVtBH3fL8GECc4+JITVnHF4qZDsA"

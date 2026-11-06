@@ -1,5 +1,5 @@
 // Package pluginstore exposes plugin registry and artifact installation helpers
-// for embedders such as CLIProxyAPIHome.
+// for embedders such as LLMProxyAPIHome.
 package pluginstore
 
 import (
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	internalpluginstore "github.com/router-for-me/CLIProxyAPI/v8/internal/pluginstore"
+	internalpluginstore "github.com/router-for-me/LLMProxyAPI/v8/internal/pluginstore"
 )
 
 const (

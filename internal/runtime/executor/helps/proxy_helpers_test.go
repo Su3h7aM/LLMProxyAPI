@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/proxyutil"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
 )
 
 func TestNewProxyAwareHTTPClientRequestProxyOverridesAuthAndGlobal(t *testing.T) {

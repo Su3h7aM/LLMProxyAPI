@@ -13,9 +13,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	sigcompat "github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 // the single thinking block that represents one Codex reasoning item.
 const codexThinkingSummaryPartSeparator = "\n\n"
 
-// codexCommentarySignatureMarker is the CLIProxyAPI-internal marker carried in
+// codexCommentarySignatureMarker is the LLMProxyAPI-internal marker carried in
 // the signature field of the thinking block that relays a Codex commentary
 // message. The shared definition lives in the signature package so every
 // Claude history consumer recognizes and strips it before it can reach an

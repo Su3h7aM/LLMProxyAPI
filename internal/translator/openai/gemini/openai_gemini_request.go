@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // ConvertGeminiRequestToOpenAI parses and transforms a Gemini API request into OpenAI Chat Completions API format.

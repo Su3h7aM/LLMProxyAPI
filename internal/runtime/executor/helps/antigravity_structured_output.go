@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 var claude55Model = regexp.MustCompile(`^claude-(opus|sonnet)-5-5(?:-(high|reasoning))?(?:-[0-9]{8})?(?:\[[^\[\]]+\])?$`)

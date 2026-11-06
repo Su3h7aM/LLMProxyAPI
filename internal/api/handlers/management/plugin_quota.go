@@ -12,10 +12,10 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 	xcurrency "golang.org/x/text/currency"
 )

@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -22,7 +22,7 @@ import (
 // OAuth configuration constants for OpenAI Sign in with ChatGPT (SIWC).
 const (
 	SIWCDynamicClientID  = "dynamic_agent_client"
-	SIWCAgentNameHint    = "CLIProxyAPI"
+	SIWCAgentNameHint    = "LLMProxyAPI"
 	SIWCAuthorizeURL     = "https://auth.openai.com/api/accounts/authorize"
 	SIWCTokenURL         = "https://auth.openai.com/api/accounts/oauth/token"
 	SIWCResource         = "https://api.openai.com/v1"

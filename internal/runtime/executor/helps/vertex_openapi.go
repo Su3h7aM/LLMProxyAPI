@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 // IsVertexOpenAPIModel reports whether the given model identifier targets a

@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/cache"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 func TestIssue5190ContinuationIsolation(t *testing.T) {

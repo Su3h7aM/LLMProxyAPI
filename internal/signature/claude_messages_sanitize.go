@@ -18,7 +18,7 @@ type ClaudeMessagesSignatureSanitizeOptions struct {
 	PreserveEmptyThinkingBlocks bool
 }
 
-// CodexCommentarySignatureMarker is the CLIProxyAPI-internal marker carried in
+// CodexCommentarySignatureMarker is the LLMProxyAPI-internal marker carried in
 // the signature field of the Claude thinking block that relays a Codex
 // commentary message. It is not a provider signature and must never be
 // forwarded to any upstream: consumers either restore the block as assistant

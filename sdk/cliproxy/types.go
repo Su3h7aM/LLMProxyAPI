@@ -1,4 +1,4 @@
-// Package cliproxy provides the core service implementation for the CLI Proxy API.
+// Package cliproxy provides the core service implementation for the LLM Proxy API.
 // It includes service lifecycle management, authentication handling, file watching,
 // and integration with various AI service providers through a unified interface.
 package cliproxy
@@ -7,10 +7,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/watcher"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 )
 
 // TokenClientProvider loads clients backed by stored authentication tokens.

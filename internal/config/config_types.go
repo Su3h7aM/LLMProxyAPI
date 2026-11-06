@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	sdkpluginstore "github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginstore"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -327,7 +327,7 @@ type CodexConfig struct {
 	ResponseSteering bool `yaml:"response-steering" json:"response-steering"`
 	// SignInWithChatGPTIdentifier configures the identifier (agent_name_hint and User-Agent prefix)
 	// for Codex Sign in with ChatGPT (SIWC) OAuth authorization and API requests.
-	// Defaults to "CLIProxyAPI".
+	// Defaults to "LLMProxyAPI".
 	SignInWithChatGPTIdentifier string `yaml:"signin-with-chatgpt-identifier,omitempty" json:"signin-with-chatgpt-identifier,omitempty"`
 }
 
@@ -346,7 +346,7 @@ func (c *CodexConfig) RequestCompressionMinBytes() int {
 
 // DefaultSignInWithChatGPTIdentifier is the default identifier (agent_name_hint and User-Agent prefix)
 // used for Codex Sign in with ChatGPT (SIWC) OAuth authorization and API requests.
-const DefaultSignInWithChatGPTIdentifier = "CLIProxyAPI"
+const DefaultSignInWithChatGPTIdentifier = "LLMProxyAPI"
 
 // EffectiveSignInWithChatGPTIdentifier returns the configured Sign in with ChatGPT
 // identifier, or DefaultSignInWithChatGPTIdentifier when unset or blank.

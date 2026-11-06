@@ -17,10 +17,10 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	sigcompat "github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // ConvertClaudeRequestToCodex parses and transforms a Claude Code API request into the internal client format.

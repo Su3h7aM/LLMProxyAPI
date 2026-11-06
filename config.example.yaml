@@ -71,7 +71,7 @@ server:
   # TXT records follow draft-su-ai-gateway-discovery-00:
   #   txtvers, path, tls, auth, protocols, auth_type, product, id, role
   # The TXT protocols list mirrors the advertised subtypes. Management endpoints are never advertised.
-  # NOTE for Docker users: Link-local multicast (224.0.0.251) cannot cross default NAT bridge networks.
+  # NOTE for container users: Link-local multicast (224.0.0.251) cannot cross default NAT bridge networks.
   # To broadcast across the physical LAN, run the container with host networking (--net=host / network_mode: host).
   discovery:
     enabled: false
@@ -985,7 +985,7 @@ upstream:
 # OAuth/file-backed credentials. Token material stays in the credential store.
 oauth:
   # Authentication directory (supports ~ for home directory)
-  auth-dir: "~/.cli-proxy-api"
+  auth-dir: "~/.llm-proxy-api"
 
   # Core auth auto-refresh and manual refresh-all worker pool size (OAuth/file-based auth token refresh).
   # When > 0, overrides the default worker count (16).
@@ -1165,7 +1165,7 @@ oauth:
         #     credential: "secret"
 
       # Identifier (agent_name_hint and User-Agent prefix) for Sign in with ChatGPT (SIWC) OAuth and API requests.
-      signin-with-chatgpt-identifier: "CLIProxyAPI"
+      signin-with-chatgpt-identifier: "LLMProxyAPI"
 
       # Default headers for Codex OAuth model requests.
       # These are used only for file-backed/OAuth Codex requests when the client
@@ -1335,7 +1335,7 @@ plugins:
 #   request-retry: 3                 # now routing.retry.request-retry
 #   debug: false                     # now observability.logs.debug
 #   proxy-url: ""                    # now requests.proxy-url
-#   auth-dir: "~/.cli-proxy-api"     # now oauth.auth-dir
+#   auth-dir: "~/.llm-proxy-api"     # now oauth.auth-dir
 #   codex:                           # now oauth.providers.codex
 #     disable-codex-cloaking: false
 #   codex-api-key:                   # now api-keys.codex groups with keys

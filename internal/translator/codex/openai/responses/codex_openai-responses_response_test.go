@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
 )
 
 func TestConvertCodexResponseToOpenAIResponses_CreatedIncludesOriginalRequestModel(t *testing.T) {

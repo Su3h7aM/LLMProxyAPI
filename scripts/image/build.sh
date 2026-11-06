@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../.."
 source scripts/image/lib-engine.sh
 detect_engine
 
-IMAGE="${CLI_PROXY_IMAGE:-cli-proxy-api:local}"
+IMAGE="${LLM_PROXY_IMAGE:-llm-proxy-api:local}"
 VERSION="${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}"
 COMMIT="${COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo none)}"
 BUILD_DATE="${BUILD_DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"

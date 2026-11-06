@@ -1,4 +1,4 @@
-// Package cliproxy provides the core service implementation for the CLI Proxy API.
+// Package cliproxy provides the core service implementation for the LLM Proxy API.
 // It includes service lifecycle management, authentication handling, file watching,
 // and integration with various AI service providers through a unified interface.
 package cliproxy
@@ -9,18 +9,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/api"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/home"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/homeplugins"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/watcher"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/wsrelay"
-	sdkaccess "github.com/router-for-me/CLIProxyAPI/v8/sdk/access"
-	sdkAuth "github.com/router-for-me/CLIProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executionregistry"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
-	sdkpluginstore "github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginstore"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/api"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/homeplugins"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/watcher"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/wsrelay"
+	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
+	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executionregistry"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
 )
 
 // Service wraps the proxy server lifecycle so external programs can embed the CLI proxy.

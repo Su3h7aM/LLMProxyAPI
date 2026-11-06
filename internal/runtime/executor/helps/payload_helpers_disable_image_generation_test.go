@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestApplyPayloadConfigWithRoot_DisableImageGeneration_RemovesToolsEntry(t *testing.T) {

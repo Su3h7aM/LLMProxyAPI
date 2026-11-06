@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/usage"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
 )
 
 // ParsePluginExecutorResponseUsage extracts token usage from a non-streaming plugin executor response.

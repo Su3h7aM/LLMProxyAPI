@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/proxyutil"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/proxyutil"
 	log "github.com/sirupsen/logrus"
 )
 

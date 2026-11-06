@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func parseClaudeResponsesSSEEvent(t *testing.T, chunk []byte) (string, ojson.Result) {

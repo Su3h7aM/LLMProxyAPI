@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 // antigravityModelRefreshRequest captures publication ownership at admission.

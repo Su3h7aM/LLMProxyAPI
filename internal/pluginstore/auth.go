@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/base64"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/githubauth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
 )
 
 const (

@@ -13,12 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/MoeForge/moego/ojson"
-	claudeauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestResolveClaudeFingerprintPolicy(t *testing.T) {
@@ -964,8 +964,8 @@ func TestClaudeExecutor_CallerOwnedNeverSendsGoTransportUserAgent(t *testing.T) 
 	if strings.HasPrefix(got, "Go-http-client") {
 		t.Fatalf("User-Agent = %q, want CPA's own identity rather than Go's transport default", got)
 	}
-	if !strings.HasPrefix(got, "CLIProxyAPI/") {
-		t.Fatalf("User-Agent = %q, want a CLIProxyAPI/<version> fallback", got)
+	if !strings.HasPrefix(got, "LLMProxyAPI/") {
+		t.Fatalf("User-Agent = %q, want a LLMProxyAPI/<version> fallback", got)
 	}
 }
 
@@ -1279,7 +1279,7 @@ func TestClaudeExecutor_OfficialAPIKeyCloakNeverStripsClaudeCodeIdentity(t *test
 		{
 			name:           "execute cloak never default user-agent",
 			mode:           "never",
-			wantUserAgent:  "CLIProxyAPI/",
+			wantUserAgent:  "LLMProxyAPI/",
 			wantBetaSubstr: "interleaved-thinking-2025-05-14",
 		},
 		{

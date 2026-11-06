@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func testHostCallbackID(t *testing.T, client *dynamicLibraryClient) uintptr {
@@ -40,6 +40,10 @@ func buildReloadTestPlugin(t *testing.T, version int, outPath string) {
 		cflags = fmt.Sprintf("-DPLUGIN_VERSION=%d", version)
 	}
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=1", "CGO_CFLAGS="+cflags)
+	// The testdata plugin is a standalone module. Build it outside the
+	// repo workspace, otherwise the parent go.work shadows it and the
+	// package path under testdata/ cannot resolve.
+	cmd.Env = append(cmd.Env, "GOWORK=off")
 	if output, errBuild := cmd.CombinedOutput(); errBuild != nil {
 		t.Fatalf("build test plugin (v%d): %v\n%s", version, errBuild, output)
 	}

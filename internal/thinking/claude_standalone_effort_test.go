@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	_ "github.com/router-for-me/CLIProxyAPI/v8/internal/thinking/provider/codex"
-	codexclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/codex/claude"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/thinking/provider/codex"
+	codexclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/codex/claude"
 )
 
 func TestApplyThinking_ClaudeStandaloneEffort(t *testing.T) {

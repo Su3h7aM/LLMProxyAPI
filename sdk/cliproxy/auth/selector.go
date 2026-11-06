@@ -17,12 +17,12 @@ import (
 	"github.com/MoeForge/moego/ojson"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/credentialweight"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	cliproxysession "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/session"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/credentialweight"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	cliproxysession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
 )
 
 // RoundRobinSelector provides a simple provider scoped round-robin selection strategy.

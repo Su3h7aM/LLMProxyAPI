@@ -19,11 +19,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/klauspost/compress/zstd"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
 )
 
 func TestShouldSkipMethodForRequestLogging(t *testing.T) {

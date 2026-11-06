@@ -16,7 +16,7 @@ import (
 	gitconfig "github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 type testBranchSpec struct {
@@ -813,7 +813,7 @@ func TestGitTokenStoreConcurrentInitializationDoesNotOverwriteCreatedBranch(t *t
 		}
 	}
 	if _, errCommit := winnerWorktree.Commit("Initialize complete store", &git.CommitOptions{Author: &object.Signature{
-		Name: "CLIProxyAPI", Email: "cliproxy@local", When: time.Unix(1711929600, 0),
+		Name: "LLMProxyAPI", Email: "cliproxy@local", When: time.Unix(1711929600, 0),
 	}}); errCommit != nil {
 		t.Fatalf("commit winning repository: %v", errCommit)
 	}
@@ -1762,7 +1762,7 @@ func removeHeadFileObject(t *testing.T, repoDir, path string) {
 		t.Fatalf("add corruption marker: %v", errAdd)
 	}
 	if _, errCommit := worktree.Commit("Add corruption marker", &git.CommitOptions{Author: &object.Signature{
-		Name: "CLIProxyAPI", Email: "cliproxy@local", When: time.Unix(1711929600, 0),
+		Name: "LLMProxyAPI", Email: "cliproxy@local", When: time.Unix(1711929600, 0),
 	}}); errCommit != nil {
 		t.Fatalf("commit corruption marker: %v", errCommit)
 	}
@@ -1947,7 +1947,7 @@ func commitBranchMarker(t *testing.T, seedDir string, worktree *git.Worktree, br
 	}
 	if _, err := worktree.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  "CLIProxyAPI",
+			Name:  "LLMProxyAPI",
 			Email: "cliproxy@local",
 			When:  time.Unix(1711929600, 0),
 		},

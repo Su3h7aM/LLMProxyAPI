@@ -13,26 +13,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	managementHandlers "github.com/router-for-me/CLIProxyAPI/v8/internal/api/handlers/management"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/api/middleware"
-	claudemodels "github.com/router-for-me/CLIProxyAPI/v8/internal/client/claude/models"
-	codexlive "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/live"
-	codexmodels "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/models"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/client/grokbuild"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/home"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
-	responsesclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/claude/openai/responses"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers/claude"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers/gemini"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers/openai"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
+	managementHandlers "github.com/router-for-me/LLMProxyAPI/v8/internal/api/handlers/management"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/api/middleware"
+	claudemodels "github.com/router-for-me/LLMProxyAPI/v8/internal/client/claude/models"
+	codexlive "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/live"
+	codexmodels "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/models"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/client/grokbuild"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
+	responsesclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/claude/openai/responses"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/claude"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/gemini"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/openai"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -140,7 +140,7 @@ func (s *Server) setupRoutes() {
 	// Root endpoint
 	s.engine.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "CLI Proxy API Server",
+			"message": "LLM Proxy API Server",
 			"endpoints": []string{
 				"POST /v1/chat/completions",
 				"POST /v1/completions",

@@ -1,4 +1,4 @@
-// Package logging provides request logging functionality for the CLI Proxy API server.
+// Package logging provides request logging functionality for the LLM Proxy API server.
 // It handles capturing and storing detailed HTTP request and response data when enabled
 // through configuration, supporting both regular and streaming responses.
 package logging
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
 )
 
 const (

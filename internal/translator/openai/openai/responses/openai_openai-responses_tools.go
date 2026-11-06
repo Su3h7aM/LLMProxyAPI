@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	applypatch "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/apply-patch"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	applypatch "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/apply-patch"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // responsesToolDeclaration is one Responses tool declaration paired with the

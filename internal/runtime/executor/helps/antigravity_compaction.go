@@ -14,15 +14,15 @@ import (
 
 	"github.com/MoeForge/moego/base64"
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
 	antigravityCompactionCapsulePrefix = "cpa-ag-compact-v1:"
 	antigravityCompactionItemIDPrefix  = "cmp_ag_compact_"
-	fixedCompactionKeySecret           = "CLIProxyAPI"
+	fixedCompactionKeySecret           = "LLMProxyAPI"
 )
 
 type antigravityCompactionCapsuleData struct {
@@ -257,7 +257,7 @@ func PrepareAntigravityCompactionSummaryPayloadDoc(doc *ojson.Doc, modelName str
 	_ = doc.Set("stream", false)
 }
 
-// deriveAntigravityCompactionKey derives an AES-256 key from the fixed CLIProxyAPI secret.
+// deriveAntigravityCompactionKey derives an AES-256 key from the fixed LLMProxyAPI secret.
 func deriveAntigravityCompactionKey() []byte {
 	h := sha256.Sum256([]byte(fixedCompactionKeySecret))
 	return h[:]

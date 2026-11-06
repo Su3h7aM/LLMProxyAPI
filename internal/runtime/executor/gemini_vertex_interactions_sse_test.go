@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestGeminiVertexGenerateContentInteractionsSSE(t *testing.T) {

@@ -1,4 +1,4 @@
-// Package api provides the HTTP API server implementation for the CLI Proxy API.
+// Package api provides the HTTP API server implementation for the LLM Proxy API.
 // It includes the main server struct, routing setup, middleware for CORS and authentication,
 // and integration with various AI API handlers (OpenAI, Claude, Gemini).
 // The server supports hot-reloading of clients and configuration.
@@ -18,19 +18,19 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	managementHandlers "github.com/router-for-me/CLIProxyAPI/v8/internal/api/handlers/management"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/api/middleware"
-	codexlive "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/live"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/githubauth"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/managementasset"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/redisqueue"
-	sdkaccess "github.com/router-for-me/CLIProxyAPI/v8/sdk/access"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers/openai"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	managementHandlers "github.com/router-for-me/LLMProxyAPI/v8/internal/api/handlers/management"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/api/middleware"
+	codexlive "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/live"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/managementasset"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/redisqueue"
+	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers/openai"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http2"
 	"gopkg.in/yaml.v3"

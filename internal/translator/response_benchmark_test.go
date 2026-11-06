@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	translatorapi "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/translator"
+	translatorapi "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/translator"
 )
 
 var benchmarkResponseTranslationOutput []byte

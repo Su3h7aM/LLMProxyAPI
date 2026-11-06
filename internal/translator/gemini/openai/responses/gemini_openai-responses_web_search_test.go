@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 func registerTestWebSearchModel(t *testing.T, clientID, provider, modelID string, supportsSearch bool) {
@@ -4998,6 +4998,7 @@ func TestConvertGeminiResponseToOpenAIResponsesStream_WebSearchBufferingSignatur
 
 	// Verify that chunk A message has the thought signature, and chunk B message does not.
 	// Translate the completed response outputs back to Gemini request to verify signature binding.
+
 	replayReq := []byte(`{"model":"gemini-search-sig-boundary-buffering","input":[]}`)
 	replayReq, _ = ojson.SetRawBytes(replayReq, "input", []byte(completedJSON.Get("response.output").Raw))
 	translated, _ := ConvertOpenAIResponsesRequestToGemini("gemini-search-sig-boundary-buffering", replayReq, false)

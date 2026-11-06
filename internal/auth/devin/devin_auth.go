@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -357,7 +357,7 @@ const loginSuccessHTML = `<!DOCTYPE html>
 <body>
     <div class="card">
         <h2>Authentication Complete</h2>
-        <p>You have successfully logged in to Devin via CLIProxyAPI.</p>
+        <p>You have successfully logged in to Devin via LLMProxyAPI.</p>
         <p>You may safely close this window and return to your terminal.</p>
     </div>
 </body>

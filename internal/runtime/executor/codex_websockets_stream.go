@@ -10,12 +10,12 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 

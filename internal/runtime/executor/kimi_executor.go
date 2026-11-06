@@ -14,15 +14,15 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	kimiauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/kimi"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/buildinfo"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	kimiauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/kimi"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/buildinfo"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -1193,13 +1193,13 @@ func (e *KimiExecutor) Refresh(ctx context.Context, auth *cliproxyauth.Auth) (*c
 }
 
 // applyKimiHeaders sets required headers for Kimi API requests.
-// Headers identify CLIProxyAPI with the current build version.
+// Headers identify LLMProxyAPI with the current build version.
 func applyKimiHeaders(r *http.Request, token string, stream bool) {
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Authorization", "Bearer "+token)
-	// Identify requests with the current CLIProxyAPI version.
-	r.Header.Set("User-Agent", "CLIProxyAPI/"+buildinfo.Version)
-	r.Header.Set("X-Msh-Platform", "CLIProxyAPI")
+	// Identify requests with the current LLMProxyAPI version.
+	r.Header.Set("User-Agent", "LLMProxyAPI/"+buildinfo.Version)
+	r.Header.Set("X-Msh-Platform", "LLMProxyAPI")
 	r.Header.Set("X-Msh-Version", buildinfo.Version)
 	r.Header.Set("X-Msh-Device-Name", getKimiHostname())
 	r.Header.Set("X-Msh-Device-Model", getKimiDeviceModel())
@@ -1332,7 +1332,7 @@ func stripKimiPrefix(model string) string {
 }
 
 // normalizeKimiUpstreamModel returns the canonical upstream model ID for Kimi.
-// It strips the CLIProxyAPI "kimi-" prefix and any Claude Code "[1m]" context
+// It strips the LLMProxyAPI "kimi-" prefix and any Claude Code "[1m]" context
 // suffix while preserving a trailing thinking suffix (e.g. "(1024)"), so that
 // the upstream API receives IDs such as "k3(1024)" instead of "kimi-k3[1m](1024)".
 // K2.8 and K2.7 Code aliases are remapped to the official Kimi Code model IDs before

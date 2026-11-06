@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/MoeForge/moego/ojson"
-	. "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/gemini/openai/responses"
+	. "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/gemini/openai/responses"
 )
 
 func ConvertAntigravityResponseToOpenAIResponses(ctx context.Context, modelName string, originalRequestRawJSON, requestRawJSON, rawJSON []byte, param *any) [][]byte {

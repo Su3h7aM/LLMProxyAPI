@@ -13,11 +13,11 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	apihandlers "github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdkconfig "github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	apihandlers "github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func performVideosEndpointRequest(t *testing.T, method string, endpointPath string, contentType string, body io.Reader, handler gin.HandlerFunc) *httptest.ResponseRecorder {

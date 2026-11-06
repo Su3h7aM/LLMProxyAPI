@@ -18,9 +18,9 @@ Mark each claim that you could not confirm, and say where you looked.
 
 ## Oracle
 
-- `.refs/CLIProxyAPI` is the main source
-- `.refs/CPA-Manager-Plus` is for the dashboard
-- `.refs/magpie` is for some ideias and features
+- `.refs/LLMProxyAPI` is the main source
+- `.refs/CPA-Manager-Plus` is ideas for the dashboard
+- `.refs/magpie` is for some ideas and features
 - https://gist.github.com/t3dotgg/59a521d2ee8d70aaf90e280c175072af
 
 ## Workflow (sub-agents)

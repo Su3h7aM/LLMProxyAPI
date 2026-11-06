@@ -1,5 +1,5 @@
 // Package discovery provides local network mDNS / DNS-SD service advertising
-// and discovery capabilities for CLIProxyAPI (CPA).
+// and discovery capabilities for LLMProxyAPI (CPA).
 package discovery
 
 import (
@@ -38,7 +38,7 @@ const (
 	SubtypeCountTokens = "_count-tokens"
 	// SubtypeSearch identifies agentic web/code search.
 	SubtypeSearch = "_search"
-	// ProductCPA is the product identifier for CLIProxyAPI.
+	// ProductCPA is the product identifier for LLMProxyAPI.
 	ProductCPA = "cliproxyapi"
 )
 

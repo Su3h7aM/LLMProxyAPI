@@ -1,4 +1,4 @@
-// Package main provides the entry point for the CLI Proxy API server.
+// Package main provides the entry point for the LLM Proxy API server.
 // This server acts as a proxy that provides OpenAI/Gemini/Claude compatible API interfaces
 // for CLI models, allowing CLI models to be used with tools and libraries designed for standard AI APIs.
 package main
@@ -18,28 +18,28 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	configaccess "github.com/router-for-me/CLIProxyAPI/v8/internal/access/config_access"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/api"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/buildinfo"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/cmd"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/githubauth"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/home"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/homeplugins"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/managementasset"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/misc"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/pluginhost"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/redisqueue"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/safemode"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/store"
-	_ "github.com/router-for-me/CLIProxyAPI/v8/internal/translator"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/tui"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	sdkAuth "github.com/router-for-me/CLIProxyAPI/v8/sdk/auth"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	sdkpluginstore "github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginstore"
+	configaccess "github.com/router-for-me/LLMProxyAPI/v8/internal/access/config_access"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/api"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/buildinfo"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/cmd"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/githubauth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/homeplugins"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/managementasset"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/pluginhost"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/redisqueue"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/safemode"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/store"
+	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/tui"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	sdkAuth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -83,7 +83,7 @@ func main() {
 		discoverFlags.Func("exclude", "Comma-separated interface names to skip", appendCSV(&exclude))
 		_ = discoverFlags.Parse(os.Args[2:])
 		if !*jsonOut {
-			fmt.Fprintf(os.Stderr, "CLIProxyAPI Version: %s, Commit: %s, BuiltAt: %s\n", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
+			fmt.Fprintf(os.Stderr, "LLMProxyAPI Version: %s, Commit: %s, BuiltAt: %s\n", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
 		}
 		cfgInclude, cfgExclude := cmd.LoadDiscoveryScanFilters(*configPathFlag)
 		include, exclude = cmd.ResolveDiscoveryInterfaceFilters(include, exclude, cfgInclude, cfgExclude)
@@ -101,7 +101,7 @@ func main() {
 	isJSONDiscover := argvEnablesBoolFlag(os.Args[1:], "discover-json")
 	isDiscoverMode := isJSONDiscover || argvEnablesBoolFlag(os.Args[1:], "discover")
 	if !isJSONDiscover {
-		fmt.Printf("CLIProxyAPI Version: %s, Commit: %s, BuiltAt: %s\n", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
+		fmt.Printf("LLMProxyAPI Version: %s, Commit: %s, BuiltAt: %s\n", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
 	}
 
 	// Command-line flags to control the application's behavior.
@@ -638,7 +638,7 @@ func main() {
 		return
 	}
 
-	log.Infof("CLIProxyAPI Version: %s, Commit: %s, BuiltAt: %s", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
+	log.Infof("LLMProxyAPI Version: %s, Commit: %s, BuiltAt: %s", buildinfo.Version, buildinfo.Commit, buildinfo.BuildDate)
 
 	// Set the log level based on the configuration.
 	util.SetLogLevel(cfg)

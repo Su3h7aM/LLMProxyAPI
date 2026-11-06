@@ -21,14 +21,14 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
-	claudemodels "github.com/router-for-me/CLIProxyAPI/v8/internal/client/claude/models"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	. "github.com/router-for-me/CLIProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	claudemodels "github.com/router-for-me/LLMProxyAPI/v8/internal/client/claude/models"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	. "github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 	log "github.com/sirupsen/logrus"
 )
 

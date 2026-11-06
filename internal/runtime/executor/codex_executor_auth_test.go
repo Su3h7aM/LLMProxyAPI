@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	codexauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/codex"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	fileauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/auth"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	codexauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	fileauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/auth"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func makeTestCodexRefreshJWT(planType, accountID string) string {

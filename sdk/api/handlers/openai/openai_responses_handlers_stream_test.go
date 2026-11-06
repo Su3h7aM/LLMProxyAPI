@@ -11,9 +11,9 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	sdkconfig "github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 )
 
 func newResponsesStreamTestHandler(t *testing.T) (*OpenAIResponsesAPIHandler, *httptest.ResponseRecorder, *gin.Context, http.Flusher) {

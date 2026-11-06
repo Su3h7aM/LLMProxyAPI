@@ -1,12 +1,12 @@
 # PLAN: vendor proxy + dashboard into one binary
 
-Goal: bring `.refs/CLIProxyAPI` and `.refs/CPA-Manager-Plus` into this repo
+Goal: bring `.refs/LLMProxyAPI` and `.refs/CPA-Manager-Plus` into this repo
 as one project where the panel ships native with the proxy, while the
 external management API keeps working. No feature is removed in this plan.
 
 ## Steps
 
-1. [x] Vendor CLIProxyAPI tree to repo root (skip `.git`, `.jj`, root meta
+1. [x] Vendor LLMProxyAPI tree to repo root (skip `.git`, `.jj`, root meta
    files that collide: `.gitignore`, `AGENTS.md`, `README*`, `LICENSE`).
    Check: `go build ./...` passes in the repo root.
    Evidence: `go build ./...` EXIT:0 with Go 1.27.3, first run fetched

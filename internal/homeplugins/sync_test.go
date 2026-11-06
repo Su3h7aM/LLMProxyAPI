@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	sdkpluginstore "github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginstore"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	sdkpluginstore "github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginstore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -567,7 +567,7 @@ func TestDeleteWithReportRejectsUnresolvedPluginsDir(t *testing.T) {
 	t.Setenv("USERPROFILE", "")
 	t.Chdir(workspace)
 
-	literalPluginsDir := filepath.Join(workspace, "~", ".cli-proxy-api", "plugins")
+	literalPluginsDir := filepath.Join(workspace, "~", ".llm-proxy-api", "plugins")
 	targetDir := filepath.Join(literalPluginsDir, runtime.GOOS, runtime.GOARCH)
 	if errMkdir := os.MkdirAll(targetDir, 0o755); errMkdir != nil {
 		t.Fatalf("MkdirAll(%s) error = %v", targetDir, errMkdir)
@@ -579,7 +579,7 @@ func TestDeleteWithReportRejectsUnresolvedPluginsDir(t *testing.T) {
 	cfg := &config.Config{
 		Home: config.HomeConfig{Enabled: true},
 		Plugins: config.PluginsConfig{
-			Dir: "~/.cli-proxy-api/plugins",
+			Dir: "~/.llm-proxy-api/plugins",
 		},
 	}
 

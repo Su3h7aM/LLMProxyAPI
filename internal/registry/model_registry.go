@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	misc "github.com/router-for-me/CLIProxyAPI/v8/internal/misc"
+	misc "github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
 	log "github.com/sirupsen/logrus"
 )
 

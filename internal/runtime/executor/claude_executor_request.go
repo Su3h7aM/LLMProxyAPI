@@ -13,15 +13,15 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/google/uuid"
-	claudeauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/claude"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/buildinfo"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/misc"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/session"
+	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/buildinfo"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/runtime/executor/helps"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
@@ -1403,7 +1403,7 @@ func applyClaudeHeadersWithNativeProfile(
 		if wirePolicy.Uncloak && helps.IsClaudeCodeUserAgent(helps.HeaderValueCaseInsensitive(incomingHeaders, "User-Agent")) {
 			uaSourceHeaders = nil
 		}
-		misc.EnsureHeader(r.Header, uaSourceHeaders, "User-Agent", "CLIProxyAPI/"+buildinfo.Version)
+		misc.EnsureHeader(r.Header, uaSourceHeaders, "User-Agent", "LLMProxyAPI/"+buildinfo.Version)
 		applyBetaHeader()
 		sessionID := ""
 		for _, candidate := range sessionIDs {

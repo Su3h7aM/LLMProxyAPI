@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	antigravityclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/antigravity/claude"
-	geminiclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/gemini/claude"
-	interactionsclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/interactions/claude"
-	openaiclaude "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/openai/claude"
+	antigravityclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/antigravity/claude"
+	geminiclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/gemini/claude"
+	interactionsclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/interactions/claude"
+	openaiclaude "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/openai/claude"
 )
 
 // A client may replay CPA-relayed commentary history to a non-Codex upstream.

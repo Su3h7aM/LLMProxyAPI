@@ -3,12 +3,12 @@ package helps
 import (
 	"strings"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
 )
 
 // claudeToolSearchLegacyPrefixes and claudeToolSearchLegacyModels list the
 // Anthropic models that predate tool search: Claude Opus 4.1 and earlier do not
-// accept defer_loading tools or tool_reference blocks. CLIProxyAPIHome keeps the
+// accept defer_loading tools or tool_reference blocks. LLMProxyAPIHome keeps the
 // same list in internal/home/claude_tool_search.go.
 var claudeToolSearchLegacyPrefixes = []string{"claude-3", "claude-2", "claude-instant"}
 

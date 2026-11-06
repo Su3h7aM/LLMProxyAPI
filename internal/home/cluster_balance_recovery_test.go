@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestClusterBalanceTargetPreflightFailureRecovery(t *testing.T) {

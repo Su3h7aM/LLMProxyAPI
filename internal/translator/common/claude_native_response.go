@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // ClaudeMessagesJSONToSSE adapts a native Messages response for the existing SSE

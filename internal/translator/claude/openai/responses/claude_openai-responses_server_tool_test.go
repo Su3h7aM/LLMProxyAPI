@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // --- L1 direction A: Claude server tool blocks -> Responses web_search_call ---

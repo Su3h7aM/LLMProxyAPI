@@ -1,4 +1,4 @@
-// Package middleware provides Gin HTTP middleware for the CLI Proxy API server.
+// Package middleware provides Gin HTTP middleware for the LLM Proxy API server.
 // It includes a sophisticated response writer wrapper designed to capture and log request and response data,
 // including support for streaming responses, without impacting latency.
 package middleware
@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/httpwire"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/httpwire"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
 	log "github.com/sirupsen/logrus"
 )
 

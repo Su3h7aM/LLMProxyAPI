@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	baseauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/auth/codex"
+	baseauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/auth/codex"
 )
 
 // PostAuthHook defines a function that is called after an Auth record is created

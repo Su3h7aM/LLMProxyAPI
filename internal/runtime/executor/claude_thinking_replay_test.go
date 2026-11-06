@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	internalcache "github.com/router-for-me/CLIProxyAPI/v8/internal/cache"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	internalcache "github.com/router-for-me/LLMProxyAPI/v8/internal/cache"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 const claudeReplayResolvedModelInfoKey = "cliproxy.resolved_api_key_model_info"

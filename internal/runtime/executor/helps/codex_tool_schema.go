@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/MoeForge/moego/ojson"
-	toolschema "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/tool-schema"
+	toolschema "github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/tool-schema"
 )
 
 // IsCodexUserAgent reports whether headers contain a User-Agent indicating a Codex client.

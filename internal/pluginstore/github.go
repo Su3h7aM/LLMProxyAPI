@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/httpfetch"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/httpfetch"
 	log "github.com/sirupsen/logrus"
 )
 
-const userAgent = "CLIProxyAPI"
+const userAgent = "LLMProxyAPI"
 const maxPluginStoreRedirects = 10
 
 // HTTPDoer abstracts the HTTP client used to execute requests.

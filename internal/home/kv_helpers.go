@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/kvstore"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/kvstore"
 )
 
 func init() {

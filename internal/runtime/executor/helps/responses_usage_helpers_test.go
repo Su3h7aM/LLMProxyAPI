@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	_ "github.com/router-for-me/CLIProxyAPI/v8/internal/translator"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	_ "github.com/router-for-me/LLMProxyAPI/v8/internal/translator"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestEnsureResponsesUsageDetails_NonStreamJSON(t *testing.T) {

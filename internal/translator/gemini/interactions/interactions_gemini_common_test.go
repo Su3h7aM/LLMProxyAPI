@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
 )
 
 func TestConvertInteractionsRequestToGeminiStringInput(t *testing.T) {

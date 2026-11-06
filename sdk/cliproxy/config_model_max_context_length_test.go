@@ -3,7 +3,7 @@ package cliproxy
 import (
 	"testing"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 func TestBuildConfigModelsPropagatesMaxContextLength(t *testing.T) {

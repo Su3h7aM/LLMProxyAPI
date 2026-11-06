@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	sigcompat "github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
+	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
 )
 
 // ResolveCodexReplayTargetModel returns the model name to use for reasoning

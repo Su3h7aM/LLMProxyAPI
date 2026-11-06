@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	claudeauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/claude"
-	homekv "github.com/router-for-me/CLIProxyAPI/v8/internal/home"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
+	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
+	homekv "github.com/router-for-me/LLMProxyAPI/v8/internal/home"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
 )
 
 type fakeClaudeCredentialDevicePoolKV struct {

@@ -16,11 +16,11 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	coreusage "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginabi"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginabi"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/pluginapi"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -79,7 +79,7 @@ func TestHostApplyConfig_DisabledGlobalDoesNotResolvePluginsDir(t *testing.T) {
 	disabledCfg, errParseConfig := config.ParseConfigBytes([]byte(`
 plugins:
   enabled: false
-  dir: "~/.cli-proxy-api/plugins"
+  dir: "~/.llm-proxy-api/plugins"
 `))
 	if errParseConfig != nil {
 		t.Fatalf("ParseConfigBytes() error = %v", errParseConfig)

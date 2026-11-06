@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 func TestApplyPayloadConfigWithTrackedPathsForExecutorCodexIntegerNormalizationUsesExecutor(t *testing.T) {

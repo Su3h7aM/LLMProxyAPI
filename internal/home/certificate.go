@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/base64"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
 )
 
 const (
@@ -126,7 +126,7 @@ func defaultCertificatePaths() (certificatePaths, error) {
 	if errHome != nil {
 		return certificatePaths{}, errHome
 	}
-	dir := filepath.Join(homeDir, ".cli-proxy-api")
+	dir := filepath.Join(homeDir, ".llm-proxy-api")
 	return certificatePaths{
 		Dir:        dir,
 		ClientCert: filepath.Join(dir, "client-crt.pem"),

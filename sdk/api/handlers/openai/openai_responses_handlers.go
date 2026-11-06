@@ -19,15 +19,15 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/optimize-multi-agent-v2"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
-	. "github.com/router-for-me/CLIProxyAPI/v8/internal/constant"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/httpwire"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
-	sdkaccess "github.com/router-for-me/CLIProxyAPI/v8/sdk/access"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/usage"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/client/codex/optimize-multi-agent-v2"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/clienterror"
+	. "github.com/router-for-me/LLMProxyAPI/v8/internal/constant"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/httpwire"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/registry"
+	sdkaccess "github.com/router-for-me/LLMProxyAPI/v8/sdk/access"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/api/handlers"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
 )
 
 func writeResponsesSSEChunk(w io.Writer, chunk []byte) error {

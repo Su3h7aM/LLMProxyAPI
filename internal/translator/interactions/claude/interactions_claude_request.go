@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"github.com/MoeForge/moego/ojson"
-	sigcompat "github.com/router-for-me/CLIProxyAPI/v8/internal/signature"
-	translatorcommon "github.com/router-for-me/CLIProxyAPI/v8/internal/translator/common"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	sigcompat "github.com/router-for-me/LLMProxyAPI/v8/internal/signature"
+	translatorcommon "github.com/router-for-me/LLMProxyAPI/v8/internal/translator/common"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 func ConvertClaudeRequestToInteractions(modelName string, inputRawJSON []byte, stream bool) ([]byte, error) {

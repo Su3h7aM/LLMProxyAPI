@@ -4,8 +4,6 @@ LLMProxyAPI is a fork of CLIProxyAPI with the management dashboard built in.
 One binary serves the proxy API and the web panel.
 It also adopts selected ideas from magpie.
 
-Status: early scaffold. No proxy code lives here yet.
-
 ## What this project is
 
 - A Go proxy server that fronts CLI agent subscriptions (Claude, Codex,
@@ -45,30 +43,6 @@ commit and port the range you need.
 - `UPSTREAM_BASELINE.md` — pinned upstream commits.
 - `AGENTS.md` — agent workflow rules.
 
-## Panel
-
-The proxy binary serves the panel at `/management.html` from a single
-process. Build and stage the bundled panel with:
-
-```
-npm run build:panel
-```
-
-Then point the binary at the staged bundle and stop the remote asset
-sync. Example config and environment:
-
-```
-remote-management:
-  disable-auto-update-panel: true
-```
-
-```
-MANAGEMENT_STATIC_PATH=<repo>/apps/web/dist ./llmproxy -config config.yaml
-```
-
-The external management API (`/v0`, `/v8`) keeps working for other
-clients.
-
 ## Tools and tasks
 
 Tools (Go, Node) and tasks come from mise. The config lives in
@@ -77,7 +51,8 @@ directly without mise. Common tasks:
 
 ```
 mise run build-server   # build the proxy binary
-mise run build-panel    # build and stage the web panel
+mise run build-web      # build the web panel bundle
+mise run stage-panel    # stage the bundle as management.html
 mise run check-panel    # boot the server and check the panel serves
 mise tasks ls          # list all tasks
 ```
@@ -85,7 +60,7 @@ mise tasks ls          # list all tasks
 ## Panel
 
 The proxy binary serves the panel at `/management.html` from a single
-process. Stage the bundled panel with `mise run build-panel`, then
+process. Stage the bundled panel with `mise run stage-panel`, then
 point the binary at it and stop the remote asset sync. Example
 config and run:
 

@@ -1,4 +1,4 @@
-// Package handlers provides core API handler functionality for the CLI Proxy API server.
+// Package handlers provides core API handler functionality for the LLM Proxy API server.
 // It includes common types, client management, load balancing, and error handling
 // shared across all API endpoint handlers (OpenAI, Claude, Gemini).
 package handlers
@@ -17,16 +17,16 @@ import (
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	coresession "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/session"
-	coreusage "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/usage"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/httptransport"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/interfaces"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/thinking"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	coreauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	coreexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	coresession "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/session"
+	coreusage "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/usage"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/httptransport"
 	"golang.org/x/net/context"
 )
 

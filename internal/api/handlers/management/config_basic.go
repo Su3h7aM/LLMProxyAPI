@@ -11,16 +11,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
-	sdkconfig "github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
+	sdkconfig "github.com/router-for-me/LLMProxyAPI/v8/sdk/config"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	latestReleaseURL       = "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases/latest"
-	latestReleaseUserAgent = "CLIProxyAPI"
+	latestReleaseUserAgent = "LLMProxyAPI"
 )
 
 func (h *Handler) GetConfig(c *gin.Context) {

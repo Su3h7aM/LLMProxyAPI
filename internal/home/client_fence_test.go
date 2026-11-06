@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executionregistry"
+	"github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executionregistry"
 )
 
 func TestFenceDispatchRejectsRequestPausedBeforeRegistration(t *testing.T) {

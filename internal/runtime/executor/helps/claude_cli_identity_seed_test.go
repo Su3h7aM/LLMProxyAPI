@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/MoeForge/moego/ojson"
-	claudeauth "github.com/router-for-me/CLIProxyAPI/v8/internal/auth/claude"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+	claudeauth "github.com/router-for-me/LLMProxyAPI/v8/internal/auth/claude"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
 )
 
 func TestEnsureClaudeCLIFingerprintIdentitySynthesizesStableSources(t *testing.T) {

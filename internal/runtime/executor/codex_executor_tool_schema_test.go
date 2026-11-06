@@ -11,10 +11,10 @@ import (
 
 	"github.com/MoeForge/moego/ojson"
 	"github.com/gorilla/websocket"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
-	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	cliproxyauth "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/auth"
+	cliproxyexecutor "github.com/router-for-me/LLMProxyAPI/v8/sdk/cliproxy/executor"
+	sdktranslator "github.com/router-for-me/LLMProxyAPI/v8/sdk/translator"
 )
 
 // Issue #5551: Tool schema with 13-branch oneOf causes ChatGPT Codex upstream

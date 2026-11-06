@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/misc"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/config"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/misc"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -72,8 +72,8 @@ func TestGenerateSIWCAuthURL(t *testing.T) {
 	if _, errBadDevice := auth.GenerateSIWCAuthURL("test-state", "test-nonce", "not-a-uuid", "", pkce); errBadDevice == nil {
 		t.Fatal("expected error for invalid device UUID")
 	}
-	if SIWCAgentNameHint != "CLIProxyAPI" {
-		t.Fatalf("SIWCAgentNameHint = %q, want CLIProxyAPI", SIWCAgentNameHint)
+	if SIWCAgentNameHint != "LLMProxyAPI" {
+		t.Fatalf("SIWCAgentNameHint = %q, want LLMProxyAPI", SIWCAgentNameHint)
 	}
 
 	customCfg := &config.Config{}

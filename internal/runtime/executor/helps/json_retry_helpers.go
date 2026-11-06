@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/MoeForge/moego/ojson"
-	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
+	"github.com/router-for-me/LLMProxyAPI/v8/internal/util"
 )
 
 // DeleteJSONField removes a top-level or nested JSON field from a payload.
