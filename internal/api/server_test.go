@@ -3987,4 +3987,64 @@ func TestServerResponsesWebsocketReauthorizesEachTurn(t *testing.T) {
 	if gotCalls := wsExec.calls.Load(); gotCalls != 1 {
 		t.Fatalf("executor calls after revoked turn = %d, want 1", gotCalls)
 	}
+
+	// The websocket handler flushes request logs through temp files in
+	// auth/logs after the handler returns, concurrently with teardown.
+	// Close gracefully, drain the server close, then wait for log
+	// quiescence so TempDir cleanup cannot race the background flush.
+	_ = conn.WriteMessage(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
+	)
+	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	for {
+		if _, _, errRead := conn.ReadMessage(); errRead != nil {
+			break
+		}
+	}
+	waitForRequestLogQuiescence(t, filepath.Join(server.cfg.AuthDir, "logs"))
+}
+
+// waitForRequestLogQuiescence polls a request-log directory until no temp
+// files remain and the listing is stable across two consecutive checks.
+// It fails the test on timeout so a stuck writer stays loud instead of
+// flaking TempDir cleanup.
+func waitForRequestLogQuiescence(t *testing.T, logsDir string) {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	previous := ""
+	for {
+		snapshot, hasTmp := requestLogDirSnapshot(logsDir)
+		if !hasTmp && snapshot == previous {
+			return
+		}
+		previous = snapshot
+		if time.Now().After(deadline) {
+			t.Fatalf("request log directory did not quiesce: %s", logsDir)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func requestLogDirSnapshot(logsDir string) (string, bool) {
+	entries, errRead := os.ReadDir(logsDir)
+	if errRead != nil {
+		return "", false
+	}
+	var snapshot strings.Builder
+	hasTmp := false
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".tmp") {
+			hasTmp = true
+		}
+		var modTime int64
+		var size int64
+		if info, errInfo := entry.Info(); errInfo == nil {
+			modTime = info.ModTime().UnixNano()
+			size = info.Size()
+		}
+		fmt.Fprintf(&snapshot, "%s:%d:%d;", name, size, modTime)
+	}
+	return snapshot.String(), hasTmp
 }
