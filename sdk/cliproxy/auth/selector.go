@@ -935,6 +935,54 @@ type SessionAffinitySelector struct {
 	matcher           *cliproxysession.MerklePrefixMatcher
 	subagentAffinity  bool
 	rebindOnQuotaOnly bool
+
+	// strikeMu guards strikes. strikes counts consecutive transient failures per credential and model.
+	strikeMu sync.Mutex
+	strikes  map[string]transientStrike
+}
+
+const (
+	// sessionAffinityStrikeLimit is the number of consecutive transient failures that mark
+	// a credential as dead under rebind-on: quota. A single failure only fails over.
+	sessionAffinityStrikeLimit = 2
+	// sessionAffinityStrikeWindow ends a failure run after this quiet period.
+	sessionAffinityStrikeWindow = 10 * time.Minute
+)
+
+// transientStrike counts consecutive transient failures of one credential for one model.
+type transientStrike struct {
+	count int
+	last  time.Time
+}
+
+func transientStrikeKey(authID, model string) string {
+	return authID + "\x00" + model
+}
+
+// recordTransientStrike counts a transient failure. It reports whether the credential
+// has now failed enough times in a row to be treated as dead.
+func (s *SessionAffinitySelector) recordTransientStrike(authID, model string, now time.Time) bool {
+	key := transientStrikeKey(authID, model)
+	s.strikeMu.Lock()
+	defer s.strikeMu.Unlock()
+	if s.strikes == nil {
+		s.strikes = make(map[string]transientStrike)
+	}
+	strike := s.strikes[key]
+	if now.Sub(strike.last) > sessionAffinityStrikeWindow {
+		strike.count = 0
+	}
+	strike.count++
+	strike.last = now
+	s.strikes[key] = strike
+	return strike.count >= sessionAffinityStrikeLimit
+}
+
+// clearTransientStrike ends the failure run of a credential after a success.
+func (s *SessionAffinitySelector) clearTransientStrike(authID, model string) {
+	s.strikeMu.Lock()
+	defer s.strikeMu.Unlock()
+	delete(s.strikes, transientStrikeKey(authID, model))
 }
 
 const (
@@ -1742,14 +1790,19 @@ func (s *SessionAffinitySelector) OnResult(res Result) {
 		nsModel = canonicalModelKey(raw)
 	}
 
+	if res.Success && s.rebindOnQuotaOnly {
+		s.clearTransientStrike(res.AuthID, nsModel)
+	}
 	if res.Error != nil && shouldSkipCredentialCooldown(res.Error) {
 		// Request-scoped or caller-attributed failures are not evidence that the
 		// selected credential is unhealthy, so preserve both explicit and LCP bindings.
 		return
 	}
-	if !res.Success && s.rebindOnQuotaOnly && !shouldRebindSessionAffinityOnError(res.Error) {
-		// Under session-affinity-rebind-on: quota, transient failures fail over for
+	if !res.Success && s.rebindOnQuotaOnly && !shouldRebindSessionAffinityOnError(res.Error) &&
+		!s.recordTransientStrike(res.AuthID, nsModel, time.Now()) {
+		// Under session-affinity-rebind-on: quota, a transient failure fails over for
 		// the current request without unbinding the session from its bound credential.
+		// A run of failures marks the credential as dead, so the code below unbinds it.
 		return
 	}
 
