@@ -9,6 +9,11 @@ Format: date, context, decision, reason. Newest first.
   project, first intentional difference from upstream.
 - 2026-11-06: Never bring Plus code in without asking first. Standing
   developer rule.
+- 2026-11-06: Upstream-to-fork data compatibility is mandatory; fork to
+  upstream is not. Config, auth files, and kv.db from upstream must load
+  and keep working. Any future store change ships a migration that
+  preserves existing data. Current state: formats unchanged, new fields
+  purely additive.
 - 2026-11-06: OpenCode Go subscription is first-class in the backend
   (Sketch 1). Same key-list and quota/fetch section as Codex/Anthropic.
   Reference: magpie `readOpenCodeGo` plus the Go usage endpoint docs.
