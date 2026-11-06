@@ -1,3 +1,15 @@
+FROM oven/bun:1.4-bookworm AS panel
+
+WORKDIR /panel
+
+COPY apps/web/package.json apps/web/bun.lock ./
+
+RUN bun install --frozen-lockfile
+
+COPY apps/web/ ./
+
+RUN bun run build && cp dist/index.html dist/management.html
+
 FROM golang:1.27-bookworm AS builder
 
 WORKDIR /app
@@ -9,6 +21,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+
+COPY --from=panel /panel/dist ./apps/web/dist
 
 ARG VERSION=dev
 ARG COMMIT=none

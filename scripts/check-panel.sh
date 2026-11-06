@@ -34,4 +34,4 @@ done
 
 TITLE="$(curl -s "http://127.0.0.1:$PORT/management.html" | grep -o "<title>[^<]*</title>" | head -n 1)"
 echo "panel: $TITLE"
-test "$TITLE" = "<title>CPA Manager Plus</title>"
+test "$TITLE" = "<title>CLI Proxy API Management Center</title>"
