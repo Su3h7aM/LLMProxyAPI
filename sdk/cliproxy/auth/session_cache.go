@@ -40,6 +40,7 @@ type SessionCache struct {
 	stopOnce         sync.Once
 	sessionGroups    map[string]map[string]struct{}
 	bindingSequence  uint64
+	failoverPins     map[string]sessionFailoverPin
 }
 
 // NewSessionCache creates a cache with the specified TTL.
@@ -402,6 +403,7 @@ func (c *SessionCache) CompareAndDelete(sessionID, expectedAuthID string) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ensureInitializedLocked()
+	delete(c.failoverPins, sessionID)
 	entry, ok := c.entries[sessionID]
 	if !ok || entry.authID != expectedAuthID {
 		return false
@@ -511,4 +513,58 @@ func (c *SessionCache) cleanup() {
 			c.removeAliasGroupLocked(group)
 		}
 	}
+	for sessionID, pin := range c.failoverPins {
+		if !now.Before(pin.expiresAt) {
+			delete(c.failoverPins, sessionID)
+		}
+	}
+}
+
+// sessionFailoverPin keeps a failover credential for a session while its bound credential
+// cools down. The pin is valid only while the session stays bound to boundAuthID.
+type sessionFailoverPin struct {
+	boundAuthID  string
+	pinnedAuthID string
+	expiresAt    time.Time
+}
+
+// pinFailover records pinnedAuthID as the failover credential of a session. The pin ends at expiresAt.
+func (c *SessionCache) pinFailover(sessionID, boundAuthID, pinnedAuthID string, expiresAt time.Time) {
+	if c == nil || sessionID == "" || boundAuthID == "" || pinnedAuthID == "" {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if !time.Now().Before(expiresAt) {
+		return
+	}
+	if c.failoverPins == nil {
+		c.failoverPins = make(map[string]sessionFailoverPin)
+	}
+	c.failoverPins[sessionID] = sessionFailoverPin{boundAuthID: boundAuthID, pinnedAuthID: pinnedAuthID, expiresAt: expiresAt}
+}
+
+// pinnedFailover returns the failover credential pinned for a session. It reports false when
+// the binding no longer points at boundAuthID or the pin has expired.
+func (c *SessionCache) pinnedFailover(sessionID, boundAuthID string, now time.Time) (string, bool) {
+	if c == nil {
+		return "", false
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	pin, ok := c.failoverPins[sessionID]
+	if !ok || pin.boundAuthID != boundAuthID || !now.Before(pin.expiresAt) {
+		return "", false
+	}
+	return pin.pinnedAuthID, true
+}
+
+// unpinFailover removes the failover pin of a session.
+func (c *SessionCache) unpinFailover(sessionID string) {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.failoverPins, sessionID)
 }

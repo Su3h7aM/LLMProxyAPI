@@ -985,6 +985,32 @@ func (s *SessionAffinitySelector) clearTransientStrike(authID, model string) {
 	delete(s.strikes, transientStrikeKey(authID, model))
 }
 
+// failoverPinExpiry returns when a failover pin for the bound credential authID ends. The pin
+// ends when the bound credential can serve model again, and never later than the affinity TTL.
+// The manager passes only usable candidates to Pick, so the bound credential is often absent
+// here. Then the TTL is the bound. A pin is read only while the binding is unavailable, and
+// the binding wins again as soon as it is available, so the TTL cap is a safety limit only.
+func (s *SessionAffinitySelector) failoverPinExpiry(candidates []*Auth, authID, model string, now time.Time) time.Time {
+	until := now.Add(s.cache.ttl)
+	for _, candidate := range candidates {
+		if candidate == nil || candidate.ID != authID {
+			continue
+		}
+		retryAt := candidate.NextRetryAfter
+		modelKey := canonicalModelKey(model)
+		for stateModel, state := range candidate.ModelStates {
+			if state != nil && canonicalModelKey(stateModel) == modelKey && state.NextRetryAfter.After(retryAt) {
+				retryAt = state.NextRetryAfter
+			}
+		}
+		if retryAt.After(now) && retryAt.Before(until) {
+			until = retryAt
+		}
+		break
+	}
+	return until
+}
+
 const (
 	// SessionAffinityRebindOnAny rebinds the session on any credential-attributed failure (default).
 	SessionAffinityRebindOnAny = "any"
@@ -1311,9 +1337,20 @@ func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model stri
 	if cachedAuthID, ok := s.cache.GetAndRefresh(cacheKey); ok {
 		for _, auth := range available {
 			if auth.ID == cachedAuthID {
+				s.cache.unpinFailover(cacheKey)
 				bind(auth.ID, true)
 				entry.Infof("session-affinity: cache hit | session=%s auth=%s provider=%s model=%s", truncateSessionID(primaryID), auth.ID, provider, model)
 				return auth, nil
+			}
+		}
+		// The bound credential is cooling down. Reuse the failover pinned for this session so
+		// that the session does not change credentials on every request.
+		if pinnedID, ok := s.cache.pinnedFailover(cacheKey, cachedAuthID, now); ok {
+			for _, auth := range available {
+				if auth.ID == pinnedID {
+					entry.Infof("session-affinity: reusing pinned failover while bound auth cools down | session=%s bound_auth=%s failover_auth=%s provider=%s model=%s", truncateSessionID(primaryID), cachedAuthID, auth.ID, provider, model)
+					return auth, nil
+				}
 			}
 		}
 		// Cached auth not available, reselect via fallback selector for even distribution
@@ -1326,6 +1363,7 @@ func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model stri
 		}
 		if s.shouldPreserveBindingWhenUnavailable(ctx, availabilityCandidates, model, cachedAuthID, now) {
 			bind(cachedAuthID, false)
+			s.cache.pinFailover(cacheKey, cachedAuthID, auth.ID, s.failoverPinExpiry(availabilityCandidates, cachedAuthID, model, now))
 			entry.Infof("session-affinity: cache hit but auth transiently unavailable, failover without rebinding | session=%s bound_auth=%s failover_auth=%s provider=%s model=%s", truncateSessionID(primaryID), cachedAuthID, auth.ID, provider, model)
 			return auth, nil
 		}
