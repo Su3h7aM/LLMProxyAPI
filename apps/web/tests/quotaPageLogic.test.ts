@@ -77,6 +77,7 @@ describe('buildTabCounts', () => {
       antigravity: 0,
       codex: 2,
       xai: 1,
+      'opencode-go': 0,
       kimi: 1,
       devin: 0,
       meta: 0,

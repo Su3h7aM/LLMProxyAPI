@@ -215,6 +215,7 @@ export type ProviderFamily =
   | 'xai'
   | 'claude'
   | 'vertex'
+  | 'opencode-go'
   | 'openai-compatibility';
 type KeyConfig = ProviderKeyConfig | GeminiKeyConfig;
 const equal = (a: unknown, b: unknown): boolean => {
@@ -540,6 +541,11 @@ export const providersApi = {
     updateKey('xai', apiKey, baseUrl, config),
   deleteXAIConfig: (apiKey: string, baseUrl?: string, source?: ProviderSource) =>
     deleteKey('xai', apiKey, baseUrl, source),
+  createOpenCodeGoConfig: (config: ProviderKeyConfig) => createKey('opencode-go', config),
+  updateOpenCodeGoConfig: (apiKey: string, baseUrl: string | undefined, config: ProviderKeyConfig) =>
+    updateKey('opencode-go', apiKey, baseUrl, config),
+  deleteOpenCodeGoConfig: (apiKey: string, baseUrl?: string, source?: ProviderSource) =>
+    deleteKey('opencode-go', apiKey, baseUrl, source),
   createClaudeConfig: (config: ProviderKeyConfig) => createKey('claude', config),
   updateClaudeConfig: (apiKey: string, baseUrl: string | undefined, config: ProviderKeyConfig) =>
     updateKey('claude', apiKey, baseUrl, config),

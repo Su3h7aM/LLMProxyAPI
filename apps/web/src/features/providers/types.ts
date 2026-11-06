@@ -21,7 +21,8 @@ export type ProviderBrand =
   | 'fennoAI'
   | 'qiniuCloud'
   | 'aiCodeMirror'
-  | 'kimi';
+  | 'kimi'
+  | 'opencodeGo';
 
 export type SponsorProviderBrand = 'apikeyFun' | 'fennoAI' | 'qiniuCloud' | 'aiCodeMirror' | 'kimi';
 
@@ -37,6 +38,7 @@ export type ProviderResourceSelector =
   | { brand: 'codex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'meta'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'xai'; apiKey: string; baseUrl?: string; index: number }
+  | { brand: 'opencodeGo'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'claude'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'vertex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'openaiCompatibility'; name: string; index: number }

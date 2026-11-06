@@ -46,6 +46,10 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     light: { bg: '#f3f4f6', text: '#111827', border: '1px solid #d1d5db' },
     dark: { bg: '#111827', text: '#f9fafb', border: '1px solid #374151' },
   },
+  'opencode-go': {
+    light: { bg: '#e8e8e8', text: '#1f1f1f', border: '1px solid #d2d2d2' },
+    dark: { bg: '#2a2a2a', text: '#eeeeee', border: '1px solid #4b4b4b' },
+  },
   iflow: {
     light: { bg: '#f5e3fc', text: '#9025c8' },
     dark: { bg: '#521490', text: '#d49cf5' },
@@ -168,4 +172,14 @@ export const XAI_REQUEST_HEADERS = {
 export const XAI_API_REQUEST_HEADERS = {
   Authorization: 'Bearer $TOKEN$',
   accept: 'application/json',
+};
+
+// OpenCode Go subscription: fixed usage route told by the workspace
+// member's Go key. The gateway routes nothing that names no session.
+export const OPENCODE_GO_USAGE_URL = 'https://opencode.ai/zen/go/v1/usage';
+
+export const OPENCODE_GO_REQUEST_HEADERS = {
+  Authorization: 'Bearer $TOKEN$',
+  Accept: 'application/json',
+  'Accept-Language': 'en-US,en',
 };
