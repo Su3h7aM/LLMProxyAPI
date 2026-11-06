@@ -44,3 +44,35 @@ commit and port the range you need.
 - `README.md` — this file.
 - `UPSTREAM_BASELINE.md` — pinned upstream commits.
 - `AGENTS.md` — agent workflow rules.
+
+## Tools and tasks
+
+Tools (Go, Node) and tasks come from mise. The config lives in
+`.mise/config.toml`. Task scripts live in `scripts/` and also run
+directly without mise. Common tasks:
+
+```
+mise run build-server   # build the proxy binary
+mise run build-panel    # build and stage the web panel
+mise run check-panel    # boot the server and check the panel serves
+mise tasks ls          # list all tasks
+```
+
+## Panel
+
+The proxy binary serves the panel at `/management.html` from a single
+process. Stage the bundled panel with `mise run build-panel`, then
+point the binary at it and stop the remote asset sync. Example
+config and run:
+
+```
+remote-management:
+  disable-auto-update-panel: true
+```
+
+```
+MANAGEMENT_STATIC_PATH=$PWD/apps/web/dist ./llmproxy -config config.yaml
+```
+
+The external management API (`/v0`, `/v8`) keeps working for other
+clients.
