@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"path/filepath"
 	"testing"
 	"time"
@@ -21,6 +22,22 @@ func TestAffinityPersisterReload(t *testing.T) {
 	p.Bind("expired", "known", now.Add(-time.Hour))
 	p.Bind("removed", "unknown", now.Add(time.Hour))
 	if err := p.Close(); err != nil {
+		t.Fatal(err)
+	}
+	data, ok, err := store.KVGet(context.Background(), affinitySnapshotKey)
+	if err != nil || !ok {
+		t.Fatalf("read snapshot: exists = %v, error = %v", ok, err)
+	}
+	var snapshot affinitySnapshot
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Bindings["expired"] = AffinityBinding{AuthID: "known", ExpiresAt: now.Add(-time.Hour)}
+	data, err = json.Marshal(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.KVSet(context.Background(), affinitySnapshotKey, data, kvstore.KVSetOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	p = NewAffinityPersister(store)

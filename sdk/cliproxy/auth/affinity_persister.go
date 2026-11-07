@@ -113,6 +113,22 @@ func (p *AffinityPersister) Unbind(key string) {
 	p.notify()
 }
 
+func (p *AffinityPersister) replace(removed []string, key, authID string, expiresAt time.Time) {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	for _, old := range removed {
+		delete(p.bindings, old)
+	}
+	if key != "" {
+		p.bindings[key] = AffinityBinding{AuthID: authID, ExpiresAt: expiresAt}
+	}
+	p.revision++
+	p.mu.Unlock()
+	p.notify()
+}
+
 // Bindings returns a copy of the live mirror.
 func (p *AffinityPersister) Bindings() map[string]AffinityBinding {
 	if p == nil {

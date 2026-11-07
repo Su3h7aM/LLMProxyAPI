@@ -439,6 +439,12 @@ func (m *Manager) SetSelector(selector Selector) {
 		m.mu.Unlock()
 		return
 	}
+	if affinity, ok := oldSelector.(*SessionAffinitySelector); ok {
+		affinity.cache.SetPersister(nil)
+	}
+	if affinity, ok := selector.(*SessionAffinitySelector); ok {
+		affinity.cache.SetPersister(m.affinityPersister)
+	}
 	m.selector = selector
 	m.mu.Unlock()
 
@@ -451,6 +457,22 @@ func (m *Manager) SetSelector(selector Selector) {
 		m.scheduler.setSelector(selector)
 		m.syncScheduler()
 	}
+}
+
+// SetAffinityPersister attaches the service-owned mirror to the current selector.
+func (m *Manager) SetAffinityPersister(p *AffinityPersister) {
+	if m == nil {
+		return
+	}
+	m.selectorMu.Lock()
+	defer m.selectorMu.Unlock()
+	m.mu.RLock()
+	selector := m.selector
+	m.mu.RUnlock()
+	if affinity, ok := selector.(*SessionAffinitySelector); ok {
+		affinity.cache.SetPersister(p)
+	}
+	m.affinityPersister = p
 }
 
 // Selector returns the current credential selector.

@@ -206,15 +206,21 @@ func (c *SessionCache) setAliases(authID string, binding sessionBinding, session
 }
 
 func (c *SessionCache) replaceAliasGroupsLocked(authID string, expiresAt time.Time, aliases []string, binding sessionBinding, previousGroups ...sessionEntry) {
+	var removed []string
 	for _, previous := range previousGroups {
-		c.removeAliasGroupLocked(previous)
+		if c.removeAliasGroupWithoutPersistenceLocked(previous) {
+			removed = append(removed, previous.aliases[0])
+		}
 	}
 	if len(aliases) == 0 {
+		c.persister.replace(removed, "", "", time.Time{})
 		return
 	}
 	primaryKey := aliases[0]
 	if existing, ok := c.groups[primaryKey]; ok {
-		c.removeAliasGroupLocked(existing)
+		if c.removeAliasGroupWithoutPersistenceLocked(existing) {
+			removed = append(removed, primaryKey)
+		}
 	}
 	entry := sessionEntry{authID: authID, expiresAt: expiresAt, aliases: append([]string(nil), aliases...), binding: binding}
 	c.groups[primaryKey] = entry
@@ -226,8 +232,10 @@ func (c *SessionCache) replaceAliasGroupsLocked(authID string, expiresAt time.Ti
 	}
 	for _, alias := range aliases {
 		c.entries[alias] = entry
-		c.persister.Bind(alias, authID, expiresAt)
 	}
+	// Only the primary key is stored. After restart, requests with only a
+	// fallback ID can miss until a request carries both IDs again.
+	c.persister.replace(removed, primaryKey, authID, expiresAt)
 	c.evictionElements[primaryKey] = c.evictionOrder.PushBack(primaryKey)
 	if c.maxEntries > 0 && len(c.entries) > c.maxEntries {
 		c.evictExcessLocked()
@@ -252,12 +260,20 @@ func (c *SessionCache) evictExcessLocked() {
 }
 
 func (c *SessionCache) removeAliasGroupLocked(entry sessionEntry) {
+	if c.removeAliasGroupWithoutPersistenceLocked(entry) {
+		c.persister.Unbind(entry.aliases[0])
+	}
+}
+
+func (c *SessionCache) removeAliasGroupWithoutPersistenceLocked(entry sessionEntry) bool {
 	if len(entry.aliases) == 0 {
-		return
+		return false
 	}
 	primaryKey := entry.aliases[0]
+	removed := false
 	if currentGroup, ok := c.groups[primaryKey]; ok && sameSessionEntryGroup(currentGroup, entry) {
 		delete(c.groups, primaryKey)
+		removed = true
 		if groups := c.sessionGroups[entry.binding.sessionID]; groups != nil {
 			delete(groups, primaryKey)
 			if len(groups) == 0 {
@@ -276,8 +292,8 @@ func (c *SessionCache) removeAliasGroupLocked(entry sessionEntry) {
 			continue
 		}
 		delete(c.entries, alias)
-		c.persister.Unbind(alias)
 	}
+	return removed
 }
 
 // SetPersister detaches the old persister and restores the new mirror.
@@ -291,10 +307,22 @@ func (c *SessionCache) SetPersister(p *AffinityPersister) {
 	c.persister = nil
 	if p != nil {
 		for key, binding := range p.Bindings() {
+			if _, exists := c.entries[key]; exists {
+				continue
+			}
+			// Selection metadata is restored on the next cache hit. Until then,
+			// guardian subagents cannot inherit this binding across models.
 			c.replaceAliasGroupsLocked(binding.AuthID, binding.ExpiresAt, []string{key}, sessionBinding{})
 		}
 	}
 	c.persister = p
+	if p != nil {
+		for key, group := range c.groups {
+			if time.Now().Before(group.expiresAt) {
+				p.Bind(key, group.authID, group.expiresAt)
+			}
+		}
+	}
 }
 
 func sameSessionEntryGroup(left, right sessionEntry) bool {
@@ -428,7 +456,6 @@ func (c *SessionCache) CompareAndDelete(sessionID, expectedAuthID string) bool {
 	if !ok || entry.authID != expectedAuthID {
 		return false
 	}
-	c.removeAliasGroupLocked(entry)
 
 	surviving := make([]string, 0, len(entry.aliases))
 	for _, alias := range entry.aliases {
@@ -437,7 +464,9 @@ func (c *SessionCache) CompareAndDelete(sessionID, expectedAuthID string) bool {
 		}
 	}
 	if len(surviving) > 0 {
-		c.replaceAliasGroupsLocked(entry.authID, entry.expiresAt, surviving, entry.binding)
+		c.replaceAliasGroupsLocked(entry.authID, entry.expiresAt, surviving, entry.binding, entry)
+	} else {
+		c.removeAliasGroupLocked(entry)
 	}
 	return true
 }
@@ -455,7 +484,6 @@ func (c *SessionCache) Invalidate(sessionID string) {
 	if !ok {
 		return
 	}
-	c.removeAliasGroupLocked(entry)
 
 	surviving := make([]string, 0, len(entry.aliases))
 	for _, alias := range entry.aliases {
@@ -464,7 +492,9 @@ func (c *SessionCache) Invalidate(sessionID string) {
 		}
 	}
 	if len(surviving) > 0 {
-		c.replaceAliasGroupsLocked(entry.authID, entry.expiresAt, surviving, entry.binding)
+		c.replaceAliasGroupsLocked(entry.authID, entry.expiresAt, surviving, entry.binding, entry)
+	} else {
+		c.removeAliasGroupLocked(entry)
 	}
 }
 

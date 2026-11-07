@@ -124,6 +124,10 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 	}
 
+	if !homeEnabled {
+		s.startAffinityPersistence(ctx)
+	}
+
 	// legacy clients removed; no caches to refresh
 
 	s.ensureWebsocketGateway()
@@ -392,6 +396,7 @@ func (s *Service) Shutdown(ctx context.Context) error {
 			}
 		}
 
+		s.stopAffinityPersistence()
 		if errShutdownKV := s.shutdownKVStore(); errShutdownKV != nil {
 			log.Errorf("failed to stop local kv store: %v", errShutdownKV)
 			if shutdownErr == nil {

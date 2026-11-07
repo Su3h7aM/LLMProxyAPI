@@ -78,7 +78,11 @@ type Service struct {
 	discoveryManager *discoveryAdvertiserManager
 
 	// kvStoreManaged tracks whether this service instance owns local KVStore lifecycle.
-	kvStoreManaged atomic.Bool
+	kvStoreManaged    atomic.Bool
+	affinityPersister *coreauth.AffinityPersister
+	affinityMu        sync.Mutex
+	affinityReady     bool
+	affinityKVPath    string
 
 	// serverErr channel for server startup/shutdown errors.
 	serverErr chan error
