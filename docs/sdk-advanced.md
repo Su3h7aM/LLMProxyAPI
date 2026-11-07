@@ -5,7 +5,7 @@ This guide explains how to extend the embedded proxy with custom providers and s
 - Register request/response translators for schema conversion
 - Register models so they appear in `/v1/models`
 
-The examples use Go 1.24+ and the v6 module path.
+The examples use the fork's Go module path.
 
 ## Concepts
 
@@ -24,8 +24,8 @@ import (
   "context"
   "net/http"
 
-  coreauth "github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy/auth"
-  clipexec "github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy/executor"
+  coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
+  clipexec "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/executor"
 )
 
 type Executor struct{}
@@ -82,7 +82,7 @@ package myprov
 
 import (
   "context"
-  sdktr "github.com/Su3h7aM/LLMProxyAPI/v6/sdk/translator"
+  sdktr "github.com/Su3h7aM/LLMProxyAPI/sdk/translator"
 )
 
 const (

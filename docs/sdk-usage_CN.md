@@ -5,7 +5,7 @@
 ## 安装与导入
 
 ```bash
-go get github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy
+go get github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy
 ```
 
 ```go
@@ -14,12 +14,10 @@ import (
     "errors"
     "time"
 
-    "github.com/Su3h7aM/LLMProxyAPI/v6/internal/config"
-    "github.com/Su3h7aM/LLMProxyAPI/v6/sdk/cliproxy"
+    "github.com/Su3h7aM/LLMProxyAPI/sdk/config"
+    "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy"
 )
 ```
-
-注意模块路径包含 `/v6`。
 
 ## 最小可用示例
 

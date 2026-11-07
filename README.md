@@ -1,17 +1,15 @@
 # LLMProxyAPI
 
-LLMProxyAPI is a fork of CLIProxyAPI with the management dashboard built in.
-One binary serves the proxy API and the web panel.
-It also adopts selected ideas from magpie.
+LLMProxyAPI is a proxy server with a built-in management dashboard. One binary serves the proxy API and the web panel.
+
+Based on [router-for-me/CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI).
 
 ## What this project is
 
 - A Go proxy server that fronts CLI agent subscriptions (Claude, Codex,
   Gemini, and others) behind OpenAI, Responses, Gemini, and Claude compatible
   endpoints.
-- The base code comes from CLIProxyAPI. The dashboard concept comes from
-  CPA-Manager-Plus. Routing, rotation, redaction, and usage ideas come from
-  magpie. Operations notes come from the `t3dotgg/cliproxy-setup` gist.
+- The dashboard concept comes from CPA-Manager-Plus. Routing, rotation, redaction, and usage ideas come from magpie. Operations notes come from the `t3dotgg/cliproxy-setup` gist.
 - Planned first changes, from the gist: soonest-reset-first routing, session
   affinity checks, Codex websocket support, 1h cache TTL guidance, and a
   quota panel.
@@ -21,8 +19,6 @@ It also adopts selected ideas from magpie.
 All credit for the base work belongs to the upstream projects.
 This fork keeps their MIT license notices.
 
-- CLIProxyAPI by Router-For.ME (MIT) —
-  https://github.com/router-for-me/CLIProxyAPI
 - CPA-Manager-Plus by Seakee (MIT) —
   https://github.com/seakee/CPA-Manager-Plus
 - magpie by yetone (MIT) —
@@ -44,6 +40,8 @@ commit and port the range you need.
 - `AGENTS.md` — agent workflow rules.
 
 ## Tools and tasks
+
+Clone the fork with `git clone https://github.com/Su3h7aM/LLMProxyAPI.git`. The default image in `compose.yaml` is `su3h7am/llm-proxy-api:latest`.
 
 Tools (Go, Node) and tasks come from mise. The config lives in
 `.mise/config.toml`. Task scripts live in `scripts/` and also run
