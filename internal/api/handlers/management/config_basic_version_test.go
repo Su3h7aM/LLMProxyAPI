@@ -1,10 +1,32 @@
 package management
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
+
+func TestLatestVersionUsesForkAndReportsMissingRelease(t *testing.T) {
+	previous := http.DefaultTransport
+	t.Cleanup(func() { http.DefaultTransport = previous })
+	http.DefaultTransport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if got, want := req.URL.String(), "https://api.github.com/repos/Su3h7aM/LLMProxyAPI/releases/latest"; got != want {
+			t.Fatalf("release URL = %q, want %q", got, want)
+		}
+		return &http.Response{StatusCode: http.StatusNotFound, Body: io.NopCloser(strings.NewReader("not found")), Header: make(http.Header)}, nil
+	})
+	response := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(response)
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/server/latest-version", nil)
+	(&Handler{}).GetLatestVersion(ctx)
+	if response.Code != http.StatusBadGateway || !strings.Contains(response.Body.String(), `"error":"unexpected_status"`) {
+		t.Fatalf("response = %d %s, want 502 unexpected_status", response.Code, response.Body.String())
+	}
+}
 
 func TestSetLatestReleaseRequestHeaders(t *testing.T) {
 	tests := []struct {
