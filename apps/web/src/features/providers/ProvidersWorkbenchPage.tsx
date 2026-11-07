@@ -17,8 +17,6 @@ import { ProviderCategoryList } from './components/ProviderCategoryList';
 import { ProviderResourcePanel } from './components/ProviderResourcePanel';
 import type { ProviderPanelControls } from './components/ProviderResourcePanel';
 import { ProviderSheet, type ProviderSheetHandle } from './sheets/ProviderSheet';
-import { isMultiProtocolSponsorBrand } from './sponsorDefinitions';
-import { isSponsorPartialMutationError } from './sponsorMutationRecovery';
 import { useProviderWorkbench } from './useProviderWorkbench';
 import {
   getProviderFilterState,
@@ -76,9 +74,6 @@ const getResourceRecentSuccess = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
 ): number => {
-  if (isMultiProtocolSponsorBrand(resource.brand)) {
-    return 0;
-  }
   if (resource.brand === 'openaiCompatibility') {
     return getOpenAIProviderRecentWindowStats(resource.raw as OpenAIProviderConfig, usageByProvider)
       .success;
@@ -147,7 +142,7 @@ export function ProvidersWorkbenchPage() {
   );
 
   const allGroups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
-  const groups = useMemo(() => allGroups.filter((group) => group.id !== 'apikeyFun'), [allGroups]);
+  const groups = allGroups;
   const firstVisibleBrand = groups[0]?.id ?? 'gemini';
   const activeBrand = groups.some((group) => group.id === uiState.activeBrand)
     ? uiState.activeBrand
@@ -303,10 +298,6 @@ export function ProvidersWorkbenchPage() {
             await workbench.deleteProvider(resource);
             showNotification(t('providersPage.toast.deleted'), 'success');
           } catch (err) {
-            if (isSponsorPartialMutationError(err)) {
-              showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
-              return;
-            }
             const msg = err instanceof Error ? err.message : String(err);
             showNotification(`${t('notification.delete_failed')}: ${msg}`, 'error');
           }
@@ -325,10 +316,6 @@ export function ProvidersWorkbenchPage() {
           'success'
         );
       } catch (err) {
-        if (isSponsorPartialMutationError(err)) {
-          showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
-          return;
-        }
         const msg = err instanceof Error ? err.message : String(err);
         showNotification(`${t('providersPage.toast.toggleFailed')}: ${msg}`, 'error');
       }
@@ -394,54 +381,54 @@ export function ProvidersWorkbenchPage() {
       {errorBanner}
 
       <div className={styles.layout}>
-          <ProviderCategoryList
-            groups={groups}
-            activeBrand={activeGroup.id}
-            onSelect={(brand) => {
-              const isSwitching = sheetState.open && sheetState.brand !== brand;
-              const proceed =
-                isSwitching && sheetRef.current
-                  ? sheetRef.current.confirmDiscardIfDirty()
-                  : Promise.resolve(true);
-              void proceed.then((ok) => {
-                if (!ok) return;
-                setActiveBrand(brand);
-                if (isSwitching) {
-                  closeSheet();
-                }
-              });
-            }}
-          />
-          <ProviderResourcePanel
-            group={activeGroup}
-            filter={filter}
-            onFilterChange={(value) => updateActiveFilterState({ filter: value })}
-            filteredResources={visibleResources}
-            selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
-            disableMutations={disableMutations}
-            usageByProvider={usageByProvider}
-            toolbarControls={toolbarControls}
-            onView={openView}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-            onToggleDisabled={handleToggleDisabled}
-            onCreate={openCreate}
-          />
+        <ProviderCategoryList
+          groups={groups}
+          activeBrand={activeGroup.id}
+          onSelect={(brand) => {
+            const isSwitching = sheetState.open && sheetState.brand !== brand;
+            const proceed =
+              isSwitching && sheetRef.current
+                ? sheetRef.current.confirmDiscardIfDirty()
+                : Promise.resolve(true);
+            void proceed.then((ok) => {
+              if (!ok) return;
+              setActiveBrand(brand);
+              if (isSwitching) {
+                closeSheet();
+              }
+            });
+          }}
+        />
+        <ProviderResourcePanel
+          group={activeGroup}
+          filter={filter}
+          onFilterChange={(value) => updateActiveFilterState({ filter: value })}
+          filteredResources={visibleResources}
+          selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
+          disableMutations={disableMutations}
+          usageByProvider={usageByProvider}
+          toolbarControls={toolbarControls}
+          onView={openView}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onToggleDisabled={handleToggleDisabled}
+          onCreate={openCreate}
+        />
       </div>
 
-        <ProviderSheet
-          ref={sheetRef}
-          state={sheetState}
-          onClose={closeSheet}
-          onSwitchToEdit={() => {
-            setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
-          }}
-          workbench={workbench}
-          onCreated={handleCreated}
-          onUpdated={handleUpdated}
-          mutationDisabled={disableMutations}
-          usageByProvider={usageByProvider}
-        />
+      <ProviderSheet
+        ref={sheetRef}
+        state={sheetState}
+        onClose={closeSheet}
+        onSwitchToEdit={() => {
+          setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
+        }}
+        workbench={workbench}
+        onCreated={handleCreated}
+        onUpdated={handleUpdated}
+        mutationDisabled={disableMutations}
+        usageByProvider={usageByProvider}
+      />
     </div>
   );
 }

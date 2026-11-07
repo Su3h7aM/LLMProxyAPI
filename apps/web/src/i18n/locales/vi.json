@@ -831,7 +831,6 @@
     "antigravity_oauth_polling_error": "Không thể kiểm tra trạng thái xác thực:",
     "kimi_oauth_title": "Kimi OAuth",
     "kimi_oauth_button": "Đăng nhập bằng Kimi",
-    "kimi_sign_up_button": "Đăng ký ngay",
     "kimi_oauth_hint": "Đăng nhập nhanh vào Kimi qua ủy quyền thiết bị. File xác thực được lấy và lưu tự động.",
     "kimi_open_link": "Mở liên kết",
     "kimi_copy_link": "Sao chép liên kết",
@@ -891,10 +890,6 @@
     "remote_access_disabled": "Phương thức đăng nhập này không khả dụng cho truy cập từ xa. Vui lòng truy cập từ localhost.",
     "kimi_oauth_name": "Kimi Trung Quốc",
     "kimi_ai_oauth_name": "Kimi quốc tế",
-    "sponsor_site_china": "Trung Quốc",
-    "sponsor_site_international": "Quốc tế",
-    "sponsor_kimi_caption": "Đăng nhập bằng mã thiết bị · tài khoản hai trang tách biệt",
-    "sponsor_sign_up": "Đăng ký Open Platform",
     "method_device": "Mã thiết bị",
     "method_browser": "Đăng nhập qua trình duyệt",
     "method_plugin": "Plugin",
@@ -911,7 +906,6 @@
     "waiting_background_hint": "Đóng cửa sổ không làm gián đoạn đăng nhập",
     "restart_login": "Bắt đầu lại",
     "success_saved_hint": "Đã lưu credential — quản lý trong File xác thực.",
-    "sign_up_prompt": "Chưa có tài khoản?",
     "copied": "Đã sao chép",
     "devin_oauth_cancel": "Hủy đăng nhập Devin",
     "devin_oauth_cancelled": "Đã hủy đăng nhập Devin.",
@@ -1265,7 +1259,6 @@
           "session_affinity": "Định tuyến Session Affinity",
           "ws_auth": "Xác thực WebSocket",
           "ws_auth_desc": "Bật xác thực WebSocket (/v1/ws)",
-          "proxy_url_sponsor_hint": "Chưa có proxy phù hợp?",
           "max_retry_interval_hint": "Đặt thành 0 hoặc số nguyên âm để bỏ qua thời gian chờ cooldown giữa các lượt thử lại."
         },
         "streaming": {
@@ -2014,90 +2007,6 @@
       "filterPlaceholder": "Tìm key, URL, tiền tố…",
       "description": "Quản lý tài nguyên trong {{route}}",
       "cliProfileTag": "Hồ sơ CLI"
-    },
-    "sponsor": {
-      "protocolSummary": "Anthropic / OpenAI / Gemini / Codex API (Responses)",
-      "detailHint": "{{provider}} được lưu vào cấu hình API key tương ứng theo giao thức; khung xem này quản lý chúng cùng nhau.",
-      "registerLink": "Đăng ký tại đây",
-      "registerNow": "Đăng ký ngay",
-      "dashboardLink": "Bảng điều khiển",
-      "emptyRegisterHint": "Chưa có cấu hình nào.",
-      "apiKeyHint": "Key này chỉ được ghi vào cấu hình nhóm/giao thức đã chọn.",
-      "usageCheck": "Kiểm tra mức sử dụng",
-      "usageChecking": "Đang kiểm tra",
-      "usageRemaining": "Còn lại: {{amount}} {{unit}}",
-      "usageBreakdown": "Đã dùng {{used}} / Giới hạn {{limit}}",
-      "usageStatus": "Trạng thái: {{status}}",
-      "usageInvalid": "Key không hợp lệ",
-      "usageEmpty": "Endpoint không trả về dữ liệu sử dụng nào.",
-      "usageApiKeyRequired": "Cần có API key",
-      "aggregationConflict": "Provider được nhóm này chứa nhiều cấu hình backend hoặc key OpenAI. Hãy chỉnh trong cấu hình nguồn để tránh mất dữ liệu.",
-      "partialMutationWarning": "Thao tác thất bại sau khi một hoặc nhiều giao thức có thể đã được cập nhật. Cấu hình mới nhất đã được tải lại; hãy xem lại trước khi thử lại.",
-      "groupedKeysTitle": "Key được nhóm",
-      "groupedKeysHint": "Key nền tảng có thể được gắn vào nhóm khi tạo. Mỗi key được nhóm tại đây quản lý một giao thức, và khám phá model chỉ dùng giao thức đó.",
-      "groupedKey": "Key được nhóm #{{index}}",
-      "addGroupedKey": "Thêm key được nhóm",
-      "removeGroupedKey": "Xóa key được nhóm",
-      "protocol": "Nhóm/giao thức",
-      "protocolHint": "Chọn nhóm/giao thức cho key này.",
-      "protocolEndpoint": "Endpoint giao thức hiện tại",
-      "urlMode": "URL {{provider}}",
-      "urlHint": "Mọi URL dùng cùng quy ước API. Lưu chỉ ghi endpoint của giao thức được nhóm hiện tại.",
-      "urlOptions": {
-         "aiCodeMirrorGlobal": "Tuyến toàn cầu được bảo vệ cao",
-         "aiCodeMirrorDomestic": "Tuyến tối ưu cho Trung Quốc đại lục",
-        "standard": "URL chuẩn",
-        "direct": "URL trực tiếp",
-        "domestic": "Tuyến Trung Quốc đại lục",
-        "overseas": "Tuyến nước ngoài",
-        "mainlandChina": "Trung Quốc đại lục (khuyến nghị)",
-        "global": "Toàn cầu"
-      },
-      "urlOptionDescriptions": {
-         "aiCodeMirrorGlobal": "Tuyến có mức bảo vệ cao dành cho truy cập toàn cầu.",
-         "aiCodeMirrorDomestic": "Tuyến được tối ưu cho mạng tại Trung Quốc đại lục.",
-        "domestic": "Dành cho người dùng và khối lượng công việc tại Trung Quốc đại lục; thường có độ trễ thấp hơn trên mạng đại lục.",
-        "overseas": "Dành cho triển khai nước ngoài, truy cập xuyên biên giới hoặc khối lượng công việc cần model nước ngoài.",
-        "mainlandChinaRecommended": "Khuyến nghị cho người dùng và khối lượng công việc trên mạng Trung Quốc đại lục.",
-        "global": "Dành cho người dùng và khối lượng công việc ở mọi khu vực khác."
-      },
-      "modelsTitle": "Cài đặt model giao thức",
-      "modelsHint": "Cấu hình danh sách cho phép hoặc bí danh model riêng cho các tuyến Codex API, Anthropic, Gemini và tương thích OpenAI.",
-      "protocolModels": {
-        "codex": "Model Codex API",
-        "anthropic": "Model Anthropic",
-        "gemini": "Model Gemini",
-        "openai": "Model tương thích OpenAI"
-      },
-      "protocolModelHints": {
-        "codex": "Ghi vào cấu hình model Codex API. Lấy từ /v1/models và đặt bí danh nếu cần.",
-        "anthropic": "Ghi vào cấu hình model Anthropic. Lấy từ /v1/models và đặt bí danh nếu cần.",
-        "gemini": "Ghi vào cấu hình model Gemini. Lấy từ /v1beta/models và đặt bí danh nếu cần.",
-        "openai": "Ghi vào cấu hình model tương thích OpenAI. Lấy từ /models và đặt bí danh nếu cần."
-      },
-      "validation": {
-        "keyRequired": "Nhập API key cho mọi key được nhóm.",
-        "protocolDuplicate": "Mỗi giao thức chỉ có một key được nhóm."
-      },
-      "openaiEntries": "Key tương thích OpenAI",
-      "codexEntries": "Key Codex API",
-      "anthropicEntries": "Key Anthropic",
-      "geminiEntries": "Key Gemini",
-      "protocols": {
-        "anthropic": "Anthropic",
-        "openai": "Tương thích OpenAI",
-        "gemini": "Gemini",
-        "codexResponses": "Codex API (Responses)"
-      },
-      "kimiPromo": "Người dùng mới nạp tiền lần đầu thành công sẽ được tặng hạn mức API trị giá 10% số tiền nạp, tối đa ¥1000. Ưu đãi kết thúc vào ngày 30 tháng 9.",
-      "double11": {
-        "badge": "Ưu đãi 11.11 · Có hạn",
-        "title": "{{provider}} khuyến mãi nạp tiền 11.11",
-        "description": "Nạp tiền vào {{provider}} trong thời gian sự kiện để được tặng thêm {{percent}}% giá trị nạp.",
-        "bonus": "Tặng thêm khi nạp",
-        "cta": "Tham gia ngay",
-        "ctaAria": "Tham gia ngay sự kiện nạp tiền 11.11 của {{provider}} (mở trong thẻ mới)"
-      }
     },
     "status": {
       "active": "Đang hoạt động",

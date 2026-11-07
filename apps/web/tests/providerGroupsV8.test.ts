@@ -79,6 +79,7 @@ describe('v8 provider groups', () => {
       expect(resources).toHaveLength(groups.length);
       for (let index = 0; index < resources.length; index++) {
         const resource = resources[index];
+        expect(resource.name).toBe(`service-${index}`);
         expect(resource.baseUrl).toBe(urls[index]);
         expect(resource.models).toContain(`model-${index}`);
         if (family === 'openai-compatibility') {
