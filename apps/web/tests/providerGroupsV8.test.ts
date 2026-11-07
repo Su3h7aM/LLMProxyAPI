@@ -4,6 +4,7 @@ import { providersApi, type ProviderFamily } from '../src/services/api/providers
 import { normalizeConfigResponse, normalizeProviderGroups } from '../src/services/api/transformers';
 import type { ProviderKeyConfig, OpenAIProviderConfig } from '../src/types';
 import { useAuthStore } from '../src/stores/useAuthStore';
+import { buildProviderGroups } from '../src/features/providers/useProviderWorkbench';
 
 const originalGet = apiClient.get;
 const originalPut = apiClient.put;
@@ -29,6 +30,76 @@ function backend(family: ProviderFamily, groups: Record<string, unknown>[] = [])
 const rows = (groups: unknown) => normalizeProviderGroups(groups) as ProviderKeyConfig[];
 
 describe('v8 provider groups', () => {
+  test.each([
+    ['gemini', 'gemini', ['https://api.qnaigc.com', 'https://api.aicodemirror.ai']],
+    [
+      'claude',
+      'claude',
+      [
+        'https://api.apikey.fan',
+        'https://api.fenno.ai',
+        'https://api.qnaigc.com',
+        'https://api.aicodemirror.ai',
+        'https://api.moonshot.ai/anthropic',
+      ],
+    ],
+    [
+      'codex',
+      'codex',
+      [
+        'https://api.apikey.fan/v1',
+        'https://api.fenno.ai/v1',
+        'https://api.qnaigc.com/v1',
+        'https://api.aicodemirror.ai/v1',
+        'https://api.moonshot.ai/v1',
+      ],
+    ],
+    [
+      'openai-compatibility',
+      'openaiCompatibility',
+      [
+        'https://api.apikey.fan/v1',
+        'https://api.qnaigc.com/v1',
+        'https://api.aicodemirror.ai/v1',
+        'https://api.moonshot.ai/v1',
+      ],
+    ],
+  ] as const)(
+    '%s keeps configured service endpoints in generic groups and saves them',
+    async (family, brand, urls) => {
+      const groups = urls.map((url, index) => ({
+        name: `service-${index}`,
+        'base-url': url,
+        models: [{ name: `model-${index}`, alias: `alias-${index}` }],
+        keys: [{ 'api-key': `key-${index}` }],
+      }));
+      const b = backend(family, groups);
+      const config = normalizeConfigResponse({ 'api-keys': { [family]: groups } });
+      const resources = buildProviderGroups(config).find((group) => group.id === brand)!.resources;
+      expect(resources).toHaveLength(groups.length);
+      for (let index = 0; index < resources.length; index++) {
+        const resource = resources[index];
+        expect(resource.baseUrl).toBe(urls[index]);
+        expect(resource.models).toContain(`model-${index}`);
+        if (family === 'openai-compatibility') {
+          const entry = resource.raw as OpenAIProviderConfig;
+          expect(entry.apiKeyEntries?.[0].apiKey).toBe(`key-${index}`);
+          await providersApi.updateOpenAIProvider(entry.name, index, entry);
+        } else {
+          const entry = resource.raw as ProviderKeyConfig;
+          expect(entry.apiKey).toBe(`key-${index}`);
+          const update =
+            family === 'gemini'
+              ? providersApi.updateGeminiKey
+              : family === 'claude'
+                ? providersApi.updateClaudeConfig
+                : providersApi.updateCodexConfig;
+          await update(entry.apiKey, entry.baseUrl, entry);
+        }
+      }
+      expect(b.groups()).toEqual(groups);
+    }
+  );
   test('reads only the v8 tree and retains empty groups and exact source snapshots', () => {
     const group = {
       name: 'team',

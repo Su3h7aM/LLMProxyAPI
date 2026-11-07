@@ -44,33 +44,11 @@ import type {
   SponsorProviderBrand,
   SponsorProviderRaw,
 } from './types';
-import {
-  buildApiKeyFunRaw,
-  isApiKeyFunClaudeProvider,
-  isApiKeyFunCodexProvider,
-  isApiKeyFunOpenAIProvider,
-} from './sponsor';
-import { buildFennoAIRaw, isFennoAIClaudeProvider, isFennoAICodexProvider } from './fennoAI';
-import {
-  buildQiniuCloudRaw,
-  isQiniuCloudClaudeProvider,
-  isQiniuCloudCodexProvider,
-  isQiniuCloudGeminiProvider,
-  isQiniuCloudOpenAIProvider,
-} from './qiniuCloud';
-import {
-  buildAiCodeMirrorRaw,
-  isAiCodeMirrorClaudeProvider,
-  isAiCodeMirrorCodexProvider,
-  isAiCodeMirrorGeminiProvider,
-  isAiCodeMirrorOpenAIProvider,
-} from './aiCodeMirror';
-import {
-  buildKimiRaw,
-  isKimiClaudeProvider,
-  isKimiCodexProvider,
-  isKimiOpenAIProvider,
-} from './kimi';
+import { buildApiKeyFunRaw } from './sponsor';
+import { buildFennoAIRaw } from './fennoAI';
+import { buildQiniuCloudRaw } from './qiniuCloud';
+import { buildAiCodeMirrorRaw } from './aiCodeMirror';
+import { buildKimiRaw } from './kimi';
 import { getSponsorProviderDefinition, type SponsorProtocolUrls } from './sponsorDefinitions';
 import { runSponsorMutationWithRecovery } from './sponsorMutationRecovery';
 
@@ -376,12 +354,9 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
     let resources: ProviderResource[];
     switch (brand) {
       case 'gemini':
-        resources = (config.geminiApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
-          if (!isQiniuCloudGeminiProvider(item) && !isAiCodeMirrorGeminiProvider(item)) {
-            out.push(geminiToResource(item, index));
-          }
-          return out;
-        }, []);
+        resources = (config.geminiApiKeys ?? []).map((item, index) =>
+          geminiToResource(item, index)
+        );
         break;
       case 'interactions':
         resources = (config.interactionsApiKeys ?? []).map((item, index) =>
@@ -389,18 +364,7 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
         );
         break;
       case 'codex':
-        resources = (config.codexApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
-          if (
-            !isApiKeyFunCodexProvider(item) &&
-            !isFennoAICodexProvider(item) &&
-            !isQiniuCloudCodexProvider(item) &&
-            !isAiCodeMirrorCodexProvider(item) &&
-            !isKimiCodexProvider(item)
-          ) {
-            out.push(codexToResource(item, index));
-          }
-          return out;
-        }, []);
+        resources = (config.codexApiKeys ?? []).map((item, index) => codexToResource(item, index));
         break;
       case 'meta':
         resources = (config.metaApiKeys ?? []).map((item, index) => metaToResource(item, index));
@@ -414,18 +378,9 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
         );
         break;
       case 'claude':
-        resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
-          if (
-            !isApiKeyFunClaudeProvider(item) &&
-            !isFennoAIClaudeProvider(item) &&
-            !isQiniuCloudClaudeProvider(item) &&
-            !isAiCodeMirrorClaudeProvider(item) &&
-            !isKimiClaudeProvider(item)
-          ) {
-            out.push(claudeToResource(item, index));
-          }
-          return out;
-        }, []);
+        resources = (config.claudeApiKeys ?? []).map((item, index) =>
+          claudeToResource(item, index)
+        );
         break;
       case 'vertex':
         resources = (config.vertexApiKeys ?? []).map((item, index) =>
@@ -433,19 +388,8 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
         );
         break;
       case 'openaiCompatibility':
-        resources = (config.openaiCompatibility ?? []).reduce<ProviderResource[]>(
-          (out, item, index) => {
-            if (
-              !isApiKeyFunOpenAIProvider(item) &&
-              !isQiniuCloudOpenAIProvider(item) &&
-              !isAiCodeMirrorOpenAIProvider(item) &&
-              !isKimiOpenAIProvider(item)
-            ) {
-              out.push(openaiToResource(item, index));
-            }
-            return out;
-          },
-          []
+        resources = (config.openaiCompatibility ?? []).map((item, index) =>
+          openaiToResource(item, index)
         );
         break;
       case 'apikeyFun': {
