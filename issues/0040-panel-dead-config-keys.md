@@ -68,6 +68,35 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Branch `issue/0040-panel-dead-config-keys` from
+  `integration/panel-bumpyclock` at `cd6ae9f0`.
+- 2026-11-11: Searched the panel: the two keys live in
+  `SectionConnectivity.tsx`, `useVisualConfig.ts` (read, dirty set,
+  write), `types/visualConfig.ts` (type and defaults),
+  `searchIndex.ts`, `constants.ts` (`FIELD_VALUE_KEYS`), and the three
+  `sections.remote` strings in the 4 locales. No test pinned the fields.
+- 2026-11-11: The pre-import panel (tag `panel-pre-bumpyclock`) has the
+  same two editors, so there is no pre-import behavior to port. The Go
+  side still parses the keys (`internal/config/config_types.go`), and
+  `internal/managementasset/updater.go` has no download or update step.
+- 2026-11-11: Removal done. Type-check and the config, locale, and visual
+  config tests pass after the change.
+- 2026-11-11: Added `tests/visualConfigDeadPanelKeys.test.ts`. It loads a
+  YAML with the two keys under `remote-management` and under
+  `management`, edits another field, saves, and checks that both keys keep
+  their values. It also checks that the field index has no entry for them.
+- 2026-11-11: `bun run verify` green at `3e5e02bf` (2096 tests, 0 fail;
+  lint, type-check, and build pass).
+- 2026-11-11: Checked the YAML name before the round-trip test: the v8
+  canonical key is `management` (see `config.example.yaml`), and
+  `remote-management` is the historical alias that the Go side accepts on
+  write (`internal/config/config_v8.go`). The test covers both names.
+
 ## Follow-ups
+
+- None found in the panel. The Go struct comment in
+  `internal/config/config_types.go` still says the settings live under
+  `remote-management`; the canonical key is `management`. Comment only,
+  no behavior change.
 
 ## Result
