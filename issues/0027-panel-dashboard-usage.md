@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0027-panel-dashboard-usage
 type: panel
 agent: muse-spark-1.3-contributor
@@ -109,4 +109,43 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Follow-ups
 
+- Gap: no v8 route serves the aggregate usage snapshot. Route sketch for the
+  coordinator (additive, under `/v8/management`): `GET /observability/usage/summary`
+  returning per-provider totals plus the traffic buckets the server already keeps
+  (`success`, `failed`, `recent_requests` per credential, as in `GetAPIKeyUsage`;
+  optional `?window=` bucket merge). Per-model/token/latency/daily history, as the
+  BumpyClock `UsageSnapshot` shapes it, is not kept server-side today
+  (`RecentRequestBucket` is `{time, success, failed}` only), so a full-shape route
+  needs new aggregation plus retention, or the dashboard usage section and the Usage
+  page stay on the empty states landed here. `GET /observability/usage/queue` must
+  stay a transport endpoint: it pops records for the relay client and the panel
+  must never call it for display.
+- Open question for the coordinator: keep the `/usage` page and the dashboard usage
+  section on these empty states, or hide/remove them as the pre-import v8 panel does
+  (it has neither). I kept both with existing BumpyClock copy; removal is a product
+  decision and is not done here.
+- Dead i18n key after this issue: `redesign.usage.snapshot_failed` (all 4 locales).
+  Kept for reuse by the future summary route; remove it if the route lands elsewhere.
+
 ## Result
+
+- Landed: dashboard usage source and Usage page read the v8 tree flag
+  (`GET /config/observability/usage/usage-statistics-enabled`); `GET /usage` and
+  `GET /usage-statistics-enabled` are gone from the panel. Files: `services/api/usage.ts`
+  (flag-only), `features/dashboard/hooks/useDashboardOverview.ts` (flag-only usage
+  source), `features/dashboard/components/UsagePanel.tsx` (existing unsupported block
+  when the flag is on but no snapshot exists), `features/dashboard/DashboardPage.tsx`
+  (vitals differs-banner gated on snapshot presence), `pages/UsagePage.tsx` and
+  `pages/usage-page-request-guard.ts` (flag-only load; enabled-without-snapshot renders
+  the existing `empty` status with header only, no numbers or charts),
+  `tests/usagePageConcurrency.test.ts` (rewritten to the flag-only loader).
+- Tests kept green and untouched: `usagePageRedesign`, `dashboardUsage`, `dashboardFleet`,
+  `dashboardRendering`, and the pure reshape modules (`logic/usage.ts`, `utils/usageStats.ts`).
+  Pre-import has no usage tests to port (it has no Usage page or usage source).
+- Gate after rebase on `integration/panel-bumpyclock`: `bun install --frozen-lockfile`,
+  `bun run verify` green (test 1992 pass / 0 fail across 242 files, lint clean, build
+  one `dist/index.html` 3.37 MB). Area tests after each commit green.
+- Known gaps: aggregate `UsageSnapshot` (per-model/token/latency/daily) has no v8
+  source; dashboard usage table and Usage page tables/charts render empty states.
+  Traffic, credentials, config, models sections are unaffected (already on v8 routes).
+- Commits: `3999ff96` docs, `0babcca8` feat. Did NOT merge (per workflow).
