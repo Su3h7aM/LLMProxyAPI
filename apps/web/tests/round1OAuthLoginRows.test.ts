@@ -30,7 +30,6 @@ const BUILTIN = [
   'codex',
   'anthropic',
   'antigravity',
-  'qoder',
   'xai',
   'devin',
 ];

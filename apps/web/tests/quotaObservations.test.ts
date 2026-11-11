@@ -5,7 +5,6 @@ import { QUOTA_TAB_ORDER } from '@/features/quota/constants';
 import { buildTimelineLane } from '@/features/quota/quotaTimelineModel';
 import { buildQuotaPool } from '@/features/quota/quotaPoolModel';
 import { collectQuotaRowInstants } from '@/features/quota/resetSchedule';
-import { normalizeCopilotQuota } from '@/services/api/copilot';
 
 const now = Date.UTC(2099, 0, 1);
 const reset = now + 86_400_000;
@@ -28,64 +27,48 @@ describe('provider-owned quota observations', () => {
     }
   });
 
-  test('one Copilot observation feeds pooling and recovery without inventing recurring geometry', () => {
-    const quota = QUOTA_PROVIDER_DATA['github-copilot'].buildSuccessState(
-      normalizeCopilotQuota({
-        quota_reset_date: new Date(reset).toISOString(),
-        quota_snapshots: {
-          premium_interactions: { entitlement: 100, remaining: 25, unlimited: false },
-          chat: { unlimited: true },
-          completions: {},
+  test('one Codex observation feeds pooling and recovery without inventing recurring geometry', () => {
+    const quota = QUOTA_PROVIDER_DATA.codex.buildSuccessState({
+      windows: [
+        {
+          id: 'weekly',
+          label: 'Weekly',
+          usedPercent: 75,
+          resetAtMs: reset,
+          periodHours: 168,
+          resetLabel: '',
         },
-      })
-    );
-    const observations = getQuotaObservations('github-copilot', quota);
-    expect(observations.windows.map((window) => window.id)).toEqual([
-      'premium_interactions',
-      'chat',
-      'completions',
-    ]);
-    expect(observations.windows[1]).toMatchObject({
-      remainingPercent: null,
-      unlimited: true,
-      recovers: false,
+      ],
     });
-    expect(observations.windows[2]).toMatchObject({
-      remainingPercent: null,
-      unlimited: null,
-      recovers: false,
-    });
+    const observations = getQuotaObservations('codex', quota);
+    expect(observations.windows.map((window) => window.id)).toEqual(['weekly']);
     const chosen = selectQuotaWindow(observations);
-    if (!chosen) throw new Error('Expected premium observation');
+    if (!chosen) throw new Error('Expected weekly observation');
     expect(buildQuotaPool([chosen], now, reset).remaining).toBe(25);
-    expect(collectQuotaRowInstants('github-copilot', quota)).toEqual([
-      { rowId: 'premium_interactions', atMs: reset, kind: 'window' },
+    expect(collectQuotaRowInstants('codex', quota)).toEqual([
+      { rowId: 'weekly', atMs: reset, kind: 'window' },
     ]);
     expect(
       buildTimelineLane({
         name: 'fixture',
         displayName: 'Fixture',
-        provider: 'github-copilot',
+        provider: 'codex',
         quota,
       }).anchorMs
-    ).toBeNull();
+    ).toBe(reset);
   });
 
-  test('known Copilot allowance with no reset stays measurable without projected resets', () => {
-    const quota = QUOTA_PROVIDER_DATA['github-copilot'].buildSuccessState(
-      normalizeCopilotQuota({
-        quota_snapshots: {
-          premium_interactions: { entitlement: 100, remaining: 25, unlimited: false },
-        },
-      })
-    );
-    const chosen = selectQuotaWindow(getQuotaObservations('github-copilot', quota));
-    if (!chosen) throw new Error('Expected undated premium allowance');
+  test('known Meta allowance with no reset stays measurable without projected resets', () => {
+    const quota = QUOTA_PROVIDER_DATA.meta.buildSuccessState({
+      windows: [{ id: 'window', usedPercent: 75 }],
+    });
+    const chosen = selectQuotaWindow(getQuotaObservations('meta', quota));
+    if (!chosen) throw new Error('Expected undated weekly allowance');
     const pool = buildQuotaPool([chosen], now, reset);
     expect(pool.remaining).toBe(25);
     expect(pool.nextResetAtMs).toBeNull();
     expect(pool.points.every((point) => point.restored === 0)).toBe(true);
-    expect(collectQuotaRowInstants('github-copilot', quota)).toEqual([]);
+    expect(collectQuotaRowInstants('meta', quota)).toEqual([]);
   });
 
   test('shared selector preserves account-window priority over a longer model-specific quota', () => {

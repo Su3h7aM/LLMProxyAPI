@@ -6,11 +6,9 @@ import { QUOTA_PROVIDER_DATA } from './registry';
 import { AntigravityQuotaBody } from './antigravity/AntigravityQuotaBody';
 import { ClaudeQuotaBody } from './claude/ClaudeQuotaBody';
 import { CodexQuotaBody } from './codex/CodexQuotaBody';
-import { CopilotQuotaBody } from './copilot/CopilotQuotaBody';
 import { DevinQuotaBody } from './devin/DevinQuotaBody';
 import { KimiQuotaBody } from './kimi/KimiQuotaBody';
 import { MetaQuotaBody } from './meta/MetaQuotaBody';
-import { QoderQuotaBody } from './qoder/QoderQuotaBody';
 import { PluginQuotaBody } from './plugin/PluginQuotaBody';
 import { XaiQuotaBody } from './xai/XaiQuotaBody';
 
@@ -33,11 +31,9 @@ export const QUOTA_ADAPTERS: Record<QuotaProviderType, QuotaAdapter> = {
   antigravity: withBody(QUOTA_PROVIDER_DATA.antigravity, AntigravityQuotaBody),
   claude: withBody(QUOTA_PROVIDER_DATA.claude, ClaudeQuotaBody),
   codex: withBody(QUOTA_PROVIDER_DATA.codex, CodexQuotaBody),
-  'github-copilot': withBody(QUOTA_PROVIDER_DATA['github-copilot'], CopilotQuotaBody),
   devin: withBody(QUOTA_PROVIDER_DATA.devin, DevinQuotaBody),
   kimi: withBody(QUOTA_PROVIDER_DATA.kimi, KimiQuotaBody),
   meta: withBody(QUOTA_PROVIDER_DATA.meta, MetaQuotaBody),
-  qoder: withBody(QUOTA_PROVIDER_DATA.qoder, QoderQuotaBody),
   xai: withBody(QUOTA_PROVIDER_DATA.xai, XaiQuotaBody),
   plugin: withBody(QUOTA_PROVIDER_DATA.plugin, PluginQuotaBody),
 };

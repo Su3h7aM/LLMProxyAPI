@@ -42,7 +42,8 @@ describe('resolveQuotaProviderType', () => {
   test('maps provider aliases and rejects unsupported or disabled files', () => {
     expect(resolveQuotaProviderType(file('a', 'grok'))).toBe('xai');
     expect(resolveQuotaProviderType(file('a', 'antigravity'))).toBe('antigravity');
-    expect(resolveQuotaProviderType(file('a', 'qoder'))).toBe('qoder');
+    expect(resolveQuotaProviderType(file('a', 'qoder'))).toBeNull();
+    expect(resolveQuotaProviderType(file('a', 'copilot'))).toBeNull();
     expect(resolveQuotaProviderType(file('a', 'gemini'))).toBeNull();
     expect(resolveQuotaProviderType(file('a', 'claude', { disabled: true }))).toBeNull();
   });
@@ -69,12 +70,10 @@ describe('buildTabCounts', () => {
       claude: 1,
       antigravity: 0,
       codex: 2,
-      'github-copilot': 0,
       xai: 1,
       kimi: 1,
       devin: 0,
       meta: 0,
-      qoder: 0,
       plugin: 0,
     });
   });

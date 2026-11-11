@@ -37,14 +37,12 @@ export type AuthFileQuotaFilter = string | null;
 export type OAuthConfigLoadError = 'loading' | 'unsupported' | 'load' | null;
 
 export const QUOTA_PROVIDER_TYPES = new Set<QuotaProviderType>([
-  'github-copilot',
   'meta',
   'antigravity',
   'claude',
   'codex',
   'devin',
   'kimi',
-  'qoder',
   'xai',
   'plugin',
 ]);

@@ -140,11 +140,9 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
   const antigravityQuota = useQuotaStore((state) => state.antigravityQuota);
   const claudeQuota = useQuotaStore((state) => state.claudeQuota);
   const codexQuota = useQuotaStore((state) => state.codexQuota);
-  const copilotQuota = useQuotaStore((state) => state.copilotQuota);
   const devinQuota = useQuotaStore((state) => state.devinQuota);
   const kimiQuota = useQuotaStore((state) => state.kimiQuota);
   const metaQuota = useQuotaStore((state) => state.metaQuota);
-  const qoderQuota = useQuotaStore((state) => state.qoderQuota);
   const xaiQuota = useQuotaStore((state) => state.xaiQuota);
   const pluginQuota = useQuotaStore((state) => state.pluginQuota);
 
@@ -153,11 +151,9 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
       antigravity: antigravityQuota,
       claude: claudeQuota,
       codex: codexQuota,
-      'github-copilot': copilotQuota,
       devin: devinQuota,
       kimi: kimiQuota,
       meta: metaQuota,
-      qoder: qoderQuota,
       xai: xaiQuota,
       plugin: pluginQuota,
     }),
@@ -165,11 +161,9 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
       antigravityQuota,
       claudeQuota,
       codexQuota,
-      copilotQuota,
       devinQuota,
       kimiQuota,
       metaQuota,
-      qoderQuota,
       xaiQuota,
       pluginQuota,
     ]

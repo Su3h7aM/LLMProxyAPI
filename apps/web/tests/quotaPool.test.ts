@@ -4,9 +4,7 @@ import {
   quotaPoolPath,
   type PoolQuotaObservation,
 } from '@/features/quota/quotaPoolModel';
-import type { CopilotQuotaState } from '@/types';
-import { normalizeCopilotQuota } from '@/services/api/copilot';
-import { getQuotaObservations } from '@/features/quota/providers/registry';
+import { QUOTA_PROVIDER_DATA, getQuotaObservations } from '@/features/quota/providers/registry';
 import { selectQuotaWindow } from '@/features/quota/providers/observations';
 
 const now = Date.parse('2026-11-01T12:00:00Z');
@@ -18,67 +16,43 @@ const lane = (remaining: number | null, reset: number | null): PoolQuotaObservat
 });
 
 describe('provider quota overview', () => {
-  test('Copilot contributes premium quota without inventing a monthly duration', () => {
-    const quota: CopilotQuotaState = {
-      status: 'success',
-      data: {
-        plan: 'individual',
-        resetAtMs: now + hour,
-        resources: [
-          {
-            id: 'premium_interactions',
-            remainingPercent: 73,
-            remaining: 219,
-            entitlement: 300,
-            unlimited: false,
-          },
-          { id: 'chat', remainingPercent: null, remaining: 0, entitlement: 0, unlimited: true },
-        ],
-      },
-    };
-    const result = selectQuotaWindow(getQuotaObservations('github-copilot', quota));
-    if (!result) throw new Error('Expected premium allowance observation');
-    expect(result.periodHours).toBeNull();
+  test('Codex contributes dated quota without inventing a monthly duration', () => {
+    const quota = QUOTA_PROVIDER_DATA.codex.buildSuccessState({
+      windows: [
+        {
+          id: 'weekly',
+          label: 'Weekly',
+          usedPercent: 27,
+          resetAtMs: now + hour,
+          periodHours: 168,
+          resetLabel: '',
+        },
+      ],
+    });
+    const result = selectQuotaWindow(getQuotaObservations('codex', quota));
+    if (!result) throw new Error('Expected weekly allowance observation');
+    expect(result.periodHours).toBe(168);
     expect(result.remainingPercent).toBe(73);
     expect(
       buildQuotaPool([result], now, now + 800 * hour).points.filter((p) => p.restored > 0)
     ).toEqual([{ atMs: now + hour, remaining: 100, restored: 27 }]);
-    expect(
-      selectQuotaWindow(getQuotaObservations('github-copilot', { status: 'loading' }))
-    ).toBeNull();
-    const unlimited: CopilotQuotaState = {
-      ...quota,
-      data: {
-        ...quota.data!,
-        resources: [
-          {
-            id: 'premium_interactions',
-            remainingPercent: null,
-            remaining: null,
-            entitlement: null,
-            unlimited: true,
-          },
-        ],
-      },
+    expect(selectQuotaWindow(getQuotaObservations('codex', { status: 'loading' }))).toBeNull();
+    const unlimitedObservation: PoolQuotaObservation = {
+      remainingPercent: null,
+      resetAtMs: now + hour,
+      unlimited: true,
     };
-    const unlimitedObservation = selectQuotaWindow(
-      getQuotaObservations('github-copilot', unlimited)
-    );
     expect(
-      buildQuotaPool(unlimitedObservation ? [unlimitedObservation] : [], now, now + hour).remaining
+      buildQuotaPool([unlimitedObservation], now, now + hour).remaining
     ).toBeNull();
   });
 
   test('unknown unlimited status is not a finite account or a projected reset gain', () => {
-    const quota: CopilotQuotaState = {
-      status: 'success',
-      data: normalizeCopilotQuota({
-        quota_reset_date: new Date(now + hour).toISOString(),
-        quota_snapshots: { premium_interactions: { percent_remaining: 25 } },
-      }),
+    const selected: PoolQuotaObservation = {
+      remainingPercent: 25,
+      resetAtMs: now + hour,
+      unlimited: null,
     };
-    const selected = selectQuotaWindow(getQuotaObservations('github-copilot', quota));
-    if (!selected) throw new Error('Expected unknown allowance observation');
     expect(selected.unlimited).toBeNull();
     const pool = buildQuotaPool([selected], now, now + 2 * hour);
     expect(pool.remaining).toBeNull();

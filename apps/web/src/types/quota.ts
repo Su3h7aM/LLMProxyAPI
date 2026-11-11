@@ -311,28 +311,6 @@ export interface DevinQuotaState extends DevinQuotaData {
   errorStatus?: number;
 }
 
-export interface CopilotQuotaResource {
-  id: 'premium_interactions' | 'chat' | 'completions';
-  remainingPercent: number | null;
-  remaining: number | null;
-  entitlement: number | null;
-  unlimited: boolean | null;
-}
-
-/** Display fields only, normalized at the Management API boundary. */
-export interface CopilotQuotaData {
-  plan: string | null;
-  resetAtMs: number | null;
-  resources: CopilotQuotaResource[];
-}
-
-export interface CopilotQuotaState {
-  status: 'idle' | 'loading' | 'success' | 'error';
-  data?: CopilotQuotaData;
-  error?: string;
-  errorStatus?: number;
-}
-
 /** A whitelisted quota observation from Meta's Muse key endpoint. */
 export interface MetaQuotaWindow {
   id: 'window' | 'weekly';
@@ -456,27 +434,6 @@ export interface KimiQuotaRow {
 export interface KimiQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   rows: KimiQuotaRow[];
-  error?: string;
-  errorStatus?: number;
-}
-
-export interface QoderUsageSnapshot {
-  used?: number | string;
-  total?: number | string;
-  remaining?: number | string;
-  percentage?: number | string;
-  unit?: string;
-  is_quota_exceeded?: boolean;
-  isQuotaExceeded?: boolean;
-  expires_at?: number | string;
-  expiresAt?: number | string;
-  org_resource_remaining?: number | string;
-  orgResourceRemaining?: number | string;
-}
-
-export interface QoderQuotaState {
-  status: 'idle' | 'loading' | 'success' | 'error';
-  usage?: QoderUsageSnapshot | null;
   error?: string;
   errorStatus?: number;
 }

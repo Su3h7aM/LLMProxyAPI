@@ -155,32 +155,6 @@ describe('dashboard quota summary rendering', () => {
     }
   });
 
-  test('unlimited provider allowances do not acquire finite percentages', () => {
-    useQuotaStore.getState().setCopilotQuota({
-      'unlimited.json': {
-        status: 'success',
-        data: {
-          plan: 'individual',
-          resetAtMs: now + hour,
-          resources: [
-            {
-              id: 'premium_interactions',
-              remainingPercent: null,
-              remaining: null,
-              entitlement: null,
-              unlimited: true,
-            },
-          ],
-        },
-      },
-    });
-    const markup = render([{ name: 'unlimited.json', provider: 'github-copilot' }]);
-    expect(markup).toContain('0 of 1 eligible accounts measured');
-    expect(markup).not.toContain('<strong>0%</strong>');
-    expect(markup).not.toContain('<strong>100%</strong>');
-    expect(markup).not.toContain('aria-pressed=');
-  });
-
   test('a real reported zero stays zero, while an unreported neighbour is absent', () => {
     useQuotaStore.getState().setClaudeQuota({ 'first.json': snapshot(0) });
     const markup = render();

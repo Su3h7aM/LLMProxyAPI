@@ -8,6 +8,7 @@ import {
   successfulSnapshot,
 } from '@/features/quota/snapshotState';
 import { buildAccountSeries } from '@/features/quota/quotaAccountSeries';
+import { buildQuotaPool } from '@/features/quota/quotaPoolModel';
 import type { QuotaCardState } from '@/features/quota/providers';
 
 const now = Date.UTC(2026, 10, 2);
@@ -32,7 +33,6 @@ describe('quota redesign data contracts', () => {
       ...Array.from({ length: 60 }, (_, i) => ({ name: `${i}`, provider: 'claude' })),
       { name: 'disabled', provider: 'claude', disabled: true },
       { name: 'unsupported', provider: 'unknown' },
-      { name: 'runtime', provider: 'github-copilot', runtime_only: true },
     ]);
     const targets = resolveQuotaRefreshTargets(
       { sessionGeneration: 1, scope: 'all' },
@@ -41,7 +41,7 @@ describe('quota redesign data contracts', () => {
     );
     expect(targets).toHaveLength(60);
     expect(
-      targets.some(({ file }) => ['disabled', 'unsupported', 'runtime'].includes(file.name))
+      targets.some(({ file }) => ['disabled', 'unsupported'].includes(file.name))
     ).toBe(false);
   });
 
@@ -123,33 +123,14 @@ describe('quota redesign data contracts', () => {
   });
 
   test('unlimited allowances never acquire a finite plotted percentage', () => {
-    const copilotEntries = classifyQuotaFiles([{ name: 'copilot', provider: 'github-copilot' }]);
-    const unlimited = {
-      status: 'success' as const,
-      data: {
-        plan: 'individual',
-        resetAtMs: now + hour,
-        resources: [
-          {
-            id: 'premium_interactions',
-            remainingPercent: null,
-            remaining: null,
-            entitlement: null,
-            unlimited: true,
-          },
-        ],
-      },
-    };
-    const model = buildAccountSeries(
-      copilotEntries,
-      () => unlimited,
-      'weekly',
+    const pool = buildQuotaPool(
+      [{ remainingPercent: null, resetAtMs: now + hour, unlimited: true }],
       now,
-      now + hour,
-      new Map()
+      now + hour
     );
-    expect(model.accounts[0].remaining).toBeNull();
-    expect(model.series).toEqual([]);
+    expect(pool.measuredCount).toBe(0);
+    expect(pool.remaining).toBeNull();
+    expect(pool.points).toEqual([]);
   });
 
   test('session chooses the provider session window without pretending the weekly allowance resets in five hours', () => {

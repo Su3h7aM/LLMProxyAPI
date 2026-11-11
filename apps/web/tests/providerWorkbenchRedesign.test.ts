@@ -68,7 +68,6 @@ test('OAuth list keeps all built-in login choices and the JSON import without st
     'codex',
     'anthropic',
     'antigravity',
-    'qoder',
     'xai',
     'devin',
   ]) {

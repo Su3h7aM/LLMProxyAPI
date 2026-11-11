@@ -14,7 +14,6 @@ export type BuiltInOAuthProvider =
   | 'antigravity'
   | 'kimi'
   | 'kimi-ai'
-  | 'qoder'
   | 'xai'
   | 'devin'
   | 'meta';
@@ -36,7 +35,7 @@ export interface OAuthCancelResponse {
   cancelled: boolean;
 }
 
-const WEBUI_SUPPORTED = new Set<string>(['codex', 'anthropic', 'antigravity', 'devin', 'qoder', 'xai']);
+const WEBUI_SUPPORTED = new Set<string>(['codex', 'anthropic', 'antigravity', 'devin', 'xai']);
 
 const normalizeProviderForManagementPath = (provider: string): string => {
   const key = normalizeManagementOAuthProviderKey(provider);

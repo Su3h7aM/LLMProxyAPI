@@ -1,11 +1,9 @@
 import { ANTIGRAVITY_CONFIG } from './antigravity/data';
 import { CLAUDE_CONFIG } from './claude/data';
 import { CODEX_CONFIG } from './codex/data';
-import { COPILOT_CONFIG } from './copilot/data';
 import { DEVIN_CONFIG } from './devin/data';
 import { KIMI_CONFIG } from './kimi/data';
 import { META_CONFIG } from './meta/data';
-import { QODER_CONFIG } from './qoder/data';
 import { PLUGIN_CONFIG } from './plugin/data';
 import { XAI_CONFIG } from './xai/data';
 import { observeQuota, type QuotaObservations } from './observations';
@@ -16,11 +14,9 @@ export const QUOTA_PROVIDER_DATA = {
   antigravity: ANTIGRAVITY_CONFIG,
   claude: CLAUDE_CONFIG,
   codex: CODEX_CONFIG,
-  'github-copilot': COPILOT_CONFIG,
   devin: DEVIN_CONFIG,
   kimi: KIMI_CONFIG,
   meta: META_CONFIG,
-  qoder: QODER_CONFIG,
   xai: XAI_CONFIG,
   plugin: PLUGIN_CONFIG,
 } satisfies Record<QuotaProviderType, { type: QuotaProviderType }>;

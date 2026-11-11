@@ -6,12 +6,10 @@ export const QUOTA_TAB_ORDER: readonly QuotaProviderType[] = [
   'claude',
   'antigravity',
   'codex',
-  'github-copilot',
   'xai',
   'kimi',
   'devin',
   'meta',
-  'qoder',
   'plugin',
 ];
 
