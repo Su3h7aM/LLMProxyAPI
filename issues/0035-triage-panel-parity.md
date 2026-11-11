@@ -42,6 +42,20 @@ Find what the old fork panel could do that the new panel (branch `integration/pa
 
 ## Log
 
+- Setup: worktree `/tmp/t0035-new` (branch `integration/panel-bumpyclock`,
+  head `db784257`), old panel exported from tag `panel-pre-bumpyclock` to
+  `/tmp/t0035-old`. Route extractors `/tmp/t0035-routes.js` and
+  `/tmp/t0035-calls.js`; locale checker `/tmp/t0035-locale3.py`; Go v8 path
+  dump in `/tmp/t0035-gorepo/cmd/dumpcfg` (copy of the repo: reflection over
+  `config.Config` plus the `buildV8Paths` prefix table). No repository file
+  changed except this issue.
+- Routes: every management call of the new panel has a v8 route. No `/v0`
+  path remains in `apps/web/src`.
+- Config: the new panel field set is a superset of the old one (+3 fields:
+  `codexIdentityConfuse`, `quotaSwitchProject`, `quotaSwitchPreviewModel`).
+- Quality: `bun install --frozen-lockfile`, `bun run verify`,
+  `bun run tokens:check` pass on the integration branch.
+
 ## Follow-ups
 
 ## Result
