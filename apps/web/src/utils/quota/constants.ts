@@ -18,6 +18,8 @@ export const ANTIGRAVITY_QUOTA_URLS = [
 export const ANTIGRAVITY_CODE_ASSIST_URL =
   'https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist';
 
+// Keep aligned with the backend Antigravity Hub UA (internal/misc/antigravity_version.go):
+// Cloud Code rejects newer models for clients below 2.23.0.
 export const ANTIGRAVITY_HUB_VERSION = '2.23.0';
 export const ANTIGRAVITY_HUB_PLATFORM = 'darwin/arm64';
 
@@ -45,6 +47,7 @@ export const CLAUDE_PROFILE_URL = 'https://api.anthropic.com/api/oauth/profile';
 export const CLAUDE_USAGE_URL = 'https://api.anthropic.com/api/oauth/usage';
 
 export const CLAUDE_REQUEST_HEADERS = {
+  'User-Agent': 'claude-cli/2.1.280 (external, cli)',
   Authorization: 'Bearer $TOKEN$',
   'Content-Type': 'application/json',
   'anthropic-beta': 'oauth-2025-04-20',
@@ -92,6 +95,7 @@ export const XAI_BILLING_MONTHLY_URL = 'https://cli-chat-proxy.grok.com/v1/billi
 export const XAI_API_ME_URL = 'https://api.x.ai/v1/me';
 export const XAI_API_CHAT_URL = 'https://api.x.ai/v1/chat/completions';
 export const XAI_PAID_HEALTH_MODEL = 'grok-4.5';
+// Keep aligned with the backend fallback; Grok rejects versions older than 1.0.13.
 export const XAI_GROK_CLIENT_VERSION = '1.0.70';
 export const XAI_GROK_USER_AGENT = `grok-pager/${XAI_GROK_CLIENT_VERSION} grok-shell/${XAI_GROK_CLIENT_VERSION} (macos; aarch64)`;
 
