@@ -2,6 +2,16 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: The dashboard (`apps/web`) moves to the BumpyClock
+  Management Center (pin `ce5f6179`): its UI and its frontend stack replace
+  the vendored official panel. The panel stays part of the binary. It is
+  same-origin: no API base URL setting and no remote server connect flow;
+  the management key login stays (security). Fork panel features stay on
+  top (OpenCode Go and quota tab, soonest-reset in routing, no sponsor
+  content, fork release check). After the move, BumpyClock is only a
+  reference for later improvements. Sponsor content and pages for
+  CLIProxyAPIPlus-only providers are not copied unless the fork backend
+  serves them. Reason: developer order.
 - 2026-11-11: Port order swap: `00c6ae82` is ported before `cc95661c`.
   Upstream `cc95661c` does not build alone (it uses a cache helper that
   `00c6ae82` adds). Each fork commit must build.

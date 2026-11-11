@@ -13,12 +13,20 @@ Pinned on 2026-11-06 (UTC).
 | CPA-Manager-Plus | git@github.com:seakee/CPA-Manager-Plus.git | `a67ed8834a914ab24c36d2490fa6bb6d4166724c` | 2026-10-29 | Merge pull request #1105 from seakee/dev |
 | magpie | git@github.com:yetone/magpie.git | `8cbaeecae976d2a8561293c1abc5daf6aa89d77f` | 2026-11-06 | providers: errors=pass sends a vendor's error to the agent as it came, asked once |
 | Cli-Proxy-API-Management-Center | https://github.com/router-for-me/Cli-Proxy-API-Management-Center | `953fb2444350c6c36052dda46cac0abce6b23ea6` | 2026-11-06 | feat(aiCodeMirror): add AIcodemirror provider with support for multiple protocols and localization |
+| BumpyClock-Cli-Proxy-API-Management-Center | https://github.com/BumpyClock/Cli-Proxy-API-Management-Center | `ce5f617961fb15b47ad178c512958abe1d3f2b92` | 2026-11-07 | fix(logs): retain path filters and support long-line wrapping (#17) |
 
 Notes:
 
 - CLIProxyAPI is the main source. Its license is MIT.
-- Cli-Proxy-API-Management-Center is the panel source vendored into
-  `apps/web`. Its license is MIT.
+- Cli-Proxy-API-Management-Center (official) is the panel source that is
+  vendored into `apps/web` today. Its license is MIT. The BumpyClock fork
+  below is going to replace it (see `DECISIONS.md`, 2026-11-11).
+- BumpyClock-Cli-Proxy-API-Management-Center is the future panel source and
+  the frontend reference. Its license is MIT (Router-For.ME notice). Lineage:
+  official Management Center, then `kaitranntt` fork (dashboard for
+  CLIProxyAPIPlus, base `v1.24.2`), then BumpyClock. The clone is
+  `.refs/BumpyClock-Cli-Proxy-API-Management-Center`. It carries sponsor
+  content and CLIProxyAPIPlus-specific pages; do not copy those.
 - CPA-Manager-Plus is reference-only. Its license is MIT.
 - magpie is the ideas source. Its license is MIT, with extra notices in its
   `THIRD_PARTY_NOTICES` file.
