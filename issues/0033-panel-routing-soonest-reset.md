@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0033-panel-routing-soonest-reset
 type: panel
 agent: muse-spark-1.3-contributor
@@ -75,4 +75,12 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Follow-ups
 
+- No live-backend check of predicted picks against the real selector (no credentials in this environment). A manual check with two quota-loaded credentials confirms the panel pick matches `SoonestResetSelector.Pick`.
+- Per-tier next predictions exist in the module and tests but the UI shows only the overall next plus the rank-sorted list. Per-tier badges on the ladder are possible later.
+
 ## Result
+
+- Landed: soonest-reset readout on the routing page from cached quota snapshots only (no fan-out, no new routes). Pure module `apps/web/src/features/routing/soonestReset.ts` mirrors `sdk/cliproxy/auth/selector_soonest_reset.go` (known first, no data next, exhausted last; longest window decides; ties on key) and returns ranks, per-tier next, overall next. UI section in the policy column (BumpyClock tokens, quota-page time pattern: relative with absolute title), shown only for `soonest-reset`; empty state links to `/quota`. Strings in en, zh-CN, zh-TW, ru.
+- Commits on `issue/0033-panel-routing-soonest-reset` over `integration/panel-bumpyclock` (`db784257..5b7a8a1a` at rebase; this file closes it): `823c06bc` status, `408b9afd` logic+tests, `75966755` UI+locales, `5b7a8a1a` log. Rebase clean (base did not move).
+- Gate: `bun install --frozen-lockfile`, `bun run verify` green — 2042 tests pass, 0 fail (11 new: 7 logic, 4 render); `type-check`, `eslint`, token guard, `productionLocales` green; `vite build` one `dist/index.html` (3,487 kB).
+- Known gaps: none in scope. Not merged, as ordered.
