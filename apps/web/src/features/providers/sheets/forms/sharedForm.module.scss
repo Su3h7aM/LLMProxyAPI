@@ -62,26 +62,12 @@
     line-height: $line-height-1-45;
   }
 
-  .sponsorGroupTitle {
-    gap: $space-3;
-
-    strong {
-      font-size: $font-size-14;
-      font-weight: $font-weight-650;
-      line-height: $line-height-1-4;
-    }
-  }
-
-  .sponsorUrlOptionText,
   .checkboxText {
     font-size: $font-size-14;
     line-height: $line-height-1-45;
   }
 
-  .sponsorUrlOptionText small,
   .checkboxText small,
-  .sponsorProtocolUrl,
-  .sponsorUsageResult,
   .connectivityError,
   .discoveryEmpty,
   .discoveryItem,
@@ -91,17 +77,6 @@
     line-height: $line-height-1-6;
   }
 
-  .sponsorProtocolName {
-    font-size: $font-size-13;
-    font-weight: $font-weight-650;
-    line-height: $line-height-1-4;
-  }
-
-  .sponsorUsageMain {
-    line-height: $line-height-1-45;
-  }
-
-  .sponsorUsageMeta,
   .discoveryAlias,
   .discoveryCount,
   .discoveryAddedTag {
@@ -361,51 +336,6 @@
   }
 }
 
-.sponsorGroupTitle {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: $space-2;
-
-  strong {
-    color: var(--text-primary);
-    font-size: $font-size-13;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.sponsorGroupSummary {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  justify-content: flex-end;
-  align-items: center;
-  gap: $space-8;
-}
-
-.sponsorSummaryKey,
-.sponsorSummaryUrl {
-  display: inline-block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sponsorSummaryKey {
-  max-width: $size-140;
-  font-family: $font-family-mono;
-  color: var(--text-primary);
-}
-
-.sponsorSummaryUrl {
-  max-width: min($size-360, 45vw);
-  font-family: $font-family-mono;
-  color: var(--muted-foreground);
-}
-
 .entryCardHeaderRight {
   display: flex;
   align-items: center;
@@ -465,147 +395,6 @@
 
 .entriesToolbarSplit {
   justify-content: space-between;
-}
-
-.sponsorUrlOptions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-8;
-
-  @media (min-width: #{$breakpoint-560}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.sponsorUrlOption {
-  display: flex;
-  align-items: flex-start;
-  gap: $space-10;
-  min-width: 0;
-  padding: $space-10 $space-12;
-  border: $border-width-1 solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-  cursor: pointer;
-  transition:
-    border-color $transition-fast,
-    background-color $transition-fast;
-
-  input {
-    margin: $space-2 0 0;
-    accent-color: var(--primary-color);
-    flex-shrink: 0;
-
-    &:disabled {
-      cursor: not-allowed;
-    }
-  }
-
-  &:hover {
-    border-color: var(--primary-color);
-  }
-}
-
-.sponsorUrlOptionActive {
-  border-color: var(--primary-color);
-  background: var(--primary-10);
-}
-
-.sponsorUrlOptionText {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: $space-2;
-  font-size: $font-size-13;
-  color: var(--text-primary);
-
-  small {
-    font-family: $font-family-mono;
-    font-size: $font-size-12;
-    line-height: $line-height-1-4;
-    color: var(--muted-foreground);
-    overflow-wrap: anywhere;
-  }
-}
-
-.sponsorUrlOptionText .sponsorUrlOptionDescription {
-  font-family: inherit;
-  font-size: $font-size-12;
-  line-height: $line-height-1-45;
-}
-
-.sponsorProtocolGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-8;
-
-  @media (min-width: #{$breakpoint-560}) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.sponsorProtocolCard {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: $space-4;
-  padding: $space-10 $space-12;
-  border: $border-width-1 solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-}
-
-.sponsorProtocolName {
-  font-size: $font-size-12;
-  font-weight: $font-weight-600;
-  color: var(--text-primary);
-}
-
-.sponsorProtocolUrl {
-  font-family: $font-family-mono;
-  font-size: $font-size-12;
-  line-height: $line-height-1-4;
-  color: var(--muted-foreground);
-  overflow-wrap: anywhere;
-}
-
-.sponsorUsageSection {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: $space-8;
-}
-
-.sponsorUsageResult {
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-  padding: $space-8 $space-10;
-  border: $border-width-1 solid color-mix(in srgb, var(--success-color) $tint-0-34, var(--border-color));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--success-color) $tint-0-08, var(--bg-primary));
-  color: var(--text-primary);
-  font-size: $font-size-12;
-  line-height: $line-height-1-4;
-}
-
-.sponsorUsageResultWarning {
-  color: var(--warning-text);
-  border-color: var(--warning-border);
-  background: var(--warning-bg);
-}
-
-.sponsorUsageMain {
-  display: flex;
-  align-items: center;
-  gap: $space-6;
-  font-weight: $font-weight-500;
-}
-
-.sponsorUsageMeta {
-  color: var(--muted-foreground);
 }
 
 .connectivityRow {

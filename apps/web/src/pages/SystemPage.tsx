@@ -28,9 +28,6 @@ import { formatDateTimeValue, isoTitle } from '@/utils/format';
 import { classifyModels } from '@/utils/models';
 import { clearAllAuthStorage } from '@/services/storage/secureStorage';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
-import { SPONSORS } from '@/features/config/sponsors';
-import { PROVIDER_LOGOS } from '@/features/providers/brandLogos';
-import { APIKEY_FUN_AFFILIATE_URL, APIKEY_FUN_DISPLAY_NAME } from '@/features/providers/sponsor';
 import iconGemini from '@/assets/icons/gemini.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconMeta from '@/assets/icons/meta.svg';
@@ -93,59 +90,6 @@ const compareVersions = (latest?: string | null, current?: string | null) => {
   }
   return 0;
 };
-
-type OptionalResource = { name: string; url: string; logo?: string; descriptionKey: string };
-
-const OPTIONAL_RESOURCES: readonly OptionalResource[] = [
-  ...SPONSORS.map((sponsor) => ({ ...sponsor, descriptionKey: 'system_info.resource_proxy_desc' })),
-  {
-    name: APIKEY_FUN_DISPLAY_NAME,
-    url: APIKEY_FUN_AFFILIATE_URL,
-    logo: PROVIDER_LOGOS.apikeyFun.src,
-    descriptionKey: 'system_info.resource_api_desc',
-  },
-];
-
-/** Sponsored third-party links, kept apart from settings and labeled as sponsored. */
-export function OptionalResources() {
-  const { t } = useTranslation();
-  if (OPTIONAL_RESOURCES.length === 0) return null;
-  return (
-    <section className={`card ${styles.resourcesCard}`} aria-labelledby="system-optional-resources">
-      <div className={styles.resourcesHeader}>
-        <h2 id="system-optional-resources" className={styles.resourcesTitle}>
-          {t('system_info.resources_title')}
-        </h2>
-        <span className={styles.sponsoredLabel}>{t('system_info.resources_sponsored')}</span>
-      </div>
-      <p className={styles.sectionDescription}>{t('system_info.resources_desc')}</p>
-      <ul className={styles.resourceList}>
-        {OPTIONAL_RESOURCES.map((resource) => (
-          <li key={resource.url}>
-            <a
-              href={resource.url}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className={styles.resourceLink}
-            >
-              {resource.logo ? (
-                <img src={resource.logo} alt="" className={styles.resourceLogo} />
-              ) : null}
-              <span className={styles.resourceText}>
-                <span className={styles.resourceName}>
-                  {resource.name}
-                  <IconExternalLink size={iconSize['13']} aria-hidden="true" />
-                  <span className={styles.visuallyHidden}>{t('system_info.resource_new_tab')}</span>
-                </span>
-                <span className={styles.resourceDesc}>{t(resource.descriptionKey)}</span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
 
 export function SystemPage() {
   const { t, i18n } = useTranslation();
@@ -611,8 +555,6 @@ export function SystemPage() {
             </Button>
           </div>
         </Card>
-
-        <OptionalResources />
       </div>
 
       <Modal

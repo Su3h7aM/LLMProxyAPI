@@ -109,65 +109,6 @@
   letter-spacing: (-$letter-spacing-0-005);
 }
 
-.sponsorLink {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-8;
-  width: fit-content;
-  color: var(--text-primary);
-  margin-top: $space-10;
-  padding: $space-8 $space-11;
-  border: $border-width-1 solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-primary);
-  font-size: $font-size-13;
-  font-weight: $font-weight-600;
-  line-height: $line-height-1-4;
-  max-width: min($size-520, 100%);
-  overflow-wrap: anywhere;
-  text-decoration: none;
-  transition:
-    background $duration-160 $ease-default,
-    border-color $duration-160 $ease-default,
-    color $duration-160 $ease-default,
-    box-shadow $duration-160 $ease-default,
-    transform $duration-160 $ease-default;
-
-  &:hover {
-    border-color: var(--border-hover);
-    background: var(--bg-hover);
-    transform: translateY((-$distance-1));
-  }
-
-  &:focus-visible {
-    outline: $border-width-2 solid var(--primary-color);
-    outline-offset: $space-2;
-  }
-}
-
-.kimiPromo {
-  margin: $space-8 0 0;
-  max-width: 100%;
-  color: var(--text-secondary);
-  font-size: $font-size-13;
-  line-height: $line-height-1-5;
-  white-space: normal;
-}
-
-.sponsorLinkText {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.sponsorLinkIcon {
-  flex-shrink: 0;
-  color: currentColor;
-
-  .sponsorLink:hover & {
-    transform: translate($distance-1, (-$distance-1));
-  }
-}
-
 .searchWrap {
   position: relative;
   min-width: 0;

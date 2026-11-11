@@ -7,10 +7,6 @@ import { I18nextProvider } from 'react-i18next';
 import { createInstance } from 'i18next';
 import { compileString } from 'sass';
 import { OAuthPage } from '@/pages/OAuthPage';
-import {
-  KIMI_CHINESE_AFFILIATE_URL,
-  KIMI_INTERNATIONAL_AFFILIATE_URL,
-} from '@/features/providers/kimi';
 import en from '@/i18n/locales/en.json';
 import zhCN from '@/i18n/locales/zh-CN.json';
 import zhTW from '@/i18n/locales/zh-TW.json';
@@ -97,31 +93,6 @@ describe('OAuth Login provider rows', () => {
     expect(markup).not.toMatch(/Start \w+ Login/);
     expect(markup).toContain('Log in with Kimi China');
     expect(markup).toContain('Log in with Kimi International');
-  });
-
-  test('Kimi sign-up is a labelled external link, quieter than Log in, inside the action group', () => {
-    const expected: [number, string, string][] = [
-      [1, KIMI_CHINESE_AFFILIATE_URL, 'Create account for Kimi China (opens in a new tab)'],
-      [
-        2,
-        KIMI_INTERNATIONAL_AFFILIATE_URL,
-        'Create account for Kimi International (opens in a new tab)',
-      ],
-    ];
-    for (const [index, href, label] of expected) {
-      const link = rows[index].match(/<a\b[^>]*>[\s\S]*?<\/a>/)?.[0] ?? '';
-      expect(link).toContain(`href="${href}"`);
-      expect(link).toContain('target="_blank"');
-      expect(link).toContain('rel="noopener noreferrer"');
-      expect(link).toContain('btn btn-ghost');
-      expect(link).toContain(`aria-label="${label}"`);
-      expect(link).toContain(i18n.t('auth_login.kimi_sign_up_button'));
-      expect(link).toContain('<svg');
-      expect(rows[index].indexOf(link)).toBeGreaterThan(
-        rows[index].indexOf(i18n.t(`auth_login.${BUILTIN[index]}_oauth_button`))
-      );
-    }
-    expect(rows.filter((row) => row.includes('<a '))).toHaveLength(2);
   });
 
   test('idle rows render no empty flow container', () => {

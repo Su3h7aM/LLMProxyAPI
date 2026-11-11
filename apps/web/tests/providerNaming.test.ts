@@ -26,11 +26,4 @@ describe('Claude provider naming', () => {
       expect(messages.auth_files.filter_claude, locale).toBe('Claude');
     }
   });
-
-  test('Anthropic remains the protocol name for Anthropic-compatible routes', () => {
-    const sponsor = productionLocales.en.providersPage.sponsor;
-    expect(sponsor.protocols.anthropic).toBe('Anthropic');
-    expect(sponsor.protocolModels.anthropic).toBe('Anthropic models');
-    expect(sponsor.protocolSummary).toContain('Anthropic / OpenAI');
-  });
 });

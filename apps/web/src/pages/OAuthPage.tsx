@@ -5,17 +5,13 @@ import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { IconExternalLink, IconPlug, IconSearch, IconX } from '@/components/ui/icons';
+import { IconPlug, IconSearch, IconX } from '@/components/ui/icons';
 import { useAuthStore, useNotificationStore, useThemeStore } from '@/stores';
 import { oauthApi, pluginsApi, type BuiltInOAuthProvider } from '@/services/api';
 import { vertexApi, type VertexImportResponse } from '@/services/api/vertex';
 import { copyToClipboard } from '@/utils/clipboard';
 import { getErrorMessage, isRecord } from '@/utils/helpers';
 import { notifyAuthFilesChanged } from '@/features/authFiles/authFilesEvents';
-import {
-  KIMI_CHINESE_AFFILIATE_URL,
-  KIMI_INTERNATIONAL_AFFILIATE_URL,
-} from '@/features/providers/kimi';
 import { createOAuthAttempts, type OAuthAttempt } from './oauthAttempts';
 import { buildPluginOAuthProviderCards, type PluginOAuthProviderCard } from './pluginOAuthEntries';
 import { validateDevinCallback } from './devinOAuth';
@@ -141,10 +137,6 @@ const PROVIDERS: BuiltInOAuthProviderCard[] = [
   },
 ];
 
-const KIMI_SIGN_UP_URLS: Partial<Record<BuiltInOAuthProvider, string>> = {
-  kimi: KIMI_CHINESE_AFFILIATE_URL,
-  'kimi-ai': KIMI_INTERNATIONAL_AFFILIATE_URL,
-};
 const BUILTIN_PROVIDER_IDS = new Set<string>(PROVIDERS.map((provider) => provider.id));
 const CALLBACK_SUPPORTED = new Set<string>(['codex', 'anthropic', 'antigravity', 'xai', 'devin']);
 const XAI_CALLBACK_URL = 'http://127.0.0.1:56121/callback';
@@ -698,7 +690,6 @@ export function OAuthPage() {
       .filter(Boolean)
       .join(' ');
 
-    const signUpUrl = provider.kind === 'builtin' ? KIMI_SIGN_UP_URLS[provider.id] : undefined;
     const regionVariant =
       provider.kind === 'builtin' && provider.familyTitleKey
         ? { familyTitleKey: provider.familyTitleKey }
@@ -739,20 +730,6 @@ export function OAuthPage() {
           >
             {loginButtonLabel}
           </Button>
-          {signUpUrl && (
-            <a
-              className={`btn btn-ghost ${styles.signupLink}`}
-              href={signUpUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t(getAuthKey(provider.id, 'sign_up_label'))}
-            >
-              <span>
-                {t('auth_login.kimi_sign_up_button')}
-                <IconExternalLink size={iconSize['14']} aria-hidden="true" />
-              </span>
-            </a>
-          )}
         </div>
         {hasFlowContent && (
           <div className={`${styles.cardContent} ${styles.rowFlow}`}>

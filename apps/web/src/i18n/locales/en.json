@@ -1052,7 +1052,6 @@
     "kimi_ai_oauth_polling_error": "Failed to check authentication status:",
     "kimi_oauth_title": "Kimi China (kimi.com)",
     "kimi_oauth_button": "Log in with Kimi China",
-    "kimi_sign_up_button": "Create account",
     "kimi_oauth_hint": "Authorize your kimi.com China account via device login. Authentication files are saved automatically. International accounts must use the separate kimi.ai login.",
     "kimi_oauth_url_label": "Authorization URL:",
     "kimi_open_link": "Open Link",
@@ -1123,8 +1122,6 @@
     "qoder_oauth_status_success": "Authentication successful!",
     "qoder_oauth_status_error": "Authentication failed:",
     "qoder_oauth_start_error": "Failed to start Qoder OAuth:",
-    "kimi_sign_up_label": "Create account for Kimi China (opens in a new tab)",
-    "kimi_ai_sign_up_label": "Create account for Kimi International (opens in a new tab)",
     "family_kimi": "Kimi",
     "kimi_region": "China · kimi.com",
     "kimi_ai_region": "International · kimi.ai",
@@ -1847,13 +1844,7 @@
     "models_count_other": "{{count}} available models",
     "models_refresh": "Refresh models",
     "copy_details": "Copy version info",
-    "request_log_open": "Configure request logging…",
-    "resources_title": "Optional resources",
-    "resources_desc": "Third-party services. Not required to run LLM Proxy API.",
-    "resources_sponsored": "Sponsored",
-    "resource_proxy_desc": "Proxy servers for the Proxy URL setting",
-    "resource_api_desc": "API service with Anthropic, OpenAI and Codex endpoints",
-    "resource_new_tab": "(opens in a new tab)"
+    "request_log_open": "Configure request logging…"
   },
   "notification": {
     "region_label": "Notifications",
@@ -1960,78 +1951,6 @@
       "description": "Manage resources under {{route}}",
       "requestSummary": "{{success}} ok · {{failure}} failed",
       "noRecentRequests": "No recent requests"
-    },
-    "sponsor": {
-      "protocolSummary": "Anthropic / OpenAI / Gemini / Codex API (Responses)",
-      "detailHint": "{{provider}} is persisted into the matching API key configs by protocol; this view manages them together.",
-      "registerLink": "Register here",
-      "registerNow": "Register now",
-      "kimiPromo": "New users get API credit worth 10% of their first successful top-up, up to ¥1000. Offer ends September 30.",
-      "dashboardLink": "Dashboard",
-      "apiKeyHint": "This key is only written to the selected group/protocol config.",
-      "usageCheck": "Check usage",
-      "usageChecking": "Checking",
-      "usageRemaining": "Remaining: {{amount}} {{unit}}",
-      "usageBreakdown": "Used {{used}} / Limit {{limit}}",
-      "usageStatus": "Status: {{status}}",
-      "usageInvalid": "Invalid key",
-      "usageEmpty": "The endpoint returned no usage data.",
-      "usageApiKeyRequired": "API key is required",
-      "aggregationConflict": "This grouped provider contains multiple backend configs or OpenAI keys. Edit it in the source configuration to avoid data loss.",
-      "partialMutationWarning": "The operation failed after one or more protocols may have been updated. The latest configuration was reloaded; review it before retrying.",
-      "groupedKeysTitle": "Grouped keys",
-      "groupedKeysHint": "Platform keys may be bound to a group when created. Each grouped key here manages one protocol, and model discovery only uses that protocol.",
-      "groupedKey": "Grouped key #{{index}}",
-      "addGroupedKey": "Add grouped key",
-      "removeGroupedKey": "Remove grouped key",
-      "protocol": "Group/protocol",
-      "protocolHint": "Select the group/protocol for this key.",
-      "protocolEndpoint": "Current protocol endpoint",
-      "urlMode": "{{provider}} URL",
-      "urlHint": "All URLs use the same API conventions. Saving writes only the endpoint for the current grouped protocol.",
-      "urlOptions": {
-        "standard": "Standard URL",
-        "direct": "Direct URL",
-        "domestic": "China mainland route",
-        "overseas": "Overseas route",
-        "mainlandChina": "Mainland China (recommended)",
-        "global": "Global"
-      },
-      "urlOptionDescriptions": {
-        "domestic": "For users and workloads in mainland China; usually lower latency in mainland networks.",
-        "overseas": "For overseas deployments, cross-border access, or workloads that need overseas models.",
-        "mainlandChinaRecommended": "Recommended for users and workloads on mainland China networks.",
-        "global": "For users and workloads in all other regions."
-      },
-      "modelsTitle": "Protocol model settings",
-      "modelsHint": "Configure model allowlists or aliases separately for Codex API, Anthropic, Gemini, and OpenAI-compatible routes.",
-      "protocolModels": {
-        "codex": "Codex API models",
-        "anthropic": "Anthropic models",
-        "gemini": "Gemini models",
-        "openai": "OpenAI-compatible models"
-      },
-      "protocolModelHints": {
-        "codex": "Writes to the Codex API config models. Fetch from /v1/models and set aliases if needed.",
-        "anthropic": "Writes to the Anthropic config models. Fetch from /v1/models and set aliases if needed.",
-        "gemini": "Writes to the Gemini config models. Fetch from /v1beta/models and set aliases if needed.",
-        "openai": "Writes to the OpenAI-compatible config models. Fetch from /models and set aliases if needed."
-      },
-      "validation": {
-        "keyRequired": "Enter an API key for every grouped key.",
-        "protocolDuplicate": "Each protocol can only have one grouped key."
-      },
-      "openaiEntries": "OpenAI-compatible keys",
-      "codexEntries": "Codex API keys",
-      "anthropicEntries": "Anthropic keys",
-      "geminiEntries": "Gemini keys",
-      "protocols": {
-        "anthropic": "Anthropic",
-        "openai": "OpenAI Compatible",
-        "gemini": "Gemini",
-        "codexResponses": "Codex API (Responses)"
-      },
-      "sponsoredLabel": "Sponsored"
     },
     "status": {
       "active": "Active",

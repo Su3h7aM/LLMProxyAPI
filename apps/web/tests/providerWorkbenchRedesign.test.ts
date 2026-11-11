@@ -15,7 +15,7 @@ const resource = claudeToResource({ apiKey: 'fixture-private-key' }, 0);
 const groups: ProviderGroup[] = [
   { id: 'gemini', resources: [] },
   { id: 'claude', resources: [resource] },
-  { id: 'fennoAI', resources: [] },
+  { id: 'xai', resources: [] },
 ];
 
 describe('provider workbench configured-first presentation', () => {
@@ -23,16 +23,15 @@ describe('provider workbench configured-first presentation', () => {
     expect(localeParityIssues(productionLocales, ['redesign.providers'])).toEqual([]);
   });
 
-  test('opens a configured family on first visit, preserving explicit and fixed choices', () => {
+  test('opens a configured family on first visit, preserving explicit choices', () => {
     expect(readProvidersWorkbenchUiState().activeBrand).toBeNull();
     expect(resolveProviderBrand(groups, null)).toBe('claude');
     expect(resolveProviderBrand(groups, 'gemini')).toBe('gemini');
     expect(resolveProviderBrand(groups, 'meta')).toBe('claude');
-    expect(resolveProviderBrand(groups, 'claude', 'apikeyFun')).toBe('apikeyFun');
     expect(resolveProviderBrand([{ id: 'gemini', resources: [] }], null)).toBe('gemini');
   });
 
-  test('lists configured families first and preserves sponsor families with neutral empty labels', () => {
+  test('lists configured families first and keeps empty families with neutral labels', () => {
     const markup = renderToStaticMarkup(
       createElement(
         I18nextProvider,
@@ -45,7 +44,7 @@ describe('provider workbench configured-first presentation', () => {
       )
     );
     expect(markup.indexOf('Claude')).toBeLessThan(markup.indexOf('Gemini'));
-    expect(markup).toContain('FennoAI');
+    expect(markup).toContain('xAI');
     expect(markup).toContain('Not configured');
     expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
     expect(markup).not.toContain('fixture-private-key');

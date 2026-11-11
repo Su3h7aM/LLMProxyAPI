@@ -1086,7 +1086,6 @@
     "kimi_ai_oauth_polling_error": "Не удалось проверить статус авторизации:",
     "kimi_oauth_title": "Kimi — китайский сайт (kimi.com)",
     "kimi_oauth_button": "Войти через Kimi China",
-    "kimi_sign_up_button": "Создать аккаунт",
     "kimi_oauth_hint": "Войдите в китайский аккаунт kimi.com через авторизацию устройства. Файлы сохраняются автоматически. Для международных аккаунтов используйте отдельный вход kimi.ai.",
     "kimi_oauth_url_label": "URL авторизации:",
     "kimi_open_link": "Открыть ссылку",
@@ -1157,8 +1156,6 @@
     "qoder_oauth_status_success": "Аутентификация успешна!",
     "qoder_oauth_status_error": "Ошибка аутентификации:",
     "qoder_oauth_start_error": "Не удалось запустить Qoder OAuth:",
-    "kimi_sign_up_label": "Создать аккаунт Kimi China (откроется в новой вкладке)",
-    "kimi_ai_sign_up_label": "Создать аккаунт Kimi International (откроется в новой вкладке)",
     "family_kimi": "Kimi",
     "kimi_region": "Китай · kimi.com",
     "kimi_ai_region": "Международный · kimi.ai",
@@ -1876,13 +1873,7 @@
     "models_count_other": "{{count}} доступной модели",
     "models_refresh": "Обновить модели",
     "copy_details": "Копировать сведения о версии",
-    "request_log_open": "Настроить журналирование запросов…",
-    "resources_title": "Дополнительные ресурсы",
-    "resources_desc": "Сторонние сервисы. Для работы LLM Proxy API они не нужны.",
-    "resources_sponsored": "Спонсор",
-    "resource_proxy_desc": "Прокси-серверы для параметра «URL прокси»",
-    "resource_api_desc": "API-сервис с эндпоинтами Anthropic, OpenAI и Codex",
-    "resource_new_tab": "(откроется в новой вкладке)"
+    "request_log_open": "Настроить журналирование запросов…"
   },
   "notification": {
     "region_label": "Уведомления",
@@ -1991,78 +1982,6 @@
       "description": "Управление ресурсами {{route}}",
       "requestSummary": "{{success}} успешно · {{failure}} с ошибкой",
       "noRecentRequests": "Нет недавних запросов"
-    },
-    "sponsor": {
-      "protocolSummary": "Anthropic / OpenAI / Gemini / Codex API (Responses)",
-      "detailHint": "{{provider}} сохраняется в соответствующие конфигурации API key по протоколам; здесь они управляются вместе.",
-      "registerLink": "Зарегистрироваться",
-      "registerNow": "Зарегистрироваться сейчас",
-      "kimiPromo": "Новые пользователи получают API-квоту в размере 10% от первого успешного пополнения, максимум ¥1000. Предложение действует до 30 сентября.",
-      "dashboardLink": "Панель управления",
-      "apiKeyHint": "Этот ключ записывается только в выбранную группу/протокол.",
-      "usageCheck": "Проверить квоту",
-      "usageChecking": "Проверка",
-      "usageRemaining": "Остаток: {{amount}} {{unit}}",
-      "usageBreakdown": "Использовано {{used}} / Лимит {{limit}}",
-      "usageStatus": "Статус: {{status}}",
-      "usageInvalid": "Недействительный ключ",
-      "usageEmpty": "Endpoint не вернул данные квоты.",
-      "usageApiKeyRequired": "Требуется API key",
-      "aggregationConflict": "Этот объединённый провайдер содержит несколько серверных конфигураций или ключей OpenAI. Чтобы избежать потери данных, измените исходную конфигурацию.",
-      "partialMutationWarning": "Операция завершилась ошибкой, но один или несколько протоколов могли обновиться. Последняя конфигурация загружена повторно; проверьте её перед повторной попыткой.",
-      "groupedKeysTitle": "Групповые ключи",
-      "groupedKeysHint": "Ключи платформы могут привязываться к группе при создании. Каждый групповой ключ здесь управляет одним протоколом, а модели загружаются только из этого протокола.",
-      "groupedKey": "Групповой ключ #{{index}}",
-      "addGroupedKey": "Добавить групповой ключ",
-      "removeGroupedKey": "Удалить групповой ключ",
-      "protocol": "Группа/протокол",
-      "protocolHint": "Выберите группу/протокол для этого ключа.",
-      "protocolEndpoint": "Текущий endpoint протокола",
-      "urlMode": "{{provider}} URL",
-      "urlHint": "Все URL используют одинаковые правила API. При сохранении записывается только endpoint текущего группового протокола.",
-      "urlOptions": {
-        "standard": "Обычный URL",
-        "direct": "Прямой URL",
-        "domestic": "Маршрут для материкового Китая",
-        "overseas": "Зарубежный маршрут",
-        "mainlandChina": "Материковый Китай (рекомендуется)",
-        "global": "Глобальный"
-      },
-      "urlOptionDescriptions": {
-        "domestic": "Для пользователей и нагрузок в материковом Китае; обычно дает меньшую задержку в сетях материкового Китая.",
-        "overseas": "Для зарубежных развертываний, трансграничного доступа или задач, которым нужны зарубежные модели.",
-        "mainlandChinaRecommended": "Рекомендуется для пользователей и нагрузок в сетях материкового Китая.",
-        "global": "Для пользователей и нагрузок во всех остальных регионах."
-      },
-      "modelsTitle": "Настройки моделей по протоколам",
-      "modelsHint": "Настраивайте allowlist моделей и алиасы отдельно для маршрутов Codex API, Anthropic, Gemini и OpenAI-compatible.",
-      "protocolModels": {
-        "codex": "Модели Codex API",
-        "anthropic": "Модели Anthropic",
-        "gemini": "Модели Gemini",
-        "openai": "Модели OpenAI-compatible"
-      },
-      "protocolModelHints": {
-        "codex": "Записывается в models конфигурации Codex API. Можно загрузить из /v1/models и задать алиасы.",
-        "anthropic": "Записывается в models конфигурации Anthropic. Можно загрузить из /v1/models и задать алиасы.",
-        "gemini": "Записывается в models конфигурации Gemini. Можно загрузить из /v1beta/models и задать алиасы.",
-        "openai": "Записывается в models конфигурации OpenAI-compatible. Можно загрузить из /models и задать алиасы."
-      },
-      "validation": {
-        "keyRequired": "Введите API key для каждого группового ключа.",
-        "protocolDuplicate": "Для каждого протокола можно добавить только один групповой ключ."
-      },
-      "openaiEntries": "Ключей OpenAI-compatible",
-      "codexEntries": "Ключей Codex API",
-      "anthropicEntries": "Ключей Anthropic",
-      "geminiEntries": "Ключей Gemini",
-      "protocols": {
-        "anthropic": "Anthropic",
-        "openai": "OpenAI-compatible",
-        "gemini": "Gemini",
-        "codexResponses": "Codex API (Responses)"
-      },
-      "sponsoredLabel": "Спонсор"
     },
     "status": {
       "active": "Активен",

@@ -21,7 +21,6 @@ import {
 import type { OpenAIProviderConfig } from '@/types';
 import type { StatusBarData } from '@/utils/recentRequests';
 import type { ProviderResource } from '../types';
-import { isMultiProtocolSponsorBrand } from '../sponsorDefinitions';
 import {
   getProviderHealth,
   getResourceActionName,
@@ -71,9 +70,6 @@ const HEALTH_CLASS: Record<ProviderHealth, string> = {
   failing: styles.healthFailing,
 };
 
-const isSponsorResource = (resource: ProviderResource): boolean =>
-  isMultiProtocolSponsorBrand(resource.brand);
-
 const resolveStatusBarData = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
@@ -114,19 +110,8 @@ export function ProviderResourceTable({
     </span>
   );
 
-  const renderProtocolSummary = (r: ProviderResource) =>
-    (r.flags.protocols ?? [])
-      .map((protocol) => t(`providersPage.sponsor.protocols.${protocol}`))
-      .join(' / ');
-
   const renderModelsSummary = (r: ProviderResource) => {
     const items: ReactNode[] = [];
-    if (isSponsorResource(r)) {
-      (r.flags.protocols ?? []).forEach((protocol) => {
-        items.push(renderFlagTag(protocol, t(`providersPage.sponsor.protocols.${protocol}`)));
-      });
-      return <div className={styles.metricsCell}>{items}</div>;
-    }
     if (r.brand === 'openaiCompatibility') {
       items.push(
         renderMetric('models', t('providersPage.table.metrics.models'), r.modelCount),
@@ -160,7 +145,7 @@ export function ProviderResourceTable({
     const toggleLabel = r.disabled
       ? t('redesign.providers.rowEnable', { name })
       : t('redesign.providers.rowDisable', { name });
-    const tracked = usageByProvider && !isSponsorResource(r) ? usageByProvider : null;
+    const tracked = usageByProvider ? usageByProvider : null;
     const statusData = tracked ? resolveStatusBarData(r, tracked) : null;
     // Health and the bar read the bucketed window; the figure keeps the backend totals, which
     // may cover more than the buckets, so a key with traffic never reads "No recent requests".
@@ -220,18 +205,6 @@ export function ProviderResourceTable({
   };
 
   const renderPrimary = (r: ProviderResource) => {
-    if (isSponsorResource(r)) {
-      return (
-        <div className={styles.primaryCell}>
-          <span className={styles.primaryName} title={r.name ?? r.identifier ?? undefined}>
-            {r.name ?? r.identifier}
-          </span>
-          <span className={styles.primarySub}>
-            {r.apiKeyPreview ?? t('providersPage.status.notConfigured')}
-          </span>
-        </div>
-      );
-    }
     if (r.brand === 'openaiCompatibility') {
       const extra = r.apiKeyEntryCount > 1 ? ` · +${r.apiKeyEntryCount - 1}` : '';
       return (
@@ -252,9 +225,8 @@ export function ProviderResourceTable({
   };
 
   const renderBaseUrl = (r: ProviderResource) => {
-    const value = isSponsorResource(r)
-      ? renderProtocolSummary(r)
-      : r.brand === 'claude' && !r.baseUrl
+    const value =
+      r.brand === 'claude' && !r.baseUrl
         ? `https://api.anthropic.com ${t('providersPage.status.defaultSuffix')}`
         : (r.baseUrl ?? t('providersPage.status.notSet'));
     return (

@@ -6,7 +6,6 @@ import { ConfigHeader } from '@/features/config/components/ConfigHeader';
 import { SectionCommon } from '@/features/config/components/sections/SectionCommon';
 import { SectionNetwork } from '@/features/config/components/sections/SectionNetwork';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
-import { SPONSORS } from '@/features/config/sponsors';
 import { createTestI18n, localeParityIssues, productionLocales } from './helpers/locales';
 
 const i18n = await createTestI18n();
@@ -58,10 +57,6 @@ describe('config presentation', () => {
       );
       expect(markup).toContain(i18n.t('config_management.visual.sections.network.proxy_url'));
       expect(markup).not.toContain('sponsored');
-      for (const sponsor of SPONSORS) {
-        expect(markup).not.toContain(sponsor.name);
-        expect(markup).not.toContain(sponsor.url.replaceAll('&', '&amp;'));
-      }
     }
   });
 

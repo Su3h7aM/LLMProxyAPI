@@ -17,13 +17,8 @@ import { ProviderHeaderCard } from './components/ProviderHeaderCard';
 import { ProviderCategoryList } from './components/ProviderCategoryList';
 import { ProviderResourcePanel } from './components/ProviderResourcePanel';
 import type { ProviderPanelControls } from './components/ProviderResourcePanel';
-import { SponsorQuickStartPanel } from './components/SponsorQuickStartPanel';
-import { QuickStartSteps } from './components/QuickStartSteps';
 import { getProviderCreateLabel } from './createLabel';
 import { ProviderSheet, type ProviderSheetHandle } from './sheets/ProviderSheet';
-import { APIKEY_FUN_DISPLAY_NAME } from './sponsor';
-import { isMultiProtocolSponsorBrand } from './sponsorDefinitions';
-import { isSponsorPartialMutationError } from './sponsorMutationRecovery';
 import { useProviderWorkbench } from './useProviderWorkbench';
 import { PROVIDER_BRAND_ORDER } from './descriptors';
 import {
@@ -46,10 +41,6 @@ interface SheetState {
   brand: ProviderBrand;
   mode: SheetMode;
   resource: ProviderResource | null;
-}
-
-interface ProvidersWorkbenchPageProps {
-  fixedBrand?: ProviderBrand;
 }
 
 const matchesFilter = (r: ProviderResource, normalized: string): boolean => {
@@ -76,9 +67,6 @@ const getResourceRecentSuccess = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
 ): number => {
-  if (isMultiProtocolSponsorBrand(resource.brand)) {
-    return 0;
-  }
   if (resource.brand === 'openaiCompatibility') {
     return getOpenAIProviderRecentWindowStats(resource.raw as OpenAIProviderConfig, usageByProvider)
       .success;
@@ -91,7 +79,7 @@ const getResourceRecentSuccess = (
   ).success;
 };
 
-export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPageProps = {}) {
+export function ProvidersWorkbenchPage() {
   const { t } = useTranslation();
   const connectionStatus = useAuthStore((s) => s.connectionStatus);
   const { showNotification, showConfirmation } = useNotificationStore();
@@ -154,7 +142,7 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
   useEffect(() => {
     const requested = searchParams.get('brand');
     if (!requested) return;
-    if (!fixedBrand && (PROVIDER_BRAND_ORDER as string[]).includes(requested)) {
+    if ((PROVIDER_BRAND_ORDER as string[]).includes(requested)) {
       const brand = requested as ProviderBrand;
       persistUiState((prev) => applyProviderBrandDeepLink(prev, brand));
       setRevealBrand(brand);
@@ -162,17 +150,10 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
     const next = new URLSearchParams(searchParams);
     next.delete('brand');
     setSearchParams(next, { replace: true });
-  }, [fixedBrand, searchParams, persistUiState, setSearchParams]);
+  }, [searchParams, persistUiState, setSearchParams]);
 
-  const allGroups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
-  const groups = useMemo(
-    () =>
-      fixedBrand
-        ? allGroups.filter((group) => group.id === fixedBrand)
-        : allGroups.filter((group) => group.id !== 'apikeyFun'),
-    [allGroups, fixedBrand]
-  );
-  const activeBrand = resolveProviderBrand(groups, uiState.activeBrand, fixedBrand);
+  const groups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
+  const activeBrand = resolveProviderBrand(groups, uiState.activeBrand);
   const activeFilterState = getProviderFilterState(uiState, activeBrand);
   const filter = activeFilterState.filter;
   const providerSortBy = activeFilterState.sortBy;
@@ -290,19 +271,7 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
     () => groups.filter((g) => g.resources.length > 0).length,
     [groups]
   );
-  const quickStartResource = useMemo(
-    () => (fixedBrand === 'apikeyFun' && activeGroup ? (activeGroup.resources[0] ?? null) : null),
-    [activeGroup, fixedBrand]
-  );
-
   const updatedAt = workbench.snapshot?.fetchedAt ?? null;
-  // Matches the sidebar: once a key exists the route is that provider's page.
-  const headerTitle =
-    fixedBrand === 'apikeyFun'
-      ? quickStartResource
-        ? APIKEY_FUN_DISPLAY_NAME
-        : t('nav.quick_start')
-      : undefined;
   const errorBanner = workbench.errorMessage ? (
     <div className="error-box">{workbench.errorMessage}</div>
   ) : null;
@@ -347,10 +316,6 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
             await workbench.deleteProvider(resource);
             showNotification(t('providersPage.toast.deleted'), 'success');
           } catch (err) {
-            if (isSponsorPartialMutationError(err)) {
-              showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
-              return;
-            }
             const msg = err instanceof Error ? err.message : String(err);
             showNotification(`${t('notification.delete_failed')}: ${msg}`, 'error');
           }
@@ -369,10 +334,6 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
           'success'
         );
       } catch (err) {
-        if (isSponsorPartialMutationError(err)) {
-          showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
-          return;
-        }
         const msg = err instanceof Error ? err.message : String(err);
         showNotification(`${t('providersPage.toast.toggleFailed')}: ${msg}`, 'error');
       }
@@ -407,7 +368,6 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
     return (
       <div className={styles.page}>
         <ProviderHeaderCard
-          title={headerTitle}
           totalActive={0}
           totalResources={0}
           providerFamilies={0}
@@ -417,10 +377,8 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
           onNew={() => {}}
           isNewDisabled
           showNewAction={false}
-          showSummary={fixedBrand !== 'apikeyFun'}
         />
         {errorBanner}
-        {fixedBrand === 'apikeyFun' ? <QuickStartSteps /> : null}
       </div>
     );
   }
@@ -447,70 +405,52 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
   return (
     <div className={styles.page}>
       <ProviderHeaderCard
-        title={headerTitle}
         totalActive={totalActive}
         totalResources={totalResources}
         providerFamilies={providerFamilies}
         updatedAt={updatedAt}
         isFetching={workbench.isFetching}
         isNewDisabled={disableMutations}
-        showNewAction={!fixedBrand}
-        showSummary={fixedBrand !== 'apikeyFun'}
         newLabel={getProviderCreateLabel(t, activeGroup.id)}
-        variant={fixedBrand === 'apikeyFun' ? 'quickStart' : undefined}
         onRefresh={() => void handleRefresh()}
         onNew={openCreate}
       />
 
       {errorBanner}
 
-      {fixedBrand === 'apikeyFun' ? <QuickStartSteps /> : null}
+      <ProviderCategoryList
+        groups={groups}
+        activeBrand={activeGroup.id}
+        onSelect={(brand) => {
+          const isSwitching = sheetState.open && sheetState.brand !== brand;
+          const proceed =
+            isSwitching && sheetRef.current
+              ? sheetRef.current.confirmDiscardIfDirty()
+              : Promise.resolve(true);
+          void proceed.then((ok) => {
+            if (!ok) return;
+            setActiveBrand(brand);
+            if (isSwitching) {
+              closeSheet();
+            }
+          });
+        }}
+        detail={resourcePanel}
+      />
 
-      {fixedBrand === 'apikeyFun' ? (
-        <SponsorQuickStartPanel
-          resource={quickStartResource}
-          workbench={workbench}
-          mutationDisabled={disableMutations}
-        />
-      ) : fixedBrand ? (
-        resourcePanel
-      ) : (
-        <ProviderCategoryList
-          groups={groups}
-          activeBrand={activeGroup.id}
-          onSelect={(brand) => {
-            const isSwitching = sheetState.open && sheetState.brand !== brand;
-            const proceed =
-              isSwitching && sheetRef.current
-                ? sheetRef.current.confirmDiscardIfDirty()
-                : Promise.resolve(true);
-            void proceed.then((ok) => {
-              if (!ok) return;
-              setActiveBrand(brand);
-              if (isSwitching) {
-                closeSheet();
-              }
-            });
-          }}
-          detail={resourcePanel}
-        />
-      )}
-
-      {!fixedBrand ? (
-        <ProviderSheet
-          ref={sheetRef}
-          state={sheetState}
-          onClose={closeSheet}
-          onSwitchToEdit={() => {
-            setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
-          }}
-          workbench={workbench}
-          onCreated={handleCreated}
-          onUpdated={handleUpdated}
-          mutationDisabled={disableMutations}
-          usageByProvider={usageByProvider}
-        />
-      ) : null}
+      <ProviderSheet
+        ref={sheetRef}
+        state={sheetState}
+        onClose={closeSheet}
+        onSwitchToEdit={() => {
+          setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
+        }}
+        workbench={workbench}
+        onCreated={handleCreated}
+        onUpdated={handleUpdated}
+        mutationDisabled={disableMutations}
+        usageByProvider={usageByProvider}
+      />
     </div>
   );
 }

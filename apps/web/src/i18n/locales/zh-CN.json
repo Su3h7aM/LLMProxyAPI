@@ -1036,7 +1036,6 @@
     "kimi_ai_oauth_polling_error": "检查认证状态失败:",
     "kimi_oauth_title": "Kimi 国内站（kimi.com）",
     "kimi_oauth_button": "使用 Kimi 国内站登录",
-    "kimi_sign_up_button": "注册账号",
     "kimi_oauth_hint": "通过设备授权登录 kimi.com 国内站，自动获取并保存认证文件。国际站账号请使用独立的 kimi.ai 登录入口。",
     "kimi_oauth_url_label": "授权链接:",
     "kimi_open_link": "打开链接",
@@ -1107,8 +1106,6 @@
     "qoder_oauth_status_success": "认证成功！",
     "qoder_oauth_status_error": "认证失败:",
     "qoder_oauth_start_error": "启动 Qoder OAuth 失败:",
-    "kimi_sign_up_label": "注册账号：Kimi 国内站（在新标签页中打开）",
-    "kimi_ai_sign_up_label": "注册账号：Kimi 国际站（在新标签页中打开）",
     "family_kimi": "Kimi",
     "kimi_region": "国内站 · kimi.com",
     "kimi_ai_region": "国际站 · kimi.ai",
@@ -1828,13 +1825,7 @@
     "models_count_other": "可用模型 {{count}} 个",
     "models_refresh": "刷新模型",
     "copy_details": "复制版本信息",
-    "request_log_open": "配置请求日志…",
-    "resources_title": "可选资源",
-    "resources_desc": "第三方服务，运行 LLM Proxy API 不需要它们。",
-    "resources_sponsored": "赞助",
-    "resource_proxy_desc": "可用于“代理 URL”设置的代理服务器",
-    "resource_api_desc": "提供 Anthropic、OpenAI 和 Codex 端点的 API 服务",
-    "resource_new_tab": "（在新标签页中打开）"
+    "request_log_open": "配置请求日志…"
   },
   "notification": {
     "region_label": "通知",
@@ -1940,78 +1931,6 @@
       "description": "在 {{route}} 下管理资源",
       "requestSummary": "成功 {{success}} · 失败 {{failure}}",
       "noRecentRequests": "近期无请求"
-    },
-    "sponsor": {
-      "protocolSummary": "Anthropic / OpenAI / Gemini / Codex API (Responses)",
-      "detailHint": "{{provider}} 会按协议分别写入对应的 API Key 配置,这里只做聚合管理。",
-      "registerLink": "点此注册",
-      "registerNow": "立即注册",
-      "kimiPromo": "新用户首次成功充值，赠送充值金额 10% 的 API 额度，最高赠送 ¥1000，优惠截至 9 月 30 日",
-      "dashboardLink": "控制面板",
-      "apiKeyHint": "此 Key 只会写入当前选择的分组/协议配置。",
-      "usageCheck": "查询额度",
-      "usageChecking": "查询中",
-      "usageRemaining": "剩余额度: {{amount}} {{unit}}",
-      "usageBreakdown": "已用 {{used}} / 总额 {{limit}}",
-      "usageStatus": "状态: {{status}}",
-      "usageInvalid": "Key 无效",
-      "usageEmpty": "端点未返回额度数据",
-      "usageApiKeyRequired": "API 密钥必填",
-      "aggregationConflict": "此聚合提供商包含多条后端配置或多个 OpenAI 密钥。为避免数据丢失，请在源码配置中编辑。",
-      "partialMutationWarning": "操作失败，但一个或多个协议可能已更新。已重新读取最新配置，请检查后再重试。",
-      "groupedKeysTitle": "分组 Key",
-      "groupedKeysHint": "平台创建 Key 时可能需要选择分组,这里每个分组 Key 只管理一个协议,模型也只从该协议拉取。",
-      "groupedKey": "分组 Key #{{index}}",
-      "addGroupedKey": "添加分组 Key",
-      "removeGroupedKey": "删除分组 Key",
-      "protocol": "分组/协议",
-      "protocolHint": "请选择此 Key 对应的分组/协议。",
-      "protocolEndpoint": "当前协议地址",
-      "urlMode": "{{provider}} URL",
-      "urlHint": "不同 URL 的使用规范一致,保存时只会写入当前分组协议对应地址。",
-      "urlOptions": {
-        "standard": "普通 URL",
-        "direct": "专线直连 URL",
-        "domestic": "国内线路",
-        "overseas": "海外线路",
-        "mainlandChina": "中国大陆（推荐）",
-        "global": "全球"
-      },
-      "urlOptionDescriptions": {
-        "domestic": "面向中国大陆用户和部署在中国大陆网络环境中的业务，通常可获得更低延迟。",
-        "overseas": "面向海外部署、跨境访问或需要访问境外模型的业务。",
-        "mainlandChinaRecommended": "推荐中国大陆用户和部署在中国大陆网络环境中的业务使用。",
-        "global": "适用于全球其他地区的用户和部署环境。"
-      },
-      "modelsTitle": "协议模型配置",
-      "modelsHint": "可分别限制或别名映射 Codex API、Anthropic、Gemini 与 OpenAI 兼容入口的模型。",
-      "protocolModels": {
-        "codex": "Codex API 模型",
-        "anthropic": "Anthropic 模型",
-        "gemini": "Gemini 模型",
-        "openai": "OpenAI 兼容模型"
-      },
-      "protocolModelHints": {
-        "codex": "写入 Codex API 配置的 models,可从 /v1/models 拉取后设置别名。",
-        "anthropic": "写入 Anthropic 配置的 models,可从 /v1/models 拉取后设置别名。",
-        "gemini": "写入 Gemini 配置的 models,可从 /v1beta/models 拉取后设置别名。",
-        "openai": "写入 OpenAI 兼容配置的 models,可从 /models 拉取后设置别名。"
-      },
-      "validation": {
-        "keyRequired": "请为每个分组 Key 填写 API Key。",
-        "protocolDuplicate": "每个协议只能添加一个分组 Key。"
-      },
-      "openaiEntries": "OpenAI 兼容密钥数",
-      "codexEntries": "Codex API 密钥数",
-      "anthropicEntries": "Anthropic 密钥数",
-      "geminiEntries": "Gemini 密钥数",
-      "protocols": {
-        "anthropic": "Anthropic",
-        "openai": "OpenAI 兼容",
-        "gemini": "Gemini",
-        "codexResponses": "Codex API (Responses)"
-      },
-      "sponsoredLabel": "赞助"
     },
     "status": {
       "active": "活跃",
