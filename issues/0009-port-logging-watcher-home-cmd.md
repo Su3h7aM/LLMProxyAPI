@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0009-port-logging-watcher-home-cmd
 type: port
 agent: muse-spark-1.3-contributor
@@ -58,6 +58,29 @@ Triage notes: Triage: all apply clean except import order in tests (`628e54ab`: 
 
 ## Log
 
+- Ported all 6 commits in listed order (one fork commit per upstream commit), with `bebd92c4` ported last after a scope reversal (see below).
+- `0561334f` (home fork kind): `git apply --3way` clean. Gate: `sdk/cliproxy/auth` tests pass.
+- `4b3f2c7e` (skip 404 error dumps): applied clean. Gate: middleware and logging tests pass.
+- `628e54ab` (watcher auth-dir reload): strict apply failed on import context (`watcher.go`, `watcher_test.go`, `config_reload.go`); applied with `patch -p1 -F3` as triage notes allow. One manual fix: `watcher_test.go` new `pluginapi` import moved into the fork SDK import group (upstream single sorted group vs fork module-first order). Gate: watcher tests pass.
+- `c9dad847` (heartbeat pong liveness): applied clean except gofmt import order in new `client_heartbeat_deadline_test.go` (fixed with `gofmt -w`: fork `Su3h7aM` sorts before `redis`). Gate: home tests pass.
+- `ece3f52a` (bounded upstream error logs, 39 files): applied with `patch -p1 -F3`. One hunk failed (`xai_websockets_executor_test.go` imports: fork has extra `sdktranslator` import and no `gin`); hand-applied the three new imports (`sync/atomic`, `internal/logging`, `gin`) in fork import order. Two import blocks fixed with `gofmt -w` (`request_logging_test.go`, `codex_executor_execute_usage_test.go`). A `patch` backup pair (`*.orig`) was first committed by accident, then removed by recommitting the port as one clean 39-file commit (+2598/-156, same as upstream). Gate: build OK; logging, middleware, executor, util, handlers tests pass.
+- Scope change and reversal: coordinator first ordered `bebd92c4` skipped (local CLI feature, out of scope); fork commit `208a8291` was dropped via `git rebase --onto 208a8291^ 208a8291` and the branch was rebased onto new `main` with no conflicts. Coordinator then reversed: local features may be ported (low priority, keeps fork near upstream). Re-ported `bebd92c4` as the last code commit on top of the rebased branch: all files applied clean except `sdk/auth/manager.go` (direct application after 3-way fallback, same as the first attempt; result matches upstream intent). Fork `cmd/server/main.go` lines kept (only additions). Gate: `sdk/auth` and `internal/cmd` tests pass.
+- Final gate on rebased branch: `go build ./...` pass; `go vet ./...` fully clean (the old `pluginhost` finding was fixed on `main` by issue 0013); `go test ./...` no failures; `gofmt -l` clean on all touched files. `main` advanced twice during this issue (0012, then 0013 housekeeping, then 0010 oauth_provider); final `git rebase main` applied with no conflicts. Note: a `git stash`/`pop` cycle picked up a foreign stash entry from issue 0011 (`cc95661c attempt`) because stash refs are shared across worktrees of this repo; the contamination was removed with `git reset --hard HEAD` (commits were safe) and the foreign stash entry was left untouched. The uncommitted issue-file text lost in that cycle was rewritten from scratch.
+- `status: done`. No merge to `main` (coordinator merges).
+
 ## Follow-ups
 
+- `gofmt -l` flags `internal/runtime/executor/claude_thinking_replay_test.go` and `codex_stream_bootstrap_buffering_test.go` on old bases, but current `main` already fixed them (issue 0013 housekeeping); this branch is clean after the final rebase.
+- Shared-repo caution: `git stash` in one worktree can surface another issue's stash entries. Prefer no stash, or `stash push -m` with a unique message and verify `stash list` before popping.
+
 ## Result
+
+Ported 6 commits (upstream -> fork):
+- `0561334f` -> `6e88c99b` fix(home): preserve fork kind in home dispatch
+- `4b3f2c7e` -> `72efe2f0` fix(logging): skip request error dumps for unrouted 404 responses
+- `628e54ab` -> `344ccc49` fix(watcher): update active auth directory and fsnotify watch on runtime auth-dir changes
+- `c9dad847` -> `ba0f458b` fix(home): only renew liveness on heartbeat pong
+- `ece3f52a` -> `5bdb5fa7` fix(logging): preserve bounded upstream responses in error logs
+- `bebd92c4` -> `6fde5064` feat(cmd): add `-login-proxy` flag for CLI OAuth logins (ported last after scope reversal; fork `cmd/server/main.go` lines kept)
+- Deviations from upstream: module path rewrite only; import order kept in fork style (`watcher_test.go`, `client_heartbeat_deadline_test.go`, `request_logging_test.go`, `codex_executor_execute_usage_test.go`, `xai_websockets_executor_test.go`). No semantic changes.
+- Gate (after final `git rebase main`): `go build ./...` pass; `go vet ./...` fully clean, zero findings; `go test ./...` pass (no FAIL lines); `gofmt -l` clean on all touched files. Known gaps: none found.
