@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0011-port-executors-thinking-cache
 type: port
 agent: deepseek-v4.1-flash
