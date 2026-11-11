@@ -17,6 +17,11 @@ describe('round 2 system page', () => {
     expect(systemPage.match(/\{auth\.apiBase \|\| '-'\}/g)).toHaveLength(1);
   });
 
+  test('the WebUI repository link points to the fork, not the reference repository', () => {
+    expect(systemPage).toContain('href="https://github.com/Su3h7aM/LLMProxyAPI"');
+    expect(systemPage).not.toContain('router-for-me/Cli-Proxy-API-Management-Center');
+  });
+
   test('actions use the standard secondary button, not the small variant', () => {
     expect(systemPage).not.toMatch(/variant="secondary"\s+size="sm"/);
     expect(systemPage).toMatch(
