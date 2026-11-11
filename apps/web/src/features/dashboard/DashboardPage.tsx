@@ -187,8 +187,10 @@ export function DashboardPage() {
   // Credential traffic covers credentials listed now; usage statistics also keep requests
   // from credentials that were removed. Flag a material disagreement instead of letting
   // one of them read as the whole truth.
+  // Without a usage snapshot source there is nothing to compare: the null
+  // snapshot must not read as zero recorded requests against live traffic.
   const comparableUsageRequests =
-    usageSummary && usageSummary.coverageStartMs === null && freshness.usage === 'live'
+    usage?.usage && usageSummary && usageSummary.coverageStartMs === null && freshness.usage === 'live'
       ? usageSummary.requests
       : null;
   const usageDiffers =

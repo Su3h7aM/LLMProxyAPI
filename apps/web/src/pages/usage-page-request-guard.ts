@@ -1,5 +1,3 @@
-import type { UsageResponse } from '@/types/usage';
-
 interface UsagePageSession {
   apiBase: string;
   managementKey: string;
@@ -40,21 +38,20 @@ export const createLatestUsageRequestGuard = (getSession?: () => UsagePageSessio
 
 export interface UsagePageSources {
   enabled: PromiseSettledResult<boolean | null>;
-  payload: PromiseSettledResult<UsageResponse>;
 }
 
+/**
+ * The Usage page reads only the collection flag from the v8 config tree. No v8
+ * route serves the aggregate usage snapshot (`GET /usage` is Plus-only and
+ * `/observability/usage/queue` is a destructive pop of the internal relay
+ * queue), so there is no snapshot fetch. The page renders its empty state while
+ * collection is on.
+ */
 export const fetchUsagePageSources = async (api: {
   getStatisticsEnabled: () => Promise<boolean | null>;
-  getUsage: () => Promise<UsageResponse>;
 }): Promise<UsagePageSources> => {
-  const [enabled, payload] = await Promise.allSettled([
-    api.getStatisticsEnabled(),
-    api.getUsage().then((response) => {
-      if (!response.usage) throw new Error('Usage snapshot missing');
-      return response;
-    }),
-  ]);
-  return { enabled, payload };
+  const [enabled] = await Promise.allSettled([api.getStatisticsEnabled()]);
+  return { enabled };
 };
 
 export interface LatestUsageRequestOptions<T> {

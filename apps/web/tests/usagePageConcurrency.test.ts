@@ -16,55 +16,34 @@ const deferred = <T>() => {
 };
 
 describe('UsagePage request sources', () => {
-  test('fetches the separate flag endpoint instead of relying on a flag in the usage payload', async () => {
+  test('reads only the collection flag from the v8 config tree, never a snapshot route', async () => {
     let flagCalls = 0;
-    let usageCalls = 0;
     const result = await fetchUsagePageSources({
       getStatisticsEnabled: async () => {
         flagCalls += 1;
         return false;
       },
-      getUsage: async () => {
-        usageCalls += 1;
-        return { statistics_enabled: true, usage: { total_requests: 9 } };
-      },
     });
     expect(flagCalls).toBe(1);
-    expect(usageCalls).toBe(1);
     expect(result.enabled).toEqual({ status: 'fulfilled', value: false });
-    expect(result.payload).toMatchObject({ status: 'fulfilled' });
   });
 
-  test('preserves known disabled and unknown flags when the snapshot fetch fails', async () => {
+  test('preserves known disabled and unknown flags', async () => {
     for (const flag of [false, null]) {
       const result = await fetchUsagePageSources({
         getStatisticsEnabled: async () => flag,
-        getUsage: async () => {
-          throw new Error('snapshot failed');
-        },
       });
       expect(result.enabled).toEqual({ status: 'fulfilled', value: flag });
-      expect(result.payload.status).toBe('rejected');
     }
   });
 
-  test('treats a missing usage snapshot as a failed fetch, never an empty success', async () => {
-    const result = await fetchUsagePageSources({
-      getStatisticsEnabled: async () => true,
-      getUsage: async () => ({}),
-    });
-    expect(result.payload.status).toBe('rejected');
-  });
-
-  test('does not turn a flag request failure into unsupported status', async () => {
+  test('a flag request failure rejects the refresh instead of reporting a status', async () => {
     const result = await fetchUsagePageSources({
       getStatisticsEnabled: async () => {
         throw new Error('flag failed');
       },
-      getUsage: async () => ({ usage: { total_requests: 10 } }),
     });
     expect(result.enabled.status).toBe('rejected');
-    expect(result.payload.status).toBe('fulfilled');
   });
 });
 
@@ -185,20 +164,19 @@ describe('UsagePage request ordering', () => {
     expect(errors).toEqual([]);
   });
 
-  test('partial source failures commit their known flag and reject the global refresh', async () => {
+  test('a flag failure commits no status and rejects the global refresh', async () => {
     const events: string[] = [];
     const run = runLatestUsageRequest({
       guard: createLatestUsageRequestGuard(),
       request: () =>
         fetchUsagePageSources({
-          getStatisticsEnabled: async () => false,
-          getUsage: async () => {
+          getStatisticsEnabled: async () => {
             throw new Error('failed');
           },
         }),
       fallbackError: 'failed',
       getResultError: (result) =>
-        result.payload.status === 'rejected' ? 'Snapshot fetch failed' : null,
+        result.enabled.status === 'rejected' ? 'Collection flag check failed' : null,
       onStart: () => undefined,
       onSuccess: (result) => {
         if (result.enabled.status === 'fulfilled') events.push(String(result.enabled.value));
@@ -206,8 +184,8 @@ describe('UsagePage request ordering', () => {
       onError: (message) => events.push(message),
       onFinish: () => events.push('finished'),
     });
-    await expect(run).rejects.toThrow('Snapshot fetch failed');
-    expect(events).toEqual(['false', 'Snapshot fetch failed', 'finished']);
+    await expect(run).rejects.toThrow('Collection flag check failed');
+    expect(events).toEqual(['Collection flag check failed', 'finished']);
   });
 
   test('current failure renders its message and rejects to the global refresh caller', async () => {

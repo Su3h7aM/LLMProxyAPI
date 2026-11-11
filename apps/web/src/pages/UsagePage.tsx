@@ -105,7 +105,7 @@ export function UsagePageContent({
           ? 'unknown'
           : ageStale
             ? 'stale'
-            : usage?.total_requests === 0
+            : usage?.total_requests === 0 || (enabled === true && !usage)
               ? 'empty'
               : 'live';
   const showData =
@@ -437,42 +437,28 @@ export function UsagePage() {
       request: () => fetchUsagePageSources(usageApi),
       fallbackError: t('usage_stats.load_failed'),
       getResultError: (result) => {
-        const messages: string[] = [];
-        for (const [source, outcome] of Object.entries(result)) {
-          if (outcome.status !== 'rejected') continue;
-          // Server error text may contain credentials. Render only a safe source label and HTTP status.
-          const reason: unknown = outcome.reason;
-          const status =
-            reason && typeof reason === 'object' && 'status' in reason ? reason.status : null;
-          messages.push(
-            t(
-              source === 'enabled' ? 'redesign.usage.flag_failed' : 'redesign.usage.snapshot_failed'
-            ) +
-              (typeof status === 'number' &&
-              Number.isInteger(status) &&
-              status >= 100 &&
-              status <= 599
-                ? ` (HTTP ${status})`
-                : '')
-          );
-        }
-        return messages.length ? messages.join(' ') : null;
+        if (result.enabled.status !== 'rejected') return null;
+        // Server error text may contain credentials. Render only a safe source label and HTTP status.
+        const reason: unknown = result.enabled.reason;
+        const status =
+          reason && typeof reason === 'object' && 'status' in reason ? reason.status : null;
+        return (
+          t('redesign.usage.flag_failed') +
+          (typeof status === 'number' && Number.isInteger(status) && status >= 100 && status <= 599
+            ? ` (HTTP ${status})`
+            : '')
+        );
       },
       onStart: () => {
         setLoading(true);
         setError(null);
       },
       onSuccess: (result) => {
+        // No v8 route serves the usage snapshot, so the page never holds one:
+        // collection-on renders the empty state, never numbers or charts.
         setEnabled(result.enabled.status === 'fulfilled' ? result.enabled.value : null);
-        if (result.enabled.status === 'fulfilled' && result.enabled.value !== true) {
-          setPayload(null);
-          setLastUpdated(null);
-        } else if (result.enabled.status === 'fulfilled' && result.payload.status === 'fulfilled') {
-          const updated = Date.now();
-          setPayload(result.payload.value);
-          setLastUpdated(updated);
-          setNow(updated);
-        }
+        setPayload(null);
+        setLastUpdated(null);
       },
       onError: setError,
       onFinish: () => setLoading(false),

@@ -31,7 +31,10 @@ export function UsagePanel({
     return <p className={styles.note}>{t('dashboard.usage_loading')}</p>;
   }
 
-  if (usage.enabled === null) {
+  // No v8 route serves the aggregate usage snapshot, so `usage.usage` is null
+  // even when collection is on. The unsupported block is the empty state for
+  // that gap: per-model volume and latency cannot be shown.
+  if (usage.enabled === null || (usage.enabled && !usage.usage)) {
     return (
       <div className={styles.off}>
         <p className={styles.offTitle}>{t('dashboard.usage_unsupported')}</p>

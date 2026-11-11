@@ -134,10 +134,12 @@ export function useDashboardOverview() {
     intervalMs: DASHBOARD_POLL_MS.usage,
     timeoutMs: DASHBOARD_TIMEOUT_MS.usage,
     load: async () => {
+      // No v8 route serves the aggregate usage snapshot (`GET /usage` is
+      // Plus-only and `/observability/usage/queue` is a destructive pop of the
+      // internal relay queue, never a display source). The usage section shows
+      // the collection flag from the v8 config tree plus an empty state.
       const enabled = await usageApi.getStatisticsEnabled();
-      if (enabled !== true) return { enabled, usage: null };
-      const response = await usageApi.getUsage();
-      return { enabled, usage: response?.usage ?? null };
+      return { enabled, usage: null };
     },
   });
 
