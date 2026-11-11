@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0013-housekeeping-vet-fmt-assets
 type: chore
 agent: deepseek-v4.1-flash
