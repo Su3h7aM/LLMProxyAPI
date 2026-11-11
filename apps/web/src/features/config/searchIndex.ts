@@ -533,15 +533,6 @@ export const CONFIG_FIELD_SEARCH_INDEX: ConfigFieldSearchEntry[] = [
     keywords: ['codex'],
   },
   {
-    fieldId: 'codexIdentityConfuse',
-    sectionId: 'advanced',
-    labelKey: L('sections.headers.codex_identity_confuse'),
-    qualifierKey: L('sections.headers.codex_title'),
-    hintKey: L('sections.headers.codex_identity_confuse_desc'),
-    yamlKeys: ['codex', 'identity-confuse'],
-    keywords: ['codex'],
-  },
-  {
     fieldId: 'claudeHeaderTimezone',
     sectionId: 'advanced',
     labelKey: L('additions.claudeHeaderTimezone.label'),

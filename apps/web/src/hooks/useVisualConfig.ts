@@ -1112,7 +1112,6 @@ function getNextDirtyFields(
       'claudeHeaderStabilizeDeviceProfile',
       'codexHeaderUserAgent',
       'codexHeaderBetaFeatures',
-      'codexIdentityConfuse',
       'host',
       'port',
       'tlsEnable',
@@ -1325,7 +1324,6 @@ export function useVisualConfig() {
       const payload = asRecord(v8Requests?.['payload']);
       const streaming = asRecord(v8Requests?.['streaming']);
       const plugins = asRecord(parsed.plugins);
-      const codex = asRecord(parsed.codex);
       const antigravity = asRecord(v8OauthProviders?.['antigravity']);
       const devin = asRecord(v8OauthProviders?.['devin']);
       const claudeHeaderDefaults = asRecord(v8UpstreamClaude?.['header-defaults']);
@@ -1422,8 +1420,6 @@ export function useVisualConfig() {
           typeof codexHeaderDefaults?.['beta-features'] === 'string'
             ? codexHeaderDefaults['beta-features']
             : '',
-        codexIdentityConfuse: Boolean(codex?.['identity-confuse']),
-
         quotaSwitchProject: Boolean(
           quotaExceeded?.['switch-project'] ?? DEFAULT_VISUAL_VALUES.quotaSwitchProject
         ),
@@ -1827,12 +1823,6 @@ export function useVisualConfig() {
             );
           }
           deleteIfMapEmpty(doc, ['oauth', 'providers', 'codex', 'header-defaults']);
-        }
-
-        if (dirtyFields.has('codexIdentityConfuse')) {
-          ensureMapInDoc(doc, ['codex']);
-          setBooleanInDoc(doc, ['codex', 'identity-confuse'], values.codexIdentityConfuse);
-          deleteIfMapEmpty(doc, ['codex']);
         }
 
         const quotaDirty =

@@ -335,19 +335,6 @@ export function SectionAdvanced({
                 />
               </FieldAnchor>
             </FieldGrid>
-            <FieldGrid>
-              <FieldAnchor fieldId="codexIdentityConfuse">
-                <ToggleRow
-                  title={t('config_management.visual.sections.headers.codex_identity_confuse')}
-                  description={t(
-                    'config_management.visual.sections.headers.codex_identity_confuse_desc'
-                  )}
-                  checked={values.codexIdentityConfuse}
-                  disabled={disabled}
-                  onChange={(codexIdentityConfuse) => onChange({ codexIdentityConfuse })}
-                />
-              </FieldAnchor>
-            </FieldGrid>
           </FieldStack>
         </Collapsible>
 
