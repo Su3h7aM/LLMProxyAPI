@@ -2,6 +2,15 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: The panel and the proxy are one unit (one container, one
+  repository, one version). Meaning for the panel: v8 API only, no v0
+  compatibility; no code for a separate or unknown server (backend probe,
+  version negotiation, endpoint-missing fallbacks, custom API address,
+  remote connect). Prefer direct paths: where the panel needs several
+  calls or heavy client work only because the API is generic, add a
+  panel-oriented endpoint. Limit: released `/v0` and `/v8` contracts never
+  change or shrink; only additive endpoints. The management key login
+  stays. Reason: developer order.
 - 2026-11-11: The dashboard (`apps/web`) moves to the BumpyClock
   Management Center (pin `ce5f6179`): its UI and its frontend stack replace
   the vendored official panel. The panel stays part of the binary. It is
