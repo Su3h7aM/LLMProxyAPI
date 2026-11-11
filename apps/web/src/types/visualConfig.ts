@@ -162,8 +162,6 @@ export type VisualConfigValues = {
   rmAllowRemote: boolean;
   rmSecretKey: string;
   rmDisableControlPanel: boolean;
-  rmDisableAutoUpdatePanel: boolean;
-  rmPanelRepo: string;
   authDir: string;
   apiKeysText: string;
   pluginsEnabled: boolean;
@@ -265,8 +263,6 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   rmAllowRemote: false,
   rmSecretKey: '',
   rmDisableControlPanel: false,
-  rmDisableAutoUpdatePanel: false,
-  rmPanelRepo: '',
   authDir: '',
   apiKeysText: '',
   pluginsEnabled: false,

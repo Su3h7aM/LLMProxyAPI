@@ -100,22 +100,10 @@ export const CONFIG_FIELD_SEARCH_INDEX: ConfigFieldSearchEntry[] = [
     yamlKeys: ['remote-management', 'disable-control-panel'],
   },
   {
-    fieldId: 'rmDisableAutoUpdatePanel',
-    sectionId: 'connectivity',
-    labelKey: L('sections.remote.disable_auto_update_panel'),
-    yamlKeys: ['remote-management', 'disable-auto-update-panel'],
-  },
-  {
     fieldId: 'rmSecretKey',
     sectionId: 'connectivity',
     labelKey: L('sections.remote.secret_key'),
     yamlKeys: ['remote-management', 'secret-key'],
-  },
-  {
-    fieldId: 'rmPanelRepo',
-    sectionId: 'connectivity',
-    labelKey: L('sections.remote.panel_repo'),
-    yamlKeys: ['remote-management', 'panel-github-repository'],
   },
   {
     fieldId: 'githubToken',

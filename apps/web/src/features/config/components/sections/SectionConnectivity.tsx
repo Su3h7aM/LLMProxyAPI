@@ -179,17 +179,6 @@ export function SectionConnectivity({
                   onChange={(rmDisableControlPanel) => onChange({ rmDisableControlPanel })}
                 />
               </FieldAnchor>
-              <FieldAnchor fieldId="rmDisableAutoUpdatePanel">
-                <ToggleRow
-                  title={t('config_management.visual.sections.remote.disable_auto_update_panel')}
-                  description={t(
-                    'config_management.visual.sections.remote.disable_auto_update_panel_desc'
-                  )}
-                  checked={values.rmDisableAutoUpdatePanel}
-                  disabled={disabled}
-                  onChange={(rmDisableAutoUpdatePanel) => onChange({ rmDisableAutoUpdatePanel })}
-                />
-              </FieldAnchor>
             </FieldGrid>
             <FieldGrid>
               <FieldAnchor fieldId="rmSecretKey">
@@ -199,15 +188,6 @@ export function SectionConnectivity({
                   placeholder={t('config_management.visual.sections.remote.secret_key_placeholder')}
                   value={values.rmSecretKey}
                   onChange={(e) => onChange({ rmSecretKey: e.target.value })}
-                  disabled={disabled}
-                />
-              </FieldAnchor>
-              <FieldAnchor fieldId="rmPanelRepo">
-                <Input
-                  label={t('config_management.visual.sections.remote.panel_repo')}
-                  placeholder="https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
-                  value={values.rmPanelRepo}
-                  onChange={(e) => onChange({ rmPanelRepo: e.target.value })}
                   disabled={disabled}
                 />
               </FieldAnchor>

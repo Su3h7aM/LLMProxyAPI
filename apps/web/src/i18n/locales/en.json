@@ -1392,11 +1392,8 @@
           "allow_remote_desc": "Allow management access from other hosts",
           "disable_panel": "Disable Control Panel",
           "disable_panel_desc": "Disable the built-in web control panel",
-          "disable_auto_update_panel": "Disable Panel Auto Updates",
-          "disable_auto_update_panel_desc": "Download the panel when first missing, but never auto-update it from GitHub",
           "secret_key": "Management Key",
-          "secret_key_placeholder": "Set management key",
-          "panel_repo": "Panel Repository"
+          "secret_key_placeholder": "Set management key"
         },
         "auth": {
           "auth_dir": "Auth Directory",

@@ -1091,7 +1091,6 @@ function getNextDirtyFields(
 
   (
     [
-      'rmDisableAutoUpdatePanel',
       'errorLogsMaxFiles',
       'usageStatisticsEnabled',
       'redisUsageQueueRetentionSeconds',
@@ -1120,7 +1119,6 @@ function getNextDirtyFields(
       'rmAllowRemote',
       'rmSecretKey',
       'rmDisableControlPanel',
-      'rmPanelRepo',
       'authDir',
       'apiKeysText',
       'debug',
@@ -1345,11 +1343,6 @@ export function useVisualConfig() {
             ? remoteManagement['secret-key']
             : '',
         rmDisableControlPanel: Boolean(remoteManagement?.['disable-control-panel']),
-        rmDisableAutoUpdatePanel: Boolean(remoteManagement?.['disable-auto-update-panel']),
-        rmPanelRepo:
-          typeof remoteManagement?.['panel-github-repository'] === 'string'
-            ? remoteManagement['panel-github-repository']
-            : '',
 
         authDir: typeof v8Oauth?.['auth-dir'] === 'string' ? v8Oauth?.['auth-dir'] : '',
         apiKeysText: resolveApiKeysText(parsed),
@@ -1536,9 +1529,7 @@ export function useVisualConfig() {
         const remoteManagementDirty =
           dirtyFields.has('rmAllowRemote') ||
           dirtyFields.has('rmSecretKey') ||
-          dirtyFields.has('rmDisableControlPanel') ||
-          dirtyFields.has('rmDisableAutoUpdatePanel') ||
-          dirtyFields.has('rmPanelRepo');
+          dirtyFields.has('rmDisableControlPanel');
         if (remoteManagementDirty) {
           ensureMapInDoc(doc, ['management']);
           if (dirtyFields.has('rmAllowRemote')) {
@@ -1553,16 +1544,6 @@ export function useVisualConfig() {
               ['management', 'disable-control-panel'],
               values.rmDisableControlPanel
             );
-          }
-          if (dirtyFields.has('rmDisableAutoUpdatePanel')) {
-            setBooleanInDoc(
-              doc,
-              ['management', 'disable-auto-update-panel'],
-              values.rmDisableAutoUpdatePanel
-            );
-          }
-          if (dirtyFields.has('rmPanelRepo')) {
-            setStringInDoc(doc, ['management', 'panel-github-repository'], values.rmPanelRepo);
           }
           deleteIfMapEmpty(doc, ['management']);
         }
