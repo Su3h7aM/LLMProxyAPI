@@ -3,6 +3,13 @@
  * 基于原项目 src/modules/ai-providers.js
  */
 
+export interface RequestScopedErrorRule {
+  status?: number;
+  match?: string[];
+  matchRegex?: string[];
+  action?: 'stop' | 'stop-and-cooldown' | 'continue' | 'continue-and-cooldown';
+}
+
 export interface ModelAlias {
   name: string;
   alias?: string;
