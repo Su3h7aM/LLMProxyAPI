@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0024-panel-plugins
 type: panel
 agent: deepseek-v4.1-flash
@@ -61,7 +61,7 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Workflow
 
-1. Create the branch as written above. Set `status: in-progress` in this file and commit.
+1. Create the branch as written above. Set `status: done` in this file and commit.
 2. Work in small steps, commit often. Keep `## Log` current.
 3. When the gate passes: `git rebase integration/panel-bumpyclock`, re-run the gate, set `status: done`, fill `## Result` (what landed, commit list, gate output summary, known gaps, follow-ups), commit.
 4. Do NOT merge. Report: short summary, branch, commit range, follow-ups, surprises, unconfirmed claims.
@@ -107,3 +107,37 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
   quota should then prefer it over the plugin list resolver.
 
 ## Result
+
+- Branch `issue/0024-panel-plugins`, base `integration/panel-bumpyclock`
+  at `ef7b89b9`, rebased on it before the final gate.
+
+Landed:
+
+- `plugins.ts`: list and delete on `/plugins`; enable on
+  `PUT /config/plugins/configs/:id/enabled`; config on
+  `GET|PUT /config/plugins/configs/:id` with a guarded read then write;
+  store on `/plugins/store` with optional `refresh=true`; install on
+  `/plugins/store/:id/install`. Read `supports_quota` and
+  `quota_provider`. Drop the plugin-id OAuth fallback.
+- `supportsPlugin` is gone from `AuthState`, the store, `MainLayout`,
+  and `MainRoutes`. Plugin routes and nav entries are always on. The
+  plugin pages no longer map 404 to "unsupported backend".
+- Plugin quota fetches `POST /plugins/:id/quota` with `{auth_index}`.
+  The plugin is resolved from the credential quota provider; one plugin
+  list is shared per connection. Probe-only credentials do not dispatch.
+- Tests: new `tests/pluginApiV8.test.ts`; `pluginQuota.test.ts` and
+  `pluginOAuthEntries.test.ts` updated for v8 and the removed gate;
+  `pageHeaderActions.test.ts` follows the `refresh=true` handler.
+
+Gate: `bun install --frozen-lockfile` and `bun run verify` pass
+(1705 pass, 11 skip, 0 fail; lint clean; build writes `dist/index.html`).
+
+Known gaps:
+
+- The plugin quota resolver reads the plugin list, not the authoritative
+  `quota_plugin_id` of `/credentials` (see Follow-ups). A multi-provider
+  credential that no plugin declares can therefore only match a plugin
+  by quota provider, id, OAuth identifier, or as the sole quota plugin.
+
+Follow-ups: as listed above.
+
