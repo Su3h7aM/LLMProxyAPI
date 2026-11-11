@@ -27,7 +27,6 @@ import { PROVIDER_BRAND_ORDER, PROVIDER_DESCRIPTORS } from './descriptors';
 import { buildRuntimePolicy } from './runtimePolicy';
 import { buildModelOptions } from './modelOptions';
 import { pickProviderBehavior } from './providerBehavior';
-import { buildThinkingFromLevels } from './thinkingLevels';
 import type {
   ProviderBrand,
   ProviderEntryFormInput,
@@ -73,16 +72,6 @@ const headersFromEntries = (
     out[key] = entry.value;
   });
   return out;
-};
-
-const parseThinkingJson = (value: string | undefined): Record<string, unknown> | undefined => {
-  const trimmed = (value ?? '').trim();
-  if (!trimmed) return undefined;
-  const parsed = JSON.parse(trimmed) as unknown;
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('Thinking config must be a JSON object');
-  }
-  return parsed as Record<string, unknown>;
 };
 
 /**

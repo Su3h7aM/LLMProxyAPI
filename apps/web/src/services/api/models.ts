@@ -243,6 +243,7 @@ export const modelsApi = {
     const request = (async () => {
       const result = await apiCallApi.request({
         authIndex: trimmedAuthIndex,
+        proxy_url: proxyUrl?.trim() || undefined,
         method: 'GET',
         url: endpoint,
         header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
@@ -311,6 +312,7 @@ export const modelsApi = {
 
         const result = await apiCallApi.request({
           authIndex: trimmedAuthIndex,
+          proxy_url: proxyUrl?.trim() || undefined,
           method: 'GET',
           url: url.toString(),
           header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronDown, IconPlus, IconX } from '@/components/ui/icons';
-import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
-import { THINKING_LEVELS, type ThinkingLevel } from '../../thinkingLevels';
-import type { ModelEntryInput } from '../../types';
+import type { ModelEntryInput, ProviderBrand } from '../../types';
+import { ModelAdvancedFields } from './ModelAdvancedFields';
 import styles from './sharedForm.module.scss';
 import { iconSize } from '@/design-system';
 
@@ -13,6 +12,7 @@ interface ModelEntriesEditorProps {
   models: ModelEntryInput[];
   /** Restrict the rows to the credential alias contract (no image/thinking controls). */
   oauthAliasOnly?: boolean;
+  providerBrand?: ProviderBrand;
   /** Only OpenAI-compatible entries can expose the image-generation capability. */
   supportsImage: boolean;
   /** Every backend provider model can override its thinking capability. */
@@ -27,6 +27,7 @@ interface ModelEntriesEditorProps {
 export function ModelEntriesEditor({
   models,
   oauthAliasOnly = false,
+  providerBrand = 'gemini',
   supportsImage,
   supportsThinking,
   mutating,
@@ -60,18 +61,9 @@ export function ModelEntriesEditor({
   return (
     <>
       {visible.map((entry, idx) => {
-        const hasExtendedOptions = !oauthAliasOnly && (supportsImage || supportsThinking);
+        const hasExtendedOptions = supportsImage || supportsThinking || oauthAliasOnly;
         const expanded = hasExtendedOptions && expandedIdx === idx;
-        const thinkingLevels = entry.thinkingLevels ?? [];
-        const hasThinking = entry.thinkingLevelsTouched
-          ? thinkingLevels.length > 0
-          : (entry.thinkingJson ?? '').trim().length > 0;
-        const toggleThinkingLevel = (level: ThinkingLevel) => {
-          const nextLevels = thinkingLevels.includes(level)
-            ? thinkingLevels.filter((item) => item !== level)
-            : THINKING_LEVELS.filter((item) => item === level || thinkingLevels.includes(item));
-          onUpdate(idx, { thinkingLevels: nextLevels, thinkingLevelsTouched: true });
-        };
+        const hasThinking = entry.thinkingEnabled ?? Boolean(entry.thinkingJson?.trim());
         return (
           <div key={idx} className={styles.modelEntry}>
             <div className={styles.modelAliasRow}>
@@ -94,12 +86,12 @@ export function ModelEntriesEditor({
                 disabled={mutating}
               />
               <div className={styles.modelEntryActions}>
-                {supportsImage && !expanded && entry.image === true ? (
+                {!oauthAliasOnly && supportsImage && !expanded && entry.image === true ? (
                   <span className={styles.entryBadge}>
                     {t('providersPage.form.modelBadgeImage')}
                   </span>
                 ) : null}
-                {supportsThinking && !expanded && hasThinking ? (
+                {!oauthAliasOnly && supportsThinking && !expanded && hasThinking ? (
                   <span className={styles.entryBadge}>
                     {t('providersPage.form.modelBadgeThinking')}
                   </span>
@@ -112,6 +104,7 @@ export function ModelEntriesEditor({
                     title={expanded ? t('common.collapse') : t('common.expand')}
                     aria-label={expanded ? t('common.collapse') : t('common.expand')}
                     aria-expanded={expanded}
+                    disabled={mutating}
                   >
                     <IconChevronDown
                       className={[
@@ -136,7 +129,7 @@ export function ModelEntriesEditor({
             </div>
             {expanded ? (
               <div className={styles.modelEntryDetails}>
-                {supportsImage ? (
+                {!oauthAliasOnly && supportsImage ? (
                   <label className={styles.checkboxRow}>
                     <input
                       type="checkbox"
@@ -151,38 +144,47 @@ export function ModelEntriesEditor({
                     </span>
                   </label>
                 ) : null}
-                {supportsThinking ? (
-                  <fieldset className={styles.thinkingFieldset}>
-                    <legend className={styles.label}>
-                      {t('providersPage.form.thinkingConfig')}
-                    </legend>
-                    <div className={styles.thinkingLevelGrid}>
-                      {THINKING_LEVELS.map((level) => (
-                        <SelectionCheckbox
-                          key={level}
-                          checked={thinkingLevels.includes(level)}
+                {oauthAliasOnly ? (
+                  <>
+                    <div className={styles.field}>
+                      <label className={styles.label}>
+                        {t('auth_files.policy_alias_display_name')}
+                        <input
+                          className={styles.input}
+                          value={entry.displayName ?? ''}
                           disabled={mutating}
-                          onChange={() => toggleThinkingLevel(level)}
-                          className={`${styles.thinkingLevelOption} ${
-                            thinkingLevels.includes(level) ? styles.thinkingLevelOptionSelected : ''
-                          }`}
-                          labelClassName={styles.thinkingLevelLabel}
-                          label={
-                            <>
-                              <span>{t(`providersPage.form.thinkingLevels.${level}`)}</span>
-                              <code>{level}</code>
-                            </>
-                          }
+                          onChange={(event) => onUpdate(idx, { displayName: event.target.value })}
                         />
-                      ))}
+                      </label>
                     </div>
-                    {(entry.thinkingJson ?? '').trim() && !entry.thinkingLevelsTouched ? (
-                      <p className={styles.thinkingExistingHint}>
-                        {t('providersPage.form.thinkingExistingHint')}
-                      </p>
-                    ) : null}
-                  </fieldset>
-                ) : null}
+                    {(['fork', 'forceMapping'] as const).map((field) => (
+                      <label key={field} className={styles.checkboxRow}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkboxBox}
+                          checked={entry[field] === true}
+                          disabled={mutating}
+                          onChange={(event) => onUpdate(idx, { [field]: event.target.checked })}
+                        />
+                        <span className={styles.checkboxText}>
+                          {t(
+                            field === 'fork'
+                              ? 'auth_files.policy_alias_fork'
+                              : 'auth_files.policy_alias_force_mapping'
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </>
+                ) : (
+                  <ModelAdvancedFields
+                    entry={entry}
+                    providerBrand={providerBrand}
+                    disabled={mutating}
+                    supportsThinking={supportsThinking}
+                    onUpdate={(patch) => onUpdate(idx, patch)}
+                  />
+                )}
               </div>
             ) : null}
           </div>
