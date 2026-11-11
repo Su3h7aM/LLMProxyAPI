@@ -1,0 +1,197 @@
+/* SIWC bind dialog body: credential picker, the two authorization steps, and the result. */
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+  line-height: $line-height-1-6;
+}
+
+.alert {
+  margin: 0;
+  padding: $space-8 $space-10;
+  border: $border-width-1 solid var(--warning-border);
+  border-radius: $radius-8;
+  background: var(--bg-error-light);
+  color: var(--danger-color);
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+}
+
+.success {
+  margin: 0;
+  padding: $space-8 $space-10;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+  background: var(--bg-secondary);
+  color: var(--success-color);
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+}
+
+/* ---------- Credential picker ---------- */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+  overflow: hidden;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: $space-10;
+  padding: $space-10 $space-12;
+  background: var(--bg-primary);
+  cursor: pointer;
+
+  + .option {
+    border-top: $border-width-1 solid var(--border-color);
+  }
+
+  &:focus-within {
+    outline: $border-width-2 solid var(--focus-ring);
+    outline-offset: (-$space-2);
+  }
+
+  &:has(.radioInput:checked) {
+    background: var(--bg-secondary);
+  }
+}
+
+.radioInput {
+  flex: 0 0 auto;
+  width: $size-16;
+  height: $size-16;
+  margin: 0;
+  accent-color: var(--primary-color);
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.optionName {
+  color: var(--text-primary);
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  overflow-wrap: anywhere;
+}
+
+.optionMeta {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-8;
+  padding: $space-8 $space-10;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+  background: var(--bg-secondary);
+}
+
+.summaryLabel {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+/* ---------- Authorization steps ---------- */
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  min-width: 0;
+}
+
+.stepTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+}
+
+.urlBox {
+  padding: $space-8 $space-10;
+  border: $border-width-1 dashed var(--border-color);
+  border-radius: $radius-8;
+  background: var(--bg-secondary);
+}
+
+.urlText {
+  color: var(--text-primary);
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  overflow-wrap: anywhere;
+}
+
+.stepActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+}
+
+.stepState {
+  margin: 0;
+  min-height: $line-height-18px;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+.callbackForm {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  min-width: 0;
+
+  :global(.form-group) {
+    margin-bottom: 0;
+  }
+}
+
+.feedbackSuccess {
+  margin: 0;
+  color: var(--success-color);
+  font-size: $font-size-12;
+}
+
+.feedbackError {
+  margin: 0;
+  color: var(--danger-color);
+  font-size: $font-size-12;
+}

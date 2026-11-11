@@ -12,6 +12,7 @@ import { vertexApi, type VertexImportResponse } from '@/services/api/vertex';
 import { copyToClipboard } from '@/utils/clipboard';
 import { getErrorMessage, isRecord } from '@/utils/helpers';
 import { notifyAuthFilesChanged } from '@/features/authFiles/authFilesEvents';
+import { SiwcBindDialog } from '@/features/oauth/components/SiwcBindDialog';
 import { createOAuthAttempts, type OAuthAttempt } from './oauthAttempts';
 import { buildPluginOAuthProviderCards, type PluginOAuthProviderCard } from './pluginOAuthEntries';
 import { validateDevinCallback } from './devinOAuth';
@@ -259,6 +260,13 @@ export function OAuthPage() {
     })
   );
   const vertexFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [siwcOpen, setSiwcOpen] = useState(false);
+  // Every open remounts the dialog: a fresh target list and a fresh server session.
+  const [siwcKey, setSiwcKey] = useState(0);
+  const openSiwc = () => {
+    setSiwcKey((key) => key + 1);
+    setSiwcOpen(true);
+  };
 
   const clearTimers = useCallback(() => {
     attempts.current.invalidateAll();
@@ -664,8 +672,15 @@ export function OAuthPage() {
       ['vertex', t('vertex_import.title'), t('auth_login.other_login_methods')],
       providerQuery
     );
-  const totalMethodCount = providerCards.length + 1;
-  const shownMethodCount = visibleProviderCards.length + (vertexVisible ? 1 : 0);
+  const siwcVisible =
+    siwcOpen ||
+    matchesOAuthProvider(
+      ['siwc', t('siwc.title'), t('siwc.bind'), t('auth_login.other_login_methods')],
+      providerQuery
+    );
+  const totalMethodCount = providerCards.length + 2;
+  const shownMethodCount =
+    visibleProviderCards.length + (vertexVisible ? 1 : 0) + (siwcVisible ? 1 : 0);
 
   const renderOAuthProviderCard = (provider: OAuthProviderCard) => {
     const state = states[provider.id] || {};
@@ -919,115 +934,152 @@ export function OAuthPage() {
           </div>
         )}
 
-        {/* Vertex JSON 登录 */}
-        {vertexVisible && (
+        {/* JSON 导入与 SIWC 绑定 */}
+        {(vertexVisible || siwcVisible) && (
           <section className={styles.providerSection}>
             <h2 className={styles.sectionTitle}>{t('auth_login.other_login_methods')}</h2>
-            <Card
-              title={
-                <span className={styles.cardTitle}>
-                  <img src={iconVertex} alt="" className={styles.cardTitleIcon} />
-                  {t('vertex_import.title')}
-                </span>
-              }
-              extra={
-                <Button
-                  variant="secondary"
-                  onClick={handleVertexImport}
-                  loading={vertexState.loading}
-                >
-                  {t('vertex_import.import_button')}
-                </Button>
-              }
-            >
-              <div className={styles.cardContent}>
-                <div className={styles.cardHint}>{t('vertex_import.description')}</div>
-                <Input
-                  label={t('vertex_import.location_label')}
-                  hint={t('vertex_import.location_hint')}
-                  value={vertexState.location}
-                  onChange={(e) =>
-                    setVertexState((prev) => ({
-                      ...prev,
-                      location: e.target.value,
-                    }))
-                  }
-                  placeholder={t('vertex_import.location_placeholder')}
-                />
-                <div className={styles.formItem}>
-                  <label className={styles.formItemLabel}>{t('vertex_import.file_label')}</label>
-                  <div className={styles.filePicker}>
-                    <Button variant="secondary" onClick={handleVertexFilePick}>
-                      {t('vertex_import.choose_file')}
-                    </Button>
-                    <div
-                      className={`${styles.fileName} ${
-                        vertexState.fileName ? '' : styles.fileNamePlaceholder
-                      }`.trim()}
-                    >
-                      {vertexState.fileName || t('vertex_import.file_placeholder')}
-                    </div>
-                  </div>
-                  <div className={styles.cardHintSecondary}>{t('vertex_import.file_hint')}</div>
-                  <input
-                    ref={vertexFileInputRef}
-                    type="file"
-                    accept=".json,application/json"
-                    style={{ display: 'none' }}
-                    onChange={handleVertexFileChange}
+            {vertexVisible && (
+              <Card
+                title={
+                  <span className={styles.cardTitle}>
+                    <img src={iconVertex} alt="" className={styles.cardTitleIcon} />
+                    {t('vertex_import.title')}
+                  </span>
+                }
+                extra={
+                  <Button
+                    variant="secondary"
+                    onClick={handleVertexImport}
+                    loading={vertexState.loading}
+                  >
+                    {t('vertex_import.import_button')}
+                  </Button>
+                }
+              >
+                <div className={styles.cardContent}>
+                  <div className={styles.cardHint}>{t('vertex_import.description')}</div>
+                  <Input
+                    label={t('vertex_import.location_label')}
+                    hint={t('vertex_import.location_hint')}
+                    value={vertexState.location}
+                    onChange={(e) =>
+                      setVertexState((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
+                    placeholder={t('vertex_import.location_placeholder')}
                   />
-                </div>
-                {vertexState.error && <div className="status-badge error">{vertexState.error}</div>}
-                {vertexState.result && (
-                  <div className={styles.connectionBox}>
-                    <div className={styles.connectionLabel}>{t('vertex_import.result_title')}</div>
-                    <div className={styles.keyValueList}>
-                      {vertexState.result.projectId && (
-                        <div className={styles.keyValueItem}>
-                          <span className={styles.keyValueKey}>
-                            {t('vertex_import.result_project')}
-                          </span>
-                          <span className={styles.keyValueValue}>
-                            {vertexState.result.projectId}
-                          </span>
-                        </div>
-                      )}
-                      {vertexState.result.email && (
-                        <div className={styles.keyValueItem}>
-                          <span className={styles.keyValueKey}>
-                            {t('vertex_import.result_email')}
-                          </span>
-                          <span className={styles.keyValueValue}>{vertexState.result.email}</span>
-                        </div>
-                      )}
-                      {vertexState.result.location && (
-                        <div className={styles.keyValueItem}>
-                          <span className={styles.keyValueKey}>
-                            {t('vertex_import.result_location')}
-                          </span>
-                          <span className={styles.keyValueValue}>
-                            {vertexState.result.location}
-                          </span>
-                        </div>
-                      )}
-                      {vertexState.result.authFile && (
-                        <div className={styles.keyValueItem}>
-                          <span className={styles.keyValueKey}>
-                            {t('vertex_import.result_file')}
-                          </span>
-                          <span className={styles.keyValueValue}>
-                            {vertexState.result.authFile}
-                          </span>
-                        </div>
-                      )}
+                  <div className={styles.formItem}>
+                    <label className={styles.formItemLabel}>{t('vertex_import.file_label')}</label>
+                    <div className={styles.filePicker}>
+                      <Button variant="secondary" onClick={handleVertexFilePick}>
+                        {t('vertex_import.choose_file')}
+                      </Button>
+                      <div
+                        className={`${styles.fileName} ${
+                          vertexState.fileName ? '' : styles.fileNamePlaceholder
+                        }`.trim()}
+                      >
+                        {vertexState.fileName || t('vertex_import.file_placeholder')}
+                      </div>
                     </div>
+                    <div className={styles.cardHintSecondary}>{t('vertex_import.file_hint')}</div>
+                    <input
+                      ref={vertexFileInputRef}
+                      type="file"
+                      accept=".json,application/json"
+                      style={{ display: 'none' }}
+                      onChange={handleVertexFileChange}
+                    />
                   </div>
-                )}
-              </div>
-            </Card>
+                  {vertexState.error && (
+                    <div className="status-badge error">{vertexState.error}</div>
+                  )}
+                  {vertexState.result && (
+                    <div className={styles.connectionBox}>
+                      <div className={styles.connectionLabel}>
+                        {t('vertex_import.result_title')}
+                      </div>
+                      <div className={styles.keyValueList}>
+                        {vertexState.result.projectId && (
+                          <div className={styles.keyValueItem}>
+                            <span className={styles.keyValueKey}>
+                              {t('vertex_import.result_project')}
+                            </span>
+                            <span className={styles.keyValueValue}>
+                              {vertexState.result.projectId}
+                            </span>
+                          </div>
+                        )}
+                        {vertexState.result.email && (
+                          <div className={styles.keyValueItem}>
+                            <span className={styles.keyValueKey}>
+                              {t('vertex_import.result_email')}
+                            </span>
+                            <span className={styles.keyValueValue}>{vertexState.result.email}</span>
+                          </div>
+                        )}
+                        {vertexState.result.location && (
+                          <div className={styles.keyValueItem}>
+                            <span className={styles.keyValueKey}>
+                              {t('vertex_import.result_location')}
+                            </span>
+                            <span className={styles.keyValueValue}>
+                              {vertexState.result.location}
+                            </span>
+                          </div>
+                        )}
+                        {vertexState.result.authFile && (
+                          <div className={styles.keyValueItem}>
+                            <span className={styles.keyValueKey}>
+                              {t('vertex_import.result_file')}
+                            </span>
+                            <span className={styles.keyValueValue}>
+                              {vertexState.result.authFile}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+            {siwcVisible && (
+              <Card
+                title={
+                  <span className={styles.cardTitle}>
+                    <img src={iconCodex} alt="" className={styles.cardTitleIcon} />
+                    {t('siwc.title')}
+                  </span>
+                }
+                extra={
+                  <Button variant="secondary" onClick={openSiwc}>
+                    {t('siwc.bind')}
+                  </Button>
+                }
+              >
+                <div className={styles.cardContent}>
+                  <div className={styles.cardHint}>{t('siwc.tile_caption')}</div>
+                </div>
+              </Card>
+            )}
           </section>
         )}
       </div>
+
+      {siwcKey > 0 && (
+        <SiwcBindDialog
+          key={siwcKey}
+          open={siwcOpen}
+          onClose={() => setSiwcOpen(false)}
+          onViewAuthFiles={() => {
+            setSiwcOpen(false);
+            navigate('/auth-files');
+          }}
+        />
+      )}
     </div>
   );
 }
