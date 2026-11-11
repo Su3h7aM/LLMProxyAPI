@@ -94,6 +94,15 @@ Backend shapes (checked in Go, not guessed):
 - The OAuth page entry is a `Card` inside the existing "Other login methods" section, next to Vertex, and it opens the bind `Modal`. This follows the BumpyClock page, which has no provider-tile grid.
 - Status endpoints: both v8 GET paths hit the same Go handler. The API module gets both wrappers, covered by a test. The card and the sheet use the list fields (`siwc_bound`, `siwc_expires_at`), as the pre-import panel did, so no extra request is sent per credential.
 
+### 2026-11-11: Work log
+
+- `b9fb1dfd` API: `oauthApi.startSiwcBind`, `getSiwcStatus`, `getCredentialSiwcStatus`, `captureSiwcBindingApi`; `features/oauth/siwcBinding.ts`; `supportsAuthFileSiwc` and `readAuthFileUseSiwc`.
+- `545f135a` UI: card pill (`SiwcStatusBadge`) in the credential subline, SIWC expiry in the details column, `use_siwc` switch and SIWC pill plus expiry in the details sheet, editor `useSiwc` field and patch, locale blocks.
+- `cc7acd03` UI: bind `Card` in "Other login methods" and `SiwcBindDialog` (pick, authorize, paste callback, poll, cancel on close, restart in place).
+- `2a4add25` tests: `tests/siwcBinding.test.ts` and the `use_siwc` cases in `tests/authFileWeight.test.ts`.
+
+No Go change. No v0 path. The normalizer and `AuthFileItem` already carried the SIWC fields (issue 0020), so no change was needed there.
+
 ## Follow-ups
 
 ## Result
