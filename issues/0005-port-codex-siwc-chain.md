@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0005-port-codex-siwc-chain
 type: port
 agent: muse-spark-1.3-contributor
@@ -78,7 +78,51 @@ Triage notes: Triage: ~3000 lines, new refresh-journal and outcome machinery tha
   My files match upstream 80ee739f exactly except fork branding/import order,
   so this failure is upstream-faithful intermediate state. Continue chain;
   full gate must pass after 09b3a579.
+- 3891ebaa, 8c6d8b18, baec297f, 03c394ee: applied with `patch -p1 -F3`.
+  03c394ee full hash is `03c394ee3ffeadcf1366210d27ce2d71dca50f73` (note `ce2d`,
+  not `ce25`). Only pre-existing gofmt findings in untouched files.
+- a46be7ae: applied clean; `internal/auth/codex` green again (scope test
+  fixed by upstream's own journal isolation).
+- 5f38d557, 09b3a579: applied with `patch -p1 -F3` (offsets around fork
+  strikes machinery in selector.go and fork partition handling in
+  conductor_refresh.go; both kept). Touched packages pass.
+- Full gate pre-rebase: `go build ./...` OK, `go test ./...` EXIT 0, no FAIL.
+  `go vet ./...` fails only on `internal/pluginhost/host_test.go:1637`
+  (copies sync.Once lock value); that file is byte-identical to main, so the
+  failure is pre-existing on main, not from this chain. This contradicts the
+  issue's "baseline on main is green" claim for vet.
+- Rebases onto main de6975ea with no conflicts. Post-rebase gate re-run done.
 
 ## Follow-ups
 
+- Pre-existing `go vet` failure in `internal/pluginhost/host_test.go:1637`
+  (lock-value copy) fails `go vet ./...` on main too. Coordinator may want a
+  separate issue (out of scope for this port).
+- Upstream 5f38d557 message notes an existing WebSocket temporary-log cleanup
+  race in the full suite on clean dev. Full `go test ./...` passed here, but
+  flag it if it flakes in CI.
+
 ## Result
+
+All 9 commits ported in order, one fork commit each (post-rebase hashes):
+
+- 68cd7572 -> 8469fb3d fix(codex): prevent replay after uncertain refresh outcomes
+- 80ee739f -> 7187a089 fix(codex): preserve SIWC rotations and honor renewal windows
+- 3891ebaa -> 10be0924 fix(codex): reuse the issued SIWC client during CLI reauthorization
+- 8c6d8b18 -> 6928565f fix(codex): defer SIWC renewal during macOS maintenance wakes
+- baec297f -> 6c1f8c28 fix(auth): retain partition failures alongside SIWC wake cancellation
+- 03c394ee -> 36b5110e test(codex): make SIWC power-state checks deterministic
+- a46be7ae -> 18733bf7 fix(codex): retain SIWC renewal windows in refresh receipts
+- 5f38d557 -> 287a0c3b fix(auth): keep native Codex available during SIWC recovery
+- 09b3a579 -> 5b10ea79 fix(codex): harden SIWC refresh deferral and expires_in parsing
+
+Gate: `go build ./...` OK; `go test` for `internal/auth/...`, `sdk/auth`,
+`sdk/cliproxy/auth`, `internal/runtime/executor` OK; full `go test ./...`
+EXIT 0. `go vet ./...` has one pre-existing failure in untouched
+`internal/pluginhost` (also on main).
+Deviations from upstream: (1) all patches rewritten to fork module path and
+fork import order via gofmt; (2) `nocopy_invariant_test.go` duplicate
+`bolt_store.go` key merged into one entry keeping both wordings (Go forbids
+duplicate map keys); (3) fork extras kept (`SIWCAgentNameHint`,
+`opencode-go` case, session-affinity strikes, commit-5 partition handling).
+Known gaps: none; no semantic conflicts met.
