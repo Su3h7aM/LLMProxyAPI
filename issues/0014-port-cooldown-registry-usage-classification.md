@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0014-port-cooldown-registry-usage-classification
 type: port
 agent: muse-spark-1.3-contributor
@@ -57,6 +57,25 @@ Triage notes: Triage: these touch the auth conductor and selector files that the
 
 ## Log
 
+- Created branch from T3 branch, set status in-progress, made stub `apps/web/dist/management.html` (not committed).
+- `098af7d5`: patch applied clean with `git apply --3way`. No `json:` tag change in patch, so no persisted record schema change: old cooldown records still load. Tests pass.
+- `18883a57`: 7 files applied clean. Hand-resolved 3 files whose fork context differs only by import order or by extra fork code: `usage_helpers.go` (fork import order, applied same semantic hunks by hand, verified equal to upstream post-image except fork import order and one pre-existing `responseModel` line), `conductor_request_scoped_errors.go` and its test (fork file equals upstream pre-image except module path, copied post-image over). Tests pass for `sdk/cliproxy/auth`, `internal/runtime/executor/helps`, `sdk/cliproxy/usage`.
+- `cb70eacf`: 9 files applied clean. `conductor_selection_cooldown_test.go` exists in fork and equals upstream pre-image except module path, copied post-image over. Tests pass.
+- `69ed202a`: applied clean, 2 new test files. Tests pass.
+- `ecebc713`: 5 files applied clean. `conductor_execution.go` hand-ported: applied all hunks except the one-line `normalizeSessionAffinityNeverTerminalError` change (function absent in fork, comes from deferred `40c16182`); adapted the two Antigravity-guard hunks to fork context without the `normalize...` line. Verified other 5 files equal upstream post-image; `conductor_execution.go` differs only by the omitted `40c16182` parts and one pre-existing `isSessionAffinityRetryError` line. Commit body carries the required Port note. Tests pass.
+- Full gate `go build ./... && go vet ./... && go test ./...` passes. Rebased onto `main` with no conflicts, gate passes again.
+
 ## Follow-ups
 
+- None found. Upstream `40c16182` (rebind-on `never`) stays deferred; the omitted `ecebc713` line should ride with that port when it happens.
+
 ## Result
+
+All 5 commits ported in order, one fork commit per upstream commit:
+- `83d9c05c` fix(auth): share and migrate model cooldowns across equivalent model spellings (Upstream `098af7d5`)
+- `31bc0548` fix(usage,auth): propagate request-scoped error rule classification to usage fail.code (Upstream `18883a57`)
+- `989fa88b` fix(claude): emit anthropic-ratelimit-unified headers on local cooldown 429s (Upstream `cb70eacf`)
+- `895d1f94` fix(registry): restore model listings once bounded cooldown deadlines expire (Upstream `69ed202a`)
+- `3c8c6a2f` fix(auth): keep request retry rounds after scheduler plugin reject (Upstream `ecebc713`, with Port note)
+- Gate: `go build ./...`, `go vet ./...`, `go test ./...` all pass before and after `git rebase main` (no conflicts).
+- Deviations from upstream: `ecebc713` omits the `normalizeSessionAffinityNeverTerminalError` one-line change (needs deferred `40c16182`); `18883a57` `usage_helpers.go` keeps fork import order and one pre-existing fork line. No test weakened. Not merged to `main`.
