@@ -39,6 +39,11 @@ One commit per item (Conventional Commits: `fix(test): ...`, `style: ...`, `chor
 
 ## Log
 
+- 2026-11-11: Branch renamed from `t3/housekeeping-vet-fmt-assets` to `issue/0013-housekeeping-vet-fmt-assets`. Status set to `in-progress`.
+- Item 1: the vet finding is the dead local `var reconfigureOnce sync.Once` and `_ = reconfigureOnce` in `TestHostApplyConfigWaitsForBlockedQuiesceBeforeCanceledRollbackAndReplay`. Nothing reads the variable. I removed both lines. No test assertion changed. `go vet ./internal/pluginhost/` is clean, `go test ./internal/pluginhost/` passes.
+- Item 2: `gofmt -l $(git ls-files '*.go')` listed exactly the two files in the issue. After `gofmt -w` on them the list is empty. No other file needed a change.
+- Item 3: exact-name grep per the issue returns one hit for every listed file, and that hit is this issue file (`issues/0013-housekeeping-vet-fmt-assets.md`), which only lists the names. I treat that as the source of the list, not a reference, so all 21 files had zero real hits and I deleted them. Case-insensitive `grep -F` also returned no hit. A looser basename search (`apikey`, `fennoai`, `infistar`, `qiniucloud`, `xcode`, `packycode`, `poixeai`, `runapi`) returns only unrelated words in source, i18n, and issue 0007. No `go:embed` directive points to `assets/`. `assets/logo/` was not touched.
+
 ## Follow-ups
 
 ## Result
