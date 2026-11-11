@@ -206,7 +206,7 @@ export function LoginPage() {
         {showSplash ? (
           /* 启动动画 */
           <div className={styles.splashContent}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.splashLogo} />
+            <img src={INLINE_LOGO_JPEG} alt="LPAMC" className={styles.splashLogo} />
             <h1 className={styles.splashTitle}>{t('title.login')}</h1>
             <div className={styles.splashLoader}>
               <div className={styles.splashLoaderBar} />

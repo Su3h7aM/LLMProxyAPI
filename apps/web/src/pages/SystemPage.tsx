@@ -410,7 +410,7 @@ export function SystemPage() {
       <div className={styles.content}>
         <Card className={styles.aboutCard}>
           <div className={styles.aboutHeader}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.aboutLogo} />
+            <img src={INLINE_LOGO_JPEG} alt="LPAMC" className={styles.aboutLogo} />
             <div className={styles.aboutTitle}>{t('title.login')}</div>
           </div>
 
@@ -475,7 +475,7 @@ export function SystemPage() {
           <p className={styles.sectionDescription}>{t('system_info.quick_links_desc')}</p>
           <div className={styles.quickLinks}>
             <a
-              href="https://github.com/router-for-me/CLIProxyAPI"
+              href="https://github.com/router-for-me/LLMProxyAPI"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.linkCard}
