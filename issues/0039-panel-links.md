@@ -79,6 +79,36 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 - 2026-11-11: `tests/round2SystemPage.test.ts` now checks each quick-link
   card on its own and fails if the page links
   `router-for-me/LLMProxyAPI`.
+- 2026-11-11: Step 2 audit. Every `https://` URL in `apps/web/src`
+  (static strings and the four locale files). Only these name a GitHub
+  repository or a documentation site:
+
+  | URL | Where | For this fork |
+  | --- | --- | --- |
+  | `github.com/router-for-me/LLMProxyAPI` | `pages/SystemPage.tsx` main repo card | Wrong: the repository does not exist. Fixed to the fork. |
+  | `github.com/Su3h7aM/LLMProxyAPI` | `pages/SystemPage.tsx` WebUI repo card | Right: this is the fork. Set by `5e5b131c`. |
+  | `help.router-for.me` | `pages/SystemPage.tsx` documentation card | Right: upstream documentation for the proxy the fork carries. Kept (issue allows it). |
+  | `github.com/lucide-icons/lucide` | `components/ui/icons.tsx` comment | Right and out of scope: attribution of the icon set. Kept. |
+  | `github.com/router-for-me/Cli-Proxy-API-Management-Center` | `features/config/components/sections/SectionConnectivity.tsx` placeholder | Open question, see below. |
+  | `github.com/router-for-me/` | `features/plugins/pluginResources.ts` `OFFICIAL_PLUGIN_REPO_PREFIX` | Open question, see below. |
+  | `api.github.com`, `github.com/<slug>/releases`, `api.github.com/repos/owner/repo/releases/` | `features/plugins/*` | Right: generic GitHub API host and per-repository release URLs built from user input. Not repository links to a fixed project. |
+  | `example.com/cliproxy-plugins/registry.json` (4 locales) | plugin registry placeholder | Right: an example value, not a link. |
+
+  Open questions (not changed, this issue does not decide them):
+  1. The `Panel Repository` input placeholder names the reference
+     panel repository. The `remote-management.panel-github-repository`
+     key is a released config key and its Go default is the same URL
+     (`internal/config/config_defaults.go:4`). Issue 0032 left this
+     open. It is not a clickable link, so it is not a broken link. A
+     change must move the placeholder and the Go default together, and
+     this issue says do not change Go code.
+  2. `OFFICIAL_PLUGIN_REPO_PREFIX` decides which plugin repositories
+     count as first-party. It is a trust rule, not a navigation link.
+     Who is trusted after the fork is a security decision.
+  3. Both repository cards now point to `https://github.com/Su3h7aM/LLMProxyAPI`,
+     because the fork holds the proxy and the panel (`5e5b131c`). Two
+     cards with one target may be redundant. Removing or retargeting a
+     card is a UI change that this issue does not list.
 
 ## Follow-ups
 
