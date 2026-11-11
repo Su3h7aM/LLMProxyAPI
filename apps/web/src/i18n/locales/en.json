@@ -65,11 +65,6 @@
   "login": {
     "subtitle": "Please enter connection information to access the management interface",
     "card_title": "Connection",
-    "connection_current": "Current URL",
-    "connection_auto_hint": "The system will automatically use the current URL for connection",
-    "custom_connection_label": "Custom connection URL",
-    "custom_connection_placeholder": "Eg: https://example.com:8317",
-    "custom_connection_hint": "By default the current URL is used. Override it here if needed.",
     "remember_password_label": "Remember management key",
     "management_key_label": "Management Key",
     "management_key_placeholder": "Enter the management key",
@@ -84,7 +79,6 @@
     "error_forbidden": "Access denied, remote management is disabled, the management key is not configured, or this IP is temporarily banned",
     "error_not_found": "Management API not found, confirm the server address points to the CLIProxyAPI backend",
     "error_server": "Backend failed while handling the management request, check the server logs",
-    "error_cors": "Cross-origin request blocked, please check server configuration",
     "error_ssl": "SSL/TLS certificate verification failed",
     "show_key": "Show management key",
     "hide_key": "Hide management key"

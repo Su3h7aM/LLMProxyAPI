@@ -2,12 +2,10 @@ import { describe, expect, test } from 'bun:test';
 import { productionLocales } from './helpers/locales';
 
 describe('login field labels', () => {
-  test('share one convention with Current URL: no trailing colon in any locale', () => {
+  test('share one convention: no trailing colon in any locale', () => {
     for (const [locale, messages] of Object.entries(productionLocales)) {
       for (const label of [
-        messages.login.connection_current,
         messages.login.management_key_label,
-        messages.login.custom_connection_label,
         messages.login.remember_password_label,
       ]) {
         expect(label, locale).toBeTruthy();
