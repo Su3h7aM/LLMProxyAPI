@@ -93,11 +93,7 @@ export function PluginsPage() {
       const plugins = await pluginsApi.list();
       setData(plugins);
     } catch (err: unknown) {
-      setError(
-        hasStatus(err, 404)
-          ? t('plugin_management.unsupported_backend')
-          : getErrorMessage(err, t('plugin_management.load_failed'))
-      );
+      setError(getErrorMessage(err, t('plugin_management.load_failed')));
     } finally {
       setLoading(false);
     }

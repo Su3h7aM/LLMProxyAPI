@@ -19,7 +19,7 @@ describe('page header action slot', () => {
     expect(headerActions(plugins)).toContain("label={t('plugin_management.refresh_plugins')}");
     expect(headerActions(plugins)).toContain('onClick={() => void loadPlugins()}');
     expect(headerActions(store)).toContain("label={t('plugin_store.refresh_registry')}");
-    expect(headerActions(store)).toContain('onClick={() => void loadStore()}');
+    expect(headerActions(store)).toContain('onClick={() => void loadStore(true)}');
     for (const page of [plugins, store]) {
       const toolbar = page.slice(page.indexOf('className={styles.toolbar}'));
       expect(toolbar.slice(0, toolbar.indexOf('</div>'))).not.toContain('RefreshButton');

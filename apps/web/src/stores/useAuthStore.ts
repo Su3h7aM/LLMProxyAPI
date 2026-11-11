@@ -25,7 +25,6 @@ interface AuthStoreState extends AuthState {
   /** 同步判断 restoreSession 是否会尝试自动登录（无副作用）。 */
   hasRestorableSession: () => boolean;
   updateServerVersion: (version: string | null, buildDate?: string | null) => void;
-  updateServerPluginSupport: (supportsPlugin: boolean) => void;
 }
 
 let restoreSessionPromise: Promise<boolean> | null = null;
@@ -49,7 +48,6 @@ export const useAuthStore = create<AuthStoreState>()(
       rememberPassword: false,
       serverVersion: null,
       serverBuildDate: null,
-      supportsPlugin: false,
       connectionStatus: 'disconnected',
 
       // 恢复会话并自动登录
@@ -108,7 +106,6 @@ export const useAuthStore = create<AuthStoreState>()(
             connectionStatus: 'connecting',
             serverVersion: null,
             serverBuildDate: null,
-            supportsPlugin: false,
           });
           useConfigStore.getState().clearCache();
           useModelsStore.getState().clearCache();
@@ -156,7 +153,6 @@ export const useAuthStore = create<AuthStoreState>()(
           managementKey: '',
           serverVersion: null,
           serverBuildDate: null,
-          supportsPlugin: false,
           connectionStatus: 'disconnected',
         });
         if (typeof localStorage !== 'undefined') {
@@ -175,7 +171,6 @@ export const useAuthStore = create<AuthStoreState>()(
         try {
           // 重新配置客户端
           apiClient.setConfig({ managementKey });
-          set({ supportsPlugin: false });
 
           // 验证连接
           await useConfigStore.getState().fetchConfig();
@@ -190,7 +185,6 @@ export const useAuthStore = create<AuthStoreState>()(
           set({
             isAuthenticated: false,
             connectionStatus: 'error',
-            supportsPlugin: false,
           });
           return false;
         }
@@ -202,10 +196,6 @@ export const useAuthStore = create<AuthStoreState>()(
           serverVersion: version || null,
           serverBuildDate: buildDate || null,
         });
-      },
-
-      updateServerPluginSupport: (supportsPlugin) => {
-        set({ supportsPlugin });
       },
     }),
     {
@@ -242,9 +232,5 @@ if (typeof window !== 'undefined') {
   window.addEventListener('server-version-update', ((e: CustomEvent) => {
     const detail = e.detail || {};
     useAuthStore.getState().updateServerVersion(detail.version || null, detail.buildDate || null);
-  }) as EventListener);
-
-  window.addEventListener('server-plugin-support-update', ((e: CustomEvent) => {
-    useAuthStore.getState().updateServerPluginSupport(e.detail?.supportsPlugin === true);
   }) as EventListener);
 }

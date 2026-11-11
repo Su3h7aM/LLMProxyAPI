@@ -55,7 +55,7 @@ type StoreStatusFilter = 'all' | 'installed' | 'notInstalled' | 'updates';
 type InstallVersionMode = 'latest' | 'release' | 'manual';
 
 interface StoreLoadError {
-  kind: 'unsupported' | 'registry' | 'generic';
+  kind: 'registry' | 'generic';
   message: string;
 }
 
@@ -501,42 +501,43 @@ export function PluginStorePage() {
 
   const connected = connectionStatus === 'connected';
 
-  const loadStore = useCallback(async () => {
-    if (!connected) {
-      setLoading(false);
-      setError({ kind: 'generic', message: t('notification.connection_required') });
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const store = await pluginStoreApi.list();
-      setData(store);
-    } catch (err: unknown) {
-      const status = getErrorStatus(err);
-      if (status === 404) {
-        setError({ kind: 'unsupported', message: t('plugin_store.unsupported_backend') });
-      } else if (status === 502) {
-        const detail = getErrorDetailMessage(err);
-        setError({
-          kind: 'registry',
-          message: detail
-            ? `${t('plugin_store.registry_failed')}: ${detail}`
-            : t('plugin_store.registry_failed'),
-        });
-      } else {
-        setError({
-          kind: 'generic',
-          message: getErrorMessage(err, t('plugin_store.load_failed')),
-        });
+  const loadStore = useCallback(
+    async (refresh = false) => {
+      if (!connected) {
+        setLoading(false);
+        setError({ kind: 'generic', message: t('notification.connection_required') });
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [connected, t]);
 
-  useHeaderRefresh(loadStore, connected);
+      setLoading(true);
+      setError(null);
+      try {
+        const store = await pluginStoreApi.list({ refresh });
+        setData(store);
+      } catch (err: unknown) {
+        const status = getErrorStatus(err);
+        if (status === 502) {
+          const detail = getErrorDetailMessage(err);
+          setError({
+            kind: 'registry',
+            message: detail
+              ? `${t('plugin_store.registry_failed')}: ${detail}`
+              : t('plugin_store.registry_failed'),
+          });
+        } else {
+          setError({
+            kind: 'generic',
+            message: getErrorMessage(err, t('plugin_store.load_failed')),
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [connected, t]
+  );
+
+  useHeaderRefresh(() => loadStore(true), connected);
 
   useEffect(() => {
     void loadStore();
@@ -1004,7 +1005,7 @@ export function PluginStorePage() {
         description={t('plugin_store.description')}
         actions={
           <RefreshButton
-            onClick={() => void loadStore()}
+            onClick={() => void loadStore(true)}
             label={t('plugin_store.refresh_registry')}
             refreshing={loading}
             disabled={!connected}
@@ -1022,11 +1023,14 @@ export function PluginStorePage() {
       {error ? (
         <div className={styles.errorBox}>
           <span>{error.message}</span>
-          {error.kind !== 'unsupported' ? (
-            <Button variant="secondary" size="sm" onClick={loadStore} disabled={loading}>
-              {t('plugin_store.retry')}
-            </Button>
-          ) : null}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void loadStore(true)}
+            disabled={loading}
+          >
+            {t('plugin_store.retry')}
+          </Button>
         </div>
       ) : null}
 
