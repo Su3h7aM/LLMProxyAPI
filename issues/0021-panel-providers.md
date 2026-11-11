@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0021-panel-providers
 type: panel
 agent: muse-spark-1.3-contributor
@@ -69,6 +69,25 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Read DECISIONS.md and issues 0015-0017. Checked Go v8 routes (`server_management_v8.go`, `config_v8.go`, `api_tools.go`) and the pre-import reference.
+- 2026-11-11: Ported API layer (commit `6d9ba21c` after rebase): `providerModels.ts` and 6 policy libs verbatim; `providers.ts`, `transformers.ts`, `apiCall.ts` (v8 path `/requests/api-call` plus `proxy_url`, confirmed in `api_tools.go`), `models.ts` (`proxyUrl` passthrough, kept BumpyClock direct-fetch signature); `types/provider.ts` verbatim; `Config` gained `providerGroups` and `openCodeGoApiKeys`.
+- Question logged, answered from evidence, no stop needed: Go serves 9 key families (`gemini/interactions/codex/xai/meta/opencode-go/claude/vertex/openai-compatibility`); `providers.ts` carries the opencode-go family functions for file parity, but the opencodeGo brand UI stays with its own issue. Go has no `test-model` field, so per-model `testModel` is UI-only and stripped on write (as pre-import does).
+- 2026-11-11: Wired workbench (commit `f70f506d` after rebase): v8 group mutations with persisted `source`, policy/behavior/model-options builders, `sourceIndex` rows, proxy threading in connectivity/discovery, RuntimePolicy/ProviderBehavior/ModelAdvancedFields/ErrorRules editors in BumpyClock sheets, sync discovery panel, `aria-invalid` on shared Select, i18n blocks `behavior/errorRules/modelOptions/runtimePolicy` and `discovery.syncHint/applyChanges` in 4 locales, Xiaomi/StepFun families plus codex pattern in `utils/models.ts` (qoder entry kept: other areas still reference it).
+- Test work: ported 8 updated family/api tests and 16 new provider tests verbatim; adapted `providerTestModel.test.ts` hint assertion to the BumpyClock per-brand hint (`testModelClaudeHint`, 4 locales). 0020 overlap: integration already had `errorRules.ts`, token-clean `ErrorRulesEditor` files, `oauthAliasOnly` rows in `ModelEntriesEditor`, and `aria-invalid` on Select; kept integration versions on rebase and merged the advanced-fields branch in. Added `disabled={mutating}` to the row expander (pre-import parity; fixes 0020 `authFilePolicyForms` test).
+- 2026-11-11: Gate green, rebased on `integration/panel-bumpyclock` (now at 0023), re-ran `bun run verify`: pass. Set `status: done`.
+
 ## Follow-ups
 
+- OpenCode Go brand UI (descriptors, adapters, workbench brand, quota tab): left for its own issue. API functions and `Config.openCodeGoApiKeys` already exist.
+- `normalizeConfigResponse` now reads the v8 config tree; issue 0022 (config page) builds on it.
+- Model discovery add/remove sync replaces the BumpyClock add-only panel; `alreadyAdded` tag and `apply` key remain in locales but are unused.
+- `qoder` model family entry in `utils/models.ts` kept (referenced by oauth/quota areas); removal is a separate decision.
+
 ## Result
+
+Done. Providers area speaks v8 only; policy editors are back in BumpyClock style.
+
+- API: `providers.ts` uses `GET /config` plus `PUT /config/api-keys/<family>` with group identity and inheritance-safe writes; `apiCall.ts` uses `POST /requests/api-call` with `proxy_url`; `models.ts` forwards `proxyUrl` (Gemini paging loop kept); `providerModels.ts` and `transformers.ts` normalize groups, runtime policy, model options, and source identity.
+- UI: workbench lists, creates, edits, deletes, disables, and tests keys for gemini, interactions, codex, meta, xai, claude, vertex, and openai-compatibility; RuntimePolicy, ProviderBehavior, ModelAdvancedFields, and ErrorRules editors live in the BumpyClock sheets; discovery panel syncs add/remove.
+- Tests: 24 pre-import provider tests ported, 1 adapted (`providerTestModel` hint). Full gate: `bun run verify` passes (1916 pass, 11 skip, 0 fail; lint clean; build writes one `dist/index.html`, 3.26 MB).
+- Commits: `6d9ba21c` (API layer), `f70f506d` (workbench and UI wiring), plus branch start and this file. No merge performed.
