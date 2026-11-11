@@ -20,6 +20,7 @@ import (
 	xaiauth "github.com/Su3h7aM/LLMProxyAPI/internal/auth/xai"
 	internalcache "github.com/Su3h7aM/LLMProxyAPI/internal/cache"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
 	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
 	cliproxyauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
@@ -8108,5 +8109,86 @@ func TestXAIWebsocketUsagePreservesFilteredSearch(t *testing.T) {
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatal("usage not published")
+	}
+}
+
+func TestXAIExecutorPreservesPartialUpstreamBodyOnReadErrorWhenRequestLogDisabled(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	for _, tc := range []struct {
+		name       string
+		statusLine string
+		partial    string
+	}{
+		{
+			name:       "200 stream truncated mid-body",
+			statusLine: "HTTP/1.1 200 OK",
+			partial:    `data: {"type":"response.created","response":{"id":"resp_partial_200"}}`,
+		},
+		{
+			name:       "502 error body truncated mid-body",
+			statusLine: "HTTP/1.1 502 Bad Gateway",
+			partial:    `{"error":{"message":"partial upstream 502 detail"`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				hijacker, ok := w.(http.Hijacker)
+				if !ok {
+					t.Error("response writer does not support hijacking")
+					return
+				}
+				conn, buf, errHijack := hijacker.Hijack()
+				if errHijack != nil {
+					t.Errorf("hijack: %v", errHijack)
+					return
+				}
+				rawResponse := fmt.Sprintf("%s\r\nContent-Type: text/event-stream\r\nContent-Length: 4096\r\n\r\n%s", tc.statusLine, tc.partial)
+				_, _ = buf.WriteString(rawResponse)
+				_ = buf.Flush()
+				_ = conn.Close()
+			}))
+			defer server.Close()
+
+			ginCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
+			ctx := context.WithValue(context.Background(), "gin", ginCtx)
+			exec := NewXAIExecutor(&config.Config{})
+			auth := &cliproxyauth.Auth{
+				Provider:   "xai",
+				Attributes: map[string]string{"base_url": server.URL},
+				Metadata:   map[string]any{"access_token": "test-token"},
+			}
+			_, errExec := exec.Execute(
+				ctx,
+				auth,
+				cliproxyexecutor.Request{
+					Model:   "grok-4.7",
+					Payload: []byte(`{"model":"grok-4.7","messages":[{"role":"user","content":"hi"}],"stream":false}`),
+				},
+				cliproxyexecutor.Options{
+					SourceFormat:   sdktranslator.FormatOpenAI,
+					ResponseFormat: sdktranslator.FormatOpenAI,
+				},
+			)
+			if errExec == nil {
+				t.Fatal("expected read error from truncated upstream connection")
+			}
+
+			value, exists := ginCtx.Get(logging.DeferredAPIResponseContextKey)
+			if !exists {
+				t.Fatal("deferred API response was not captured")
+			}
+			deferred, ok := value.(logging.DeferredAPIResponse)
+			if !ok || deferred == nil {
+				t.Fatalf("deferred API response = %#v, want logging.DeferredAPIResponse", value)
+			}
+			rendered := string(deferred.RenderAPIResponse())
+			if !strings.Contains(rendered, tc.partial) {
+				t.Fatalf("deferred API response dropped partial body %q on read error:\n%s", tc.partial, rendered)
+			}
+			if !strings.Contains(rendered, "Error: unexpected EOF") {
+				t.Fatalf("deferred API response missing read error:\n%s", rendered)
+			}
+		})
 	}
 }
