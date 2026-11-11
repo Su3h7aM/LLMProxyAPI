@@ -11,11 +11,10 @@ Format: date, context, decision, reason. Newest first.
   later syncs easier. Example: `bebd92c4` (`-login-proxy`) is ported;
   macOS wake handling (`8c6d8b18`, `03c394ee`) and CLI re-login
   (`3891ebaa`) stay in place. Reason: developer order.
-- 2026-11-11: `go vet ./...` has one old finding on `main`:
-  `internal/pluginhost/host_test.go:1637` (copies `sync.Once`). Gate rule
-  for ports: vet must show no new finding beyond this one. Fix it in a
-  separate small issue, not inside a port. Two executor test files are not
-  gofmt-clean on `main`; same rule.
+- 2026-11-11: Gate for ports: `go build ./... && go vet ./... && go test
+  ./...` all pass, and `gofmt -l` lists nothing. `go vet` and `gofmt` were
+  made clean in issue 0013 (before that, one old vet finding existed in
+  `internal/pluginhost/host_test.go`). No new finding is allowed.
 - 2026-11-11: Upstream sync, round 1 (baseline e5e6ad1e to 8bba7a77).
   Port bug fixes and valid improvements only; one fork commit per upstream
   commit with an `Upstream:` trailer. Skip: `ce38c75` (reverted upstream by
