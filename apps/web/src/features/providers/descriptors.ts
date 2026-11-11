@@ -17,6 +17,7 @@ export interface ProviderDescriptor {
   supportsWebsockets: boolean;
   supportsCloak: boolean;
   supportsApiKeyEntries: boolean;
+  supportsRequestScopedErrors: boolean;
   /** Sheet 默认宽度 */
   sheetSize: 'md' | 'lg' | 'xl';
 }
@@ -39,6 +40,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   interactions: {
@@ -58,6 +60,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   codex: {
@@ -77,6 +80,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: true,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   meta: {
@@ -96,6 +100,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   xai: {
@@ -115,6 +120,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: true,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   claude: {
@@ -134,6 +140,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: true,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: true,
     sheetSize: 'md',
   },
   vertex: {
@@ -153,6 +160,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsRequestScopedErrors: false,
     sheetSize: 'md',
   },
   openaiCompatibility: {
@@ -172,6 +180,7 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: true,
+    supportsRequestScopedErrors: true,
     sheetSize: 'lg',
   },
 };
@@ -186,3 +195,25 @@ export const PROVIDER_BRAND_ORDER: ProviderBrand[] = [
   'vertex',
   'openaiCompatibility',
 ];
+
+export const getProviderBehaviorCapabilities = (brand: ProviderBrand) => ({
+  alphaSearch: brand === 'codex',
+  disableCodexCloaking: brand === 'codex',
+  rebuildMidSystemMessage: brand === 'claude',
+  supportPromptCacheKey: brand === 'openaiCompatibility',
+});
+
+export interface ProviderModelCapabilities {
+  maxContextLength: boolean;
+  isCompat: boolean;
+  configurationUpdate: boolean;
+  modalities: boolean;
+}
+
+/** API-key model capabilities; aliases of CodexModel do not imply runtime support. */
+export const getProviderModelCapabilities = (brand: ProviderBrand): ProviderModelCapabilities => ({
+  maxContextLength: brand !== 'vertex',
+  isCompat: brand !== 'vertex',
+  configurationUpdate: brand === 'codex',
+  modalities: brand === 'openaiCompatibility',
+});
