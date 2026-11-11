@@ -2,6 +2,13 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: Panel design rule. The BumpyClock interface, style, and
+  design system are not changed. Fork-only features are added to it so that
+  they look native: they use its components, tokens, layout, and patterns.
+  Fork-only features: first-class OpenCode Go (keys, quota), the reset
+  system (quota reset windows), and soonest-reset routing (use the account
+  whose window resets first). No support for old backends or old panel
+  versions anywhere in the panel. Reason: developer order.
 - 2026-11-11: The panel and the proxy are one unit (one container, one
   repository, one version). Meaning for the panel: v8 API only, no v0
   compatibility; no code for a separate or unknown server (backend probe,
