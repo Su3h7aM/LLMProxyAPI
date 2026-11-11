@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0038-panel-codex-reset-safety
 type: panel
 agent: muse-spark-1.3-contributor
@@ -67,6 +67,41 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md`, issue
+  0031 (follow-up C3), pre-import flow
+  (`features/quota/providers/codex/data.ts`,
+  `useAuthFilesData.ts`, `services/api/authFiles.ts`,
+  `tests/codexQuotaReset.test.ts`) and the new-panel flow
+  (`features/quota/providers/codex/data.ts`, locales, `configValue.ts`).
+  Gap confirmed: new-panel `consumeCodexRateLimitResetCredit`
+  returns void, checks only the HTTP status, never reads `code`,
+  never calls `resetCooldown`, has no connection guard.
+- 2026-11-11: Restored the pre-import redeem check and cooldown
+  orchestration in `data.ts`; added `reset_not_confirmed` and
+  `reset_cooldown_failed` strings in the 4 locales (en, zh-CN, zh-TW,
+  ru) with pre-import text. Ported `tests/codexQuotaReset.test.ts`
+  verbatim plus a new missing-code case. Gate green after each
+  commit. Rebasing on `integration/panel-bumpyclock` was a no-op.
+
 ## Follow-ups
 
+- None. Other quota providers are out of scope for this issue.
+
 ## Result
+
+- Landed: Codex quota reset confirms the redeem result again. Only
+  `reset` and `already_redeemed` count as confirmed. Any other
+  `code`, a missing `code`, or a non-2xx answer raises
+  `codex_quota.reset_not_confirmed` with no `resetCooldown` call
+  and no quota refresh. On a confirmed result the panel calls
+  `resetCooldown` under the connection-revision guard and maps any
+  cooldown failure to `codex_quota.reset_cooldown_failed` without a
+  second redeem.
+- Commits: `21842b93` fix, `9c28de9d` test (plus `0515c57b`
+  in-progress marker). Rebase on `integration/panel-bumpyclock`:
+  no-op, branch already up to date.
+- Gate: `bun install --frozen-lockfile`, `bun run verify` green
+  (2070 tests, 249 files, lint clean, `dist/index.html` 3.46 MB),
+  `bun run type-check` clean. Area tests
+  (`codexQuotaReset`: 11 pass, `codexQuota`: 5 pass).
+- Known gaps: none in this area.
