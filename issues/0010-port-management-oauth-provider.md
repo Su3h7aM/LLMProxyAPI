@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0010-port-management-oauth-provider
 type: port
 agent: deepseek-v4.1-flash
