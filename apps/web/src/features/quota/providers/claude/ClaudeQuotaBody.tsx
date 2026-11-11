@@ -12,7 +12,7 @@ import { QuotaResetLabel } from '../../components/QuotaResetLabel';
 import { collectQuotaRowInstants, pickUrgentRowId } from '../../resetSchedule';
 import type { QuotaBodyProps } from '../../types';
 
-export function ClaudeQuotaBody({ quota, classes }: QuotaBodyProps<ClaudeQuotaState>) {
+export function ClaudeQuotaBody({ quota, classes, planItems, afterPlan }: QuotaBodyProps<ClaudeQuotaState>) {
   const { t, i18n } = useTranslation();
   const now = useNow();
   const soonestRowId = useMemo(
@@ -37,12 +37,18 @@ export function ClaudeQuotaBody({ quota, classes }: QuotaBodyProps<ClaudeQuotaSt
 
   return (
     <>
-      {planType && (
+      {(planType || planItems) && (
         <div className={classes.codexPlan}>
-          <span className={classes.codexPlanLabel}>{t('claude_quota.plan_label')}</span>
-          <span className={classes.codexPlanValue}>{t(`claude_quota.${planType}`)}</span>
+          {planType && (
+            <>
+              <span className={classes.codexPlanLabel}>{t('claude_quota.plan_label')}</span>
+              <span className={classes.codexPlanValue}>{t(`claude_quota.${planType}`)}</span>
+            </>
+          )}
+          {planItems}
         </div>
       )}
+      {afterPlan}
       {extraUsage && (
         <div className={classes.quotaRow}>
           <div className={classes.codexPlan}>

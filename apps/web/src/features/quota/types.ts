@@ -7,6 +7,8 @@
  * 初始化时抛错并列出缺失清单，替代旧字符串 styleMap 的静默 class="undefined"。
  */
 
+import type { ReactNode } from 'react';
+
 export interface QuotaClassMap {
   // 额度行（五个提供商共用）
   quotaRow: string;
@@ -101,4 +103,8 @@ export function bindQuotaClasses(module: Record<string, string>, source: string)
 export interface QuotaBodyProps<TState> {
   quota: TState;
   classes: QuotaClassMap;
+  /** Extra plan chips (e.g. Claude banked resets); rendered by bodies that support them. */
+  planItems?: ReactNode;
+  /** Extra blocks after the plan row (e.g. Claude reset grant details). */
+  afterPlan?: ReactNode;
 }
