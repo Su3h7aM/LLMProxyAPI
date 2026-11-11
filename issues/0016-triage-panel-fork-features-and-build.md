@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0016-triage-panel-fork-features-and-build
 type: triage (read-only, no code changes)
 agent: deepseek-v4.1-flash
