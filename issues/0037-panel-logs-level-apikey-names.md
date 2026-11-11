@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0037-panel-logs-level-apikey-names
 type: panel
 agent: muse-spark-1.3-contributor
@@ -66,6 +66,21 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- Checked pre-import references: level filter lives in `features/logs/LogsPage.tsx` (client-side `filterLogEntries` with `level` field, `Select` with `logs.level_filter` / `logs.all_levels`), key names live in `features/config/apiKeyNames.ts` plus `ApiKeysCardEditor.tsx` (sha256 fingerprint via `@noble/hashes`, browser-only storage, shown only in config editor list and modal).
+- Checked Go log format (`internal/logging/global_logger.go`): logrus levels, `warning` normalized to `warn`. Parser (`logParsing.ts`) reads trace/debug/info/warn/warning/error/fatal and infers level from text. Level set used: trace, debug, info, warn, error, fatal (same as pre-import options).
+- Checked API key usage consumers (`apiKeyUsage.ts`, `fleet.ts`, `useProviderRecentRequests.ts`): usage display aggregates per provider or per masked composite key; no per-client-key row exists, so names attach only in the config editor (same as pre-import).
+- Built level filter as multi-select chips in the structured filter panel (same construction and placement as method/status filters), persisted in localStorage, with counts, active-filter chips, and a shared pure matcher `filterParsedLogLines`. Added `logs.filter_level` in 4 locales.
+- Ported key names: copied `apiKeyNames.ts` unchanged, added `@noble/hashes@2.4.0` via `bun add` (same range as pre-import; `bun install --frozen-lockfile` passes), rewrote `ApiKeysCardEditor.tsx` around the current BumpyClock item-list markup with a per-`apiBase` scoped editor, name in list and modal, `name_*` locale keys in 4 locales (text insertion only).
+- Adapted `tests/logsOptionsMenu.test.ts` to the new `levels` prop and extended the panel-order test with level chips. No test deleted or weakened.
+- Gate after rebase on `integration/panel-bumpyclock`: `bun install --frozen-lockfile` ok, `bun run verify` green (2087 pass, 0 fail, lint, type-check, build), `bun run tokens:check` green.
+
 ## Follow-ups
 
+- None found in this area. Usage display shows no per-key rows, so no name mapping needed there unless a later issue adds one.
+
 ## Result
+
+- Landed: log level filter (chips, counts, persistence, active chips, 4-locale label, tests) and local client API key names (storage module, editor port, 4-locale strings, ported tests, `@noble/hashes` dependency).
+- Commits: `72a9afb6` feat log level filter, `40037671` feat API key names, `39d6b909` test active filter summary (after rebase; pre-rebase `2c4aa4b6`, `a230d6d6`, `e8594387`).
+- Gate: `bun run verify` green (2087 pass, 0 fail), `bun run tokens:check` green, `bun install --frozen-lockfile` passes.
+- Known gaps: none. Unconfirmed: nothing; all claims verified by code read and test run.
