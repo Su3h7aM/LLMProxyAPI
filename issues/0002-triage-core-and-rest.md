@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0002-triage-core-and-rest
 type: triage (read-only, no code changes)
 ---
