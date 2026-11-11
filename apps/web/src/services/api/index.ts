@@ -13,6 +13,7 @@ export * from './version';
 export * from './models';
 export * from './metaQuota';
 export * from './claudeResetGrants';
+export * from './routing';
 export * from './usage';
 export * from './plugins';
 export * from './transformers';
