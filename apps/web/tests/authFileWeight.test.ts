@@ -3,7 +3,11 @@ import {
   buildAuthFileFieldsPatch,
   type PrefixProxyEditorState,
 } from '../src/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { readAuthFileDisableCooling } from '../src/features/authFiles/constants';
+import {
+  readAuthFileDisableCooling,
+  readAuthFileUseSiwc,
+  supportsAuthFileSiwc,
+} from '../src/features/authFiles/constants';
 
 const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyEditorState => ({
   fileName: 'credential.json',
@@ -27,6 +31,10 @@ const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyE
   websocketsTouched: false,
   usingApi: false,
   usingApiTouched: false,
+  useSiwc: false,
+  useSiwcTouched: false,
+  siwcBindSupported: false,
+  siwcBound: false,
   note: '',
   noteTouched: false,
   excludedModelsText: '',
@@ -60,6 +68,34 @@ describe('auth-file credential weight patch', () => {
     expect(() => buildAuthFileFieldsPatch(makeEditor({}, '1000001'), resolveError)).toThrow(
       'auth_files.weight_invalid_max'
     );
+  });
+});
+
+describe('auth-file SIWC toggle', () => {
+  test('is Codex-only and reads stored boolean-compatible values', () => {
+    expect(supportsAuthFileSiwc('codex')).toBe(true);
+    expect(supportsAuthFileSiwc('claude')).toBe(false);
+    expect(readAuthFileUseSiwc({})).toBe(false);
+    expect(readAuthFileUseSiwc({ use_siwc: false })).toBe(false);
+    expect(readAuthFileUseSiwc({ use_siwc: true })).toBe(true);
+    expect(readAuthFileUseSiwc({ use_siwc: 'true' })).toBe(true);
+  });
+
+  test('disables SIWC without touching binding data or outer credentials', () => {
+    const json = { use_siwc: true, siwc: { access_token: 'test-only' }, note: 'keep' };
+    const original = JSON.stringify(json);
+    const editor = { ...makeEditor(json, ''), useSiwcTouched: true };
+    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({ use_siwc: false });
+    expect(JSON.stringify(json)).toBe(original);
+  });
+
+  test('enables SIWC and ignores untouched, unchanged, or non-Codex state', () => {
+    const editor = { ...makeEditor({}, ''), useSiwc: true, useSiwcTouched: true };
+    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({ use_siwc: true });
+    expect(buildAuthFileFieldsPatch({ ...editor, useSiwcTouched: false }, resolveError)).toEqual({});
+    expect(buildAuthFileFieldsPatch({ ...editor, useSiwc: false }, resolveError)).toEqual({});
+    expect(buildAuthFileFieldsPatch({ ...editor, providerKey: 'claude' }, resolveError)).toEqual({});
+    expect(buildAuthFileFieldsPatch({ ...editor, json: { use_siwc: true } }, resolveError)).toEqual({});
   });
 });
 
