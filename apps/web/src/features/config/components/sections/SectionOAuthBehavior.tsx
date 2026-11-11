@@ -38,7 +38,6 @@ export function SectionOAuthBehavior({
     [onChange]
   );
 
-  const claudeTimezoneError = getValidationMessage(t, validationErrors?.claudeHeaderTimezone);
   const codexBootstrapTimeoutError = getValidationMessage(
     t,
     validationErrors?.codexStreamBootstrapTimeout
@@ -77,16 +76,6 @@ export function SectionOAuthBehavior({
       <FieldStack>
         <FieldGroupHeading title={t('config_management.visual.additions.claudeTitle')} />
         <FieldGrid>
-          <FieldAnchor fieldId="claudeHeaderTimezone">
-            <Input
-              label={t('config_management.visual.additions.claudeHeaderTimezone.label')}
-              hint={t('config_management.visual.additions.claudeHeaderTimezone.hint')}
-              value={values.claudeHeaderTimezone}
-              disabled={disabled}
-              error={claudeTimezoneError}
-              onChange={(e) => onChange({ claudeHeaderTimezone: e.target.value })}
-            />
-          </FieldAnchor>
           <FieldAnchor fieldId="claudeModelLevelCooling">
             <ToggleRow
               title={t('config_management.visual.additions.claudeModelLevelCooling.label')}

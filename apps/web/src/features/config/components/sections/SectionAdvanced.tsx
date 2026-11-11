@@ -20,6 +20,7 @@ import {
 import { PluginStoreAuthEditor } from '../blocks/PluginStoreAuthEditor';
 import { StringListEditor } from '../blocks/StringListEditor';
 import { SectionOAuthBehavior } from './SectionOAuthBehavior';
+import { getValidationMessage } from '../blocks/shared';
 import { iconSize } from '@/design-system';
 
 const Icon = CONFIG_TAB_ICONS.advanced;
@@ -234,6 +235,16 @@ export function SectionAdvanced({
               title={t('config_management.visual.sections.headers.claude_title')}
             />
             <FieldGrid>
+              <FieldAnchor fieldId="claudeHeaderTimezone">
+                <Input
+                  label={t('config_management.visual.additions.claudeHeaderTimezone.label')}
+                  hint={t('config_management.visual.additions.claudeHeaderTimezone.hint')}
+                  value={values.claudeHeaderTimezone}
+                  disabled={disabled}
+                  error={getValidationMessage(t, validationErrors?.claudeHeaderTimezone)}
+                  onChange={(e) => onChange({ claudeHeaderTimezone: e.target.value })}
+                />
+              </FieldAnchor>
               <FieldAnchor fieldId="claudeHeaderUserAgent">
                 <Input
                   label={t('config_management.visual.sections.headers.user_agent')}
