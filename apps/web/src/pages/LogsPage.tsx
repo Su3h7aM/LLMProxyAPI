@@ -46,9 +46,10 @@ import { formatUnixTimestamp } from '@/utils/format';
 import { resolveTimeZoneLabel } from '@/utils/time/timezone';
 import {
   HTTP_METHODS,
+  LOG_LEVELS,
   STATUS_GROUPS,
-  resolveStatusGroup,
   type HttpMethod,
+  type LogLevel,
   type LogState,
   type StatusGroup,
 } from './hooks/logTypes';
@@ -58,7 +59,7 @@ import { parseLogLine } from './hooks/logParsing';
 import { createLogRequestGuard, createLogRequestQueue } from './hooks/logRequests';
 import { errorLogViewerReducer } from './hooks/errorLogViewer';
 import { shouldExitLogFullscreen } from './hooks/logFullscreen';
-import { useLogFilters } from './hooks/useLogFilters';
+import { useLogFilters, filterParsedLogLines } from './hooks/useLogFilters';
 import { isNearBottom, useLogScroller } from './hooks/useLogScroller';
 import { LogRowCells } from './LogRowCells';
 import styles from './LogsPage.module.scss';
@@ -168,12 +169,14 @@ const countChangedDisplayOptions = (state: LogDisplayState): number =>
 export type ActiveLogFilter =
   | { kind: 'method'; value: HttpMethod }
   | { kind: 'status'; value: StatusGroup }
+  | { kind: 'level'; value: LogLevel }
   | { kind: 'path'; value: string };
 
 /** Active structured filters in panel order, so they stay visible while the panel is closed. */
 const listActiveLogFilters = (
   methods: readonly HttpMethod[],
   statuses: readonly StatusGroup[],
+  levels: readonly LogLevel[],
   paths: readonly string[]
 ): ActiveLogFilter[] => [
   ...HTTP_METHODS.filter((method) => methods.includes(method)).map((value): ActiveLogFilter => ({
@@ -184,12 +187,17 @@ const listActiveLogFilters = (
     kind: 'status',
     value,
   })),
+  ...LOG_LEVELS.filter((level) => levels.includes(level)).map((value): ActiveLogFilter => ({
+    kind: 'level',
+    value,
+  })),
   ...paths.map((value): ActiveLogFilter => ({ kind: 'path', value })),
 ];
 
 interface ActiveLogFiltersProps {
   methods: readonly HttpMethod[];
   statuses: readonly StatusGroup[];
+  levels: readonly LogLevel[];
   paths: readonly string[];
   onRemove: (filter: ActiveLogFilter) => void;
   onClear: () => void;
@@ -198,15 +206,19 @@ interface ActiveLogFiltersProps {
 export function ActiveLogFilters({
   methods,
   statuses,
+  levels,
   paths,
   onRemove,
   onClear,
 }: ActiveLogFiltersProps) {
   const { t } = useTranslation();
-  const filters = listActiveLogFilters(methods, statuses, paths);
+  const filters = listActiveLogFilters(methods, statuses, levels, paths);
   if (filters.length === 0) return null;
-  const labelOf = (filter: ActiveLogFilter) =>
-    filter.kind === 'status' ? t(`logs.filter_status_${filter.value}`) : filter.value;
+  const labelOf = (filter: ActiveLogFilter) => {
+    if (filter.kind === 'status') return t(`logs.filter_status_${filter.value}`);
+    if (filter.kind === 'level') return filter.value.toUpperCase();
+    return filter.value;
+  };
   return (
     <div className={styles.activeFilters} role="group" aria-label={t('logs.active_filters_label')}>
       <span className={styles.activeFiltersCount}>
@@ -842,35 +854,23 @@ export function LogsPage() {
   }, [searchParams, setSearchParams, clearStructuredFilters]);
   const structuredFiltersPanelId = 'logs-structured-filters';
   const structuredFilterCount =
-    filters.methodFilters.length + filters.statusFilters.length + filters.pathFilters.length;
+    filters.methodFilters.length +
+    filters.statusFilters.length +
+    filters.levelFilters.length +
+    filters.pathFilters.length;
   const removeActiveFilter = (filter: ActiveLogFilter) => {
     if (filter.kind === 'method') filters.toggleMethodFilter(filter.value);
     else if (filter.kind === 'status') filters.toggleStatusFilter(filter.value);
+    else if (filter.kind === 'level') filters.toggleLevelFilter(filter.value);
     else filters.togglePathFilter(filter.value);
   };
 
   const { filteredParsedLines, filteredLines, removedCount } = useMemo(() => {
-    const filteredParsed = parsedSearchLines.filter((line) => {
-      if (
-        filters.methodFilterSet.size > 0 &&
-        (!line.method || !filters.methodFilterSet.has(line.method))
-      ) {
-        return false;
-      }
-
-      const statusGroup = resolveStatusGroup(line.statusCode);
-      if (
-        filters.statusFilterSet.size > 0 &&
-        (!statusGroup || !filters.statusFilterSet.has(statusGroup))
-      ) {
-        return false;
-      }
-
-      if (filters.pathFilterSet.size > 0 && (!line.path || !filters.pathFilterSet.has(line.path))) {
-        return false;
-      }
-
-      return true;
+    const filteredParsed = filterParsedLogLines(parsedSearchLines, {
+      methods: filters.methodFilterSet,
+      statuses: filters.statusFilterSet,
+      levels: filters.levelFilterSet,
+      paths: filters.pathFilterSet,
     });
 
     return {
@@ -883,6 +883,7 @@ export function LogsPage() {
     filters.methodFilterSet,
     filters.pathFilterSet,
     filters.statusFilterSet,
+    filters.levelFilterSet,
     parsedSearchLines,
   ]);
 
@@ -1284,6 +1285,29 @@ export function LogsPage() {
                   </div>
 
                   <div className={styles.filterChipGroup}>
+                    <span className={styles.filterChipLabel}>{t('logs.filter_level')}</span>
+                    <div className={styles.filterChipList}>
+                      {LOG_LEVELS.map((level) => {
+                        const active = filters.levelFilters.includes(level);
+                        const count = filters.levelCounts[level] ?? 0;
+                        return (
+                          <button
+                            key={level}
+                            type="button"
+                            className={styles.filterChip}
+                            onClick={() => filters.toggleLevelFilter(level)}
+                            disabled={count === 0 && !active}
+                            aria-pressed={active}
+                          >
+                            {active && <IconCheck size={iconSize['14']} aria-hidden="true" />}
+                            {level.toUpperCase()} ({count})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className={styles.filterChipGroup}>
                     <span className={styles.filterChipLabel}>{t('logs.filter_path')}</span>
                     <div className={styles.filterChipList}>
                       {filters.pathOptions.length === 0 ? (
@@ -1327,6 +1351,7 @@ export function LogsPage() {
                 <ActiveLogFilters
                   methods={filters.methodFilters}
                   statuses={filters.statusFilters}
+                  levels={filters.levelFilters}
                   paths={filters.pathFilters}
                   onRemove={removeActiveFilter}
                   onClear={filters.clearStructuredFilters}

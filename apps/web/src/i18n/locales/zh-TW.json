@@ -1274,6 +1274,7 @@
     "filter_panel_active_count": "已選 {{count}} 項",
     "filter_method": "請求方法",
     "filter_status": "狀態碼",
+    "filter_level": "等級",
     "filter_path": "路徑",
     "filter_path_empty": "暫無可篩選路徑",
     "filter_status_2xx": "2xx",

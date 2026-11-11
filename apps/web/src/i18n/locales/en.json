@@ -1264,6 +1264,7 @@
     "filter_panel_active_count": "{{count}} active",
     "filter_method": "Method",
     "filter_status": "Status",
+    "filter_level": "Level",
     "filter_path": "Path",
     "filter_path_empty": "No path candidates",
     "filter_status_2xx": "2xx",

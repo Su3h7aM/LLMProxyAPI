@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import type { HttpMethod, ParsedLogLine, StatusGroup } from './logTypes';
+import { type HttpMethod, type LogLevel, type ParsedLogLine, type StatusGroup } from './logTypes';
 import { resolveStatusGroup } from './logTypes';
 
 const PATH_FILTER_LIMIT = 12;
@@ -12,16 +12,20 @@ interface UseLogFiltersOptions {
 interface UseLogFiltersReturn {
   methodFilters: HttpMethod[];
   statusFilters: StatusGroup[];
+  levelFilters: LogLevel[];
   pathFilters: string[];
   methodFilterSet: Set<HttpMethod>;
   statusFilterSet: Set<StatusGroup>;
+  levelFilterSet: Set<LogLevel>;
   pathFilterSet: Set<string>;
   hasStructuredFilters: boolean;
   methodCounts: Partial<Record<HttpMethod, number>>;
   statusCounts: Partial<Record<StatusGroup, number>>;
+  levelCounts: Partial<Record<LogLevel, number>>;
   pathOptions: Array<{ path: string; count: number }>;
   toggleMethodFilter: (method: HttpMethod) => void;
   toggleStatusFilter: (group: StatusGroup) => void;
+  toggleLevelFilter: (level: LogLevel) => void;
   togglePathFilter: (path: string) => void;
   clearStructuredFilters: () => void;
 }
@@ -37,6 +41,7 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
     'logsPage.statusFilters',
     []
   );
+  const [levelFilters, setLevelFilters] = useLocalStorage<LogLevel[]>('logsPage.levelFilters', []);
   const [storedPathFilters, setPathFilters] = useLocalStorage<string[]>('logsPage.pathFilters', []);
   const pathFilters = useMemo(
     () => normalizeLogPathFilters(storedPathFilters),
@@ -45,9 +50,13 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
 
   const methodFilterSet = useMemo(() => new Set(methodFilters), [methodFilters]);
   const statusFilterSet = useMemo(() => new Set(statusFilters), [statusFilters]);
+  const levelFilterSet = useMemo(() => new Set(levelFilters), [levelFilters]);
   const pathFilterSet = useMemo(() => new Set(pathFilters), [pathFilters]);
   const hasStructuredFilters =
-    methodFilters.length > 0 || statusFilters.length > 0 || pathFilters.length > 0;
+    methodFilters.length > 0 ||
+    statusFilters.length > 0 ||
+    levelFilters.length > 0 ||
+    pathFilters.length > 0;
 
   const methodCounts = useMemo(() => {
     const counts: Partial<Record<HttpMethod, number>> = {};
@@ -68,6 +77,8 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
     return counts;
   }, [parsedLines]);
 
+  const levelCounts = useMemo(() => buildLogLevelCounts(parsedLines), [parsedLines]);
+
   const pathOptions = useMemo(
     () => buildLogPathOptions(parsedLines, pathFilters),
     [parsedLines, pathFilters]
@@ -85,6 +96,12 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
     );
   };
 
+  const toggleLevelFilter = (level: LogLevel) => {
+    setLevelFilters((prev) =>
+      prev.includes(level) ? prev.filter((item) => item !== level) : [...prev, level]
+    );
+  };
+
   const togglePathFilter = (path: string) => {
     setPathFilters((stored) => {
       const prev = normalizeLogPathFilters(stored);
@@ -95,22 +112,27 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
   const clearStructuredFilters = useCallback(() => {
     setMethodFilters([]);
     setStatusFilters([]);
+    setLevelFilters([]);
     setPathFilters([]);
-  }, [setMethodFilters, setStatusFilters, setPathFilters]);
+  }, [setMethodFilters, setStatusFilters, setLevelFilters, setPathFilters]);
 
   return {
     methodFilters,
     statusFilters,
+    levelFilters,
     pathFilters,
     methodFilterSet,
     statusFilterSet,
+    levelFilterSet,
     pathFilterSet,
     hasStructuredFilters,
     methodCounts,
     statusCounts,
+    levelCounts,
     pathOptions,
     toggleMethodFilter,
     toggleStatusFilter,
+    toggleLevelFilter,
     togglePathFilter,
     clearStructuredFilters,
   };
@@ -123,6 +145,46 @@ export function normalizeLogPathFilters(paths: string[]): string[] {
       paths.map((path) => (path.startsWith('"') && path.endsWith('"') ? path.slice(1, -1) : path))
     ),
   ];
+}
+
+/** Lines without a parsed level never match an active level filter. */
+export function buildLogLevelCounts(parsedLines: ParsedLogLine[]) {
+  const counts: Partial<Record<LogLevel, number>> = {};
+  parsedLines.forEach((line) => {
+    if (!line.level) return;
+    counts[line.level] = (counts[line.level] ?? 0) + 1;
+  });
+  return counts;
+}
+
+export interface StructuredLogFilterSets {
+  methods: Set<HttpMethod>;
+  statuses: Set<StatusGroup>;
+  levels: Set<LogLevel>;
+  paths: Set<string>;
+}
+
+/** One place decides structured matching, so the page and the tests agree. */
+export function filterParsedLogLines(
+  parsedLines: ParsedLogLine[],
+  filters: StructuredLogFilterSets
+): ParsedLogLine[] {
+  return parsedLines.filter((line) => {
+    if (filters.methods.size > 0 && (!line.method || !filters.methods.has(line.method))) {
+      return false;
+    }
+    const statusGroup = resolveStatusGroup(line.statusCode);
+    if (filters.statuses.size > 0 && (!statusGroup || !filters.statuses.has(statusGroup))) {
+      return false;
+    }
+    if (filters.levels.size > 0 && (!line.level || !filters.levels.has(line.level))) {
+      return false;
+    }
+    if (filters.paths.size > 0 && (!line.path || !filters.paths.has(line.path))) {
+      return false;
+    }
+    return true;
+  });
 }
 
 /** Selected paths stay removable after they leave the current log window. */

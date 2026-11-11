@@ -6,6 +6,9 @@ export type StatusGroup = (typeof STATUS_GROUPS)[number];
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
+/** Levels the Go log lines carry (logrus names, `warning` normalized to `warn`). */
+export const LOG_LEVELS: readonly LogLevel[] = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+
 export type LogState = {
   buffer: string[];
   visibleFrom: number;

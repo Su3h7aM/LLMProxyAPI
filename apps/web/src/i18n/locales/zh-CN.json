@@ -1248,6 +1248,7 @@
     "filter_panel_active_count": "已选 {{count}} 项",
     "filter_method": "请求方法",
     "filter_status": "状态码",
+    "filter_level": "等级",
     "filter_path": "路径",
     "filter_path_empty": "暂无可筛选路径",
     "filter_status_2xx": "2xx",

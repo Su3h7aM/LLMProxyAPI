@@ -1298,6 +1298,7 @@
     "filter_panel_active_count": "Активно: {{count}}",
     "filter_method": "Метод",
     "filter_status": "Статус",
+    "filter_level": "Уровень",
     "filter_path": "Путь",
     "filter_path_empty": "Нет доступных путей",
     "filter_status_2xx": "2xx",
