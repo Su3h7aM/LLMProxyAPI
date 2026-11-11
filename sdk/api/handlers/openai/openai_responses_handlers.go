@@ -24,6 +24,7 @@ import (
 	"github.com/Su3h7aM/LLMProxyAPI/internal/httpwire"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/interfaces"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	translatorcommon "github.com/Su3h7aM/LLMProxyAPI/internal/translator/common"
 	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
 	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers"
 	"github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
@@ -935,7 +936,8 @@ func (h *OpenAIResponsesAPIHandler) prepareCodexRequestPayload(c *gin.Context, p
 	doc := ojson.NewDoc(payload)
 	toolsChanged := h.prepareCodexMultiAgentV2ToolsDoc(c, doc)
 	orphanChanged := h.prepareCodexOrphanDelegationDoc(c, doc)
-	if len(payload) == 0 || (!toolsChanged && !orphanChanged) {
+	toolOutputChanged := translatorcommon.SanitizeOrphanResponsesToolOutputsDoc(doc)
+	if len(payload) == 0 || (!toolsChanged && !orphanChanged && !toolOutputChanged) {
 		return payload
 	}
 	return doc.Bytes()
@@ -986,6 +988,7 @@ func (h *OpenAIResponsesAPIHandler) Compact(c *gin.Context) {
 
 	doc := ojson.NewDoc(rawJSON)
 	orphanChanged := h.prepareCodexOrphanDelegationDoc(c, doc)
+	toolOutputChanged := translatorcommon.SanitizeOrphanResponsesToolOutputsDoc(doc)
 
 	streamResult := doc.Get("stream")
 	if streamResult.Type == ojson.True {
@@ -1002,7 +1005,7 @@ func (h *OpenAIResponsesAPIHandler) Compact(c *gin.Context) {
 		_ = doc.Delete("stream")
 		streamDeleted = true
 	}
-	if orphanChanged || streamDeleted {
+	if orphanChanged || toolOutputChanged || streamDeleted {
 		rawJSON = doc.Bytes()
 	}
 
