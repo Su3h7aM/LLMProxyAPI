@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0020-panel-credentials
 type: panel
 agent: muse-spark-1.3-contributor
