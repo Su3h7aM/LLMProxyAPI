@@ -2,6 +2,9 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: Port order swap: `00c6ae82` is ported before `cc95661c`.
+  Upstream `cc95661c` does not build alone (it uses a cache helper that
+  `00c6ae82` adds). Each fork commit must build.
 - 2026-11-11: Fork focus is the API on a server or in a container (VPS,
   container image); the developer connects harnesses to the API only.
   Features for a program on the user's own machine (CLI login helpers,
