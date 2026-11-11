@@ -1,5 +1,4 @@
 import type { PluginListEntry, PluginMenu, PluginStoreEntry } from '@/types';
-import { normalizeApiBase } from '@/utils/connection';
 
 export const PLUGIN_RESOURCES_REFRESH_EVENT = 'plugin-resources-refresh';
 
@@ -39,7 +38,7 @@ export const resolvePluginAssetURL = (value: string, apiBase: string) => {
   if (!trimmed) return '';
   if (/^(https?:|data:|blob:)/i.test(trimmed)) return trimmed;
   if (!trimmed.startsWith('/')) return trimmed;
-  const base = normalizeApiBase(apiBase);
+  const base = apiBase.trim().replace(/\/+$/, '');
   return base ? `${base}${trimmed}` : trimmed;
 };
 

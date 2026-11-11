@@ -1,27 +1,25 @@
 /**
  * Axios API 客户端
- * 替代原项目 src/core/api-client.js
+ * 同源 v8 管理接口：base 恒为页面源站加 v8 前缀。
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiClientConfig, ApiError } from '@/types';
 import {
-  BUILD_DATE_HEADER_KEYS,
   CPA_BUILD_DATE_HEADER_KEYS,
-  CPA_SUPPORT_PLUGIN_HEADER_KEYS,
   CPA_VERSION_HEADER_KEYS,
   REQUEST_TIMEOUT_MS,
-  VERSION_HEADER_KEYS,
 } from '@/utils/constants';
-import { computeApiUrl } from '@/utils/connection';
+import { getManagementApiUrl } from '@/utils/connection';
 import { parseApiErrorResponse } from './apiError';
 
 class ApiClient {
   private instance: AxiosInstance;
   private apiBase: string = '';
   private managementKey: string = '';
+  private connectionRevision = 0;
 
-  constructor() {
+  constructor(private readonly emitEvents: () => boolean = () => true) {
     this.instance = axios.create({
       timeout: REQUEST_TIMEOUT_MS,
       headers: {
@@ -36,7 +34,11 @@ class ApiClient {
    * 设置 API 配置
    */
   setConfig(config: ApiClientConfig): void {
-    this.apiBase = computeApiUrl(config.apiBase);
+    const apiBase = getManagementApiUrl();
+    if (apiBase !== this.apiBase || config.managementKey !== this.managementKey) {
+      this.connectionRevision += 1;
+    }
+    this.apiBase = apiBase;
     this.managementKey = config.managementKey;
 
     if (config.timeout) {
@@ -44,6 +46,20 @@ class ApiClient {
     } else {
       this.instance.defaults.timeout = REQUEST_TIMEOUT_MS;
     }
+  }
+
+  /** 跨连接读写保护：读写前后核对，避免 ABA 切换。 */
+  getConnectionRevision(): number {
+    return this.connectionRevision;
+  }
+
+  /** 固定当前连接的凭据，并屏蔽归属旧连接的副作用事件。 */
+  captureConnection(): ApiClient {
+    const revision = this.connectionRevision;
+    const client = new ApiClient(() => this.connectionRevision === revision);
+    client.apiBase = this.apiBase;
+    client.managementKey = this.managementKey;
+    return client;
   }
 
   private readHeader(headers: Record<string, unknown> | undefined, keys: string[]): string | null {
@@ -84,19 +100,6 @@ class ApiClient {
     return null;
   }
 
-  private readBooleanHeader(
-    headers: Record<string, unknown> | undefined,
-    keys: string[]
-  ): boolean | null {
-    const value = this.readHeader(headers, keys);
-    if (value === null) return null;
-
-    const normalized = value.trim().toLowerCase();
-    if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
-    if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-    return null;
-  }
-
   /**
    * 设置请求/响应拦截器
    */
@@ -121,24 +124,14 @@ class ApiClient {
     this.instance.interceptors.response.use(
       (response) => {
         const headers = response.headers as Record<string, string | undefined>;
-        const cpaVersion = this.readHeader(headers, CPA_VERSION_HEADER_KEYS);
-        const cpaBuildDate = this.readHeader(headers, CPA_BUILD_DATE_HEADER_KEYS);
-        const version = cpaVersion || this.readHeader(headers, VERSION_HEADER_KEYS);
-        const buildDate = cpaBuildDate || this.readHeader(headers, BUILD_DATE_HEADER_KEYS);
-        const supportsPlugin = this.readBooleanHeader(headers, CPA_SUPPORT_PLUGIN_HEADER_KEYS);
+        const version = this.readHeader(headers, CPA_VERSION_HEADER_KEYS);
+        const buildDate = this.readHeader(headers, CPA_BUILD_DATE_HEADER_KEYS);
 
-        // 触发版本更新事件（后续通过 store 处理）
-        if (version || buildDate) {
+        // 触发版本更新事件（供系统页展示；后续由 store 处理）
+        if (this.emitEvents() && (version || buildDate)) {
           window.dispatchEvent(
             new CustomEvent('server-version-update', {
               detail: { version: version || null, buildDate: buildDate || null },
-            })
-          );
-        }
-        if (supportsPlugin !== null) {
-          window.dispatchEvent(
-            new CustomEvent('server-plugin-support-update', {
-              detail: { supportsPlugin },
             })
           );
         }
@@ -155,7 +148,7 @@ class ApiClient {
   private handleError(error: unknown): ApiError {
     if (axios.isAxiosError(error)) {
       const responseData: unknown = error.response?.data;
-      const parsedError = parseApiErrorResponse(responseData, error.message);
+      const parsedError = parseApiErrorResponse(error.response?.data, error.message);
       const apiError = new Error(parsedError.message) as ApiError;
       apiError.name = 'ApiError';
       apiError.status = error.response?.status;
@@ -165,7 +158,7 @@ class ApiClient {
       apiError.data = responseData;
 
       // 401 未授权 - 触发登出事件
-      if (error.response?.status === 401) {
+      if (this.emitEvents() && error.response?.status === 401) {
         window.dispatchEvent(new Event('unauthorized'));
       }
 

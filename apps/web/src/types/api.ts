@@ -3,9 +3,8 @@
  * 基于原项目 src/core/api-client.js 和各模块 API
  */
 
-// API 客户端配置
+// API 客户端配置（同源：base 恒为页面源站加 v8 前缀）
 export interface ApiClientConfig {
-  apiBase: string;
   managementKey: string;
   timeout?: number;
 }

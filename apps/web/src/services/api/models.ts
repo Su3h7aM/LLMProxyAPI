@@ -4,7 +4,6 @@
 
 import axios from 'axios';
 import { normalizeModelList } from '@/utils/models';
-import { normalizeApiBase } from '@/utils/connection';
 import { apiCallApi, getApiCallErrorMessage } from './apiCall';
 import { isRecord } from '@/utils/helpers';
 
@@ -26,8 +25,18 @@ const buildRequestSignature = (
   return `${url}||${headerSignature}||auth=${authIndex ?? ''}`;
 };
 
+const normalizeProviderBaseUrl = (input: string): string => {
+  let base = (input || '').trim();
+  if (!base) return '';
+  base = base.replace(/\/+$/i, '');
+  if (!/^https?:\/\//i.test(base)) {
+    base = `http://${base}`;
+  }
+  return base;
+};
+
 const buildModelsEndpoint = (baseUrl: string): string => {
-  const normalized = normalizeApiBase(baseUrl);
+  const normalized = normalizeProviderBaseUrl(baseUrl);
   if (!normalized) return '';
   const trimmed = normalized.replace(/\/+$/g, '');
   if (/\/models$/i.test(trimmed)) return trimmed;
@@ -35,7 +44,7 @@ const buildModelsEndpoint = (baseUrl: string): string => {
 };
 
 const buildV1ModelsEndpoint = (baseUrl: string): string => {
-  const normalized = normalizeApiBase(baseUrl);
+  const normalized = normalizeProviderBaseUrl(baseUrl);
   if (!normalized) return '';
   const trimmed = normalized.replace(/\/+$/g, '');
   if (/\/v1\/models$/i.test(trimmed)) return trimmed;
@@ -44,7 +53,7 @@ const buildV1ModelsEndpoint = (baseUrl: string): string => {
 };
 
 const buildClaudeModelsEndpoint = (baseUrl: string): string => {
-  const normalized = normalizeApiBase(baseUrl);
+  const normalized = normalizeProviderBaseUrl(baseUrl);
   const fallback = normalized || DEFAULT_CLAUDE_BASE_URL;
   let trimmed = fallback.replace(/\/+$/g, '');
   trimmed = trimmed.replace(/\/v1\/models$/i, '');
@@ -53,7 +62,7 @@ const buildClaudeModelsEndpoint = (baseUrl: string): string => {
 };
 
 const buildGeminiModelsEndpoint = (baseUrl: string): string => {
-  const normalized = normalizeApiBase(baseUrl);
+  const normalized = normalizeProviderBaseUrl(baseUrl);
   const fallback = normalized || DEFAULT_GEMINI_BASE_URL;
   let trimmed = fallback.replace(/\/+$/g, '');
   trimmed = trimmed.replace(/\/v1beta\/models$/i, '');

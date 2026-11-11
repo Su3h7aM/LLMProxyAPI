@@ -3,9 +3,8 @@
  * 基于原项目 src/modules/login.js 和 src/core/connection.js
  */
 
-// 登录凭据
+// 登录凭据（同源：只有管理密钥）
 export interface LoginCredentials {
-  apiBase: string;
   managementKey: string;
   rememberPassword?: boolean;
 }
