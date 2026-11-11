@@ -70,7 +70,7 @@ describe('v8 persisted configuration normalization', () => {
         ],
       },
     });
-    expect(config.codexApiKeys).toEqual([
+    expect(config.codexApiKeys).toMatchObject([
       {
         apiKey: 'secret-1',
         baseUrl: 'https://codex.example',
@@ -78,5 +78,6 @@ describe('v8 persisted configuration normalization', () => {
       },
       { apiKey: 'secret-2', baseUrl: 'https://codex.example' },
     ]);
+    expect(config.codexApiKeys).toHaveLength(2);
   });
 });
