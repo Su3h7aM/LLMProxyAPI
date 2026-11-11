@@ -40,24 +40,15 @@ const multiPlugin = () =>
   });
 
 describe('plugin OAuth entry normalization', () => {
-  test('keeps current single-provider and legacy plugin-id login working', async () => {
-    const legacy = rawPlugin({ id: 'legacy-login' });
-    delete (legacy as Record<string, unknown>).oauth_provider;
-    const plugins = await loadPlugins([rawPlugin(), legacy]);
+  test('keeps the single-provider login working', async () => {
+    const plugins = await loadPlugins([rawPlugin()]);
     expect(plugins[0].oauthProvider).toBe('portal-a');
     expect(plugins[0].oauthProviders).toBeUndefined();
     expect(plugins[0].oauthProviderEntries).toBeUndefined();
-    expect(plugins[1].oauthProvider).toBe('legacy-login');
     expect(buildPluginOAuthProviderCards(plugins, apiBase, builtIns)).toEqual([
       {
         kind: 'plugin',
         id: 'portal-a',
-        title: 'Multi login',
-        icon: 'https://proxy.example/plugins/multi-login/logo.svg',
-      },
-      {
-        kind: 'plugin',
-        id: 'legacy-login',
         title: 'Multi login',
         icon: 'https://proxy.example/plugins/multi-login/logo.svg',
       },

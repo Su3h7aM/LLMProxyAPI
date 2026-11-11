@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { getConfigValue, guardConfigConnection } from './configValue';
 import { isRecord } from '@/utils/helpers';
 import {
   isManagementOAuthProviderKey,
@@ -74,9 +75,6 @@ const normalizePluginOAuthProviderEntries = (
   return entries;
 };
 
-const hasOwn = (source: Record<string, unknown>, key: string): boolean =>
-  Object.prototype.hasOwnProperty.call(source, key);
-
 const normalizeConfigField = (value: unknown): PluginConfigField | null => {
   if (!isRecord(value)) return null;
   const name = asString(value.name).trim();
@@ -151,10 +149,7 @@ const normalizePluginEntry = (value: unknown): PluginListEntry | null => {
     value.oauth_provider_entries,
     oauthProviders
   );
-  const legacyOAuthProvider =
-    supportsOAuth && !hasOwn(value, 'oauth_provider')
-      ? normalizePluginOAuthProvider(id)
-      : undefined;
+  const quotaProvider = asString(value.quota_provider).trim().toLowerCase();
 
   return {
     id,
@@ -164,9 +159,11 @@ const normalizePluginEntry = (value: unknown): PluginListEntry | null => {
     enabled: value.enabled !== false,
     effectiveEnabled: asBoolean(value.effective_enabled),
     supportsOAuth,
-    oauthProvider: oauthProvider ?? legacyOAuthProvider,
+    oauthProvider,
     ...(oauthProviders.length ? { oauthProviders } : {}),
     ...(oauthProviderEntries.length ? { oauthProviderEntries } : {}),
+    supportsQuota: asBoolean(value.supports_quota),
+    ...(quotaProvider ? { quotaProvider } : {}),
     logo: asString(value.logo || metadata?.logo).trim(),
     configFields: configFields.length > 0 ? configFields : (metadata?.configFields ?? []),
     menus: normalizeMenus(value.menus),
@@ -311,6 +308,11 @@ export interface PluginStoreInstallOptions {
   version?: string;
 }
 
+export interface PluginStoreListOptions {
+  /** Force a release-version refresh instead of the cached one. */
+  refresh?: boolean;
+}
+
 export const pluginsApi = {
   async list(): Promise<PluginListResponse> {
     const data = await apiClient.get('/plugins');
@@ -318,7 +320,7 @@ export const pluginsApi = {
   },
 
   updateEnabled: (id: string, enabled: boolean) =>
-    apiClient.patch(`/plugins/${encodeURIComponent(id)}/enabled`, { enabled }),
+    apiClient.put(`/config/plugins/configs/${encodeURIComponent(id)}/enabled`, enabled),
 
   async deletePlugin(id: string): Promise<PluginDeleteResult> {
     const data = await apiClient.delete(`/plugins/${encodeURIComponent(id)}`);
@@ -326,17 +328,30 @@ export const pluginsApi = {
   },
 
   async getConfig(id: string): Promise<PluginConfigObject> {
-    const data = await apiClient.get(`/plugins/${encodeURIComponent(id)}/config`);
+    const data = await getConfigValue(`/config/plugins/configs/${encodeURIComponent(id)}`, {});
     return normalizePluginConfig(data);
   },
 
-  patchConfig: (id: string, config: PluginConfigObject) =>
-    apiClient.patch(`/plugins/${encodeURIComponent(id)}/config`, config),
+  async patchConfig(id: string, changes: PluginConfigObject) {
+    // Form fields hold complete values: clearing removes a field and editing an
+    // object replaces that object. A v8 PATCH would keep nulls and merge objects
+    // recursively, so merge the touched fields into the latest object and replace
+    // only this plugin instance (never the complete config tree).
+    const assertConnection = guardConfigConnection();
+    const next = { ...(await pluginsApi.getConfig(id)) };
+    assertConnection();
+    for (const [key, value] of Object.entries(changes)) {
+      if (value === null) delete next[key];
+      else next[key] = value;
+    }
+    return apiClient.put(`/config/plugins/configs/${encodeURIComponent(id)}`, next);
+  },
 };
 
 export const pluginStoreApi = {
-  async list(): Promise<PluginStoreResponse> {
-    const data = await apiClient.get('/plugin-store');
+  async list(options: PluginStoreListOptions = {}): Promise<PluginStoreResponse> {
+    const query = options.refresh ? '?refresh=true' : '';
+    const data = await apiClient.get(`/plugins/store${query}`);
     return normalizeStoreList(data);
   },
 
@@ -344,7 +359,7 @@ export const pluginStoreApi = {
     id: string,
     options: PluginStoreInstallOptions = {}
   ): Promise<PluginStoreInstallResult> {
-    const path = `/plugin-store/${encodeURIComponent(id)}/install`;
+    const path = `/plugins/store/${encodeURIComponent(id)}/install`;
     const params = new URLSearchParams();
     const sourceId = options.sourceId?.trim();
     const version = options.version?.trim();

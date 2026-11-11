@@ -46,9 +46,11 @@ export interface PluginListEntry {
   effectiveEnabled: boolean;
   supportsOAuth: boolean;
   oauthProvider?: string;
-  /** Absent on backends that only advertise the singular OAuth provider. */
+  /** Every declared login entry. Empty when the plugin declares one provider. */
   oauthProviders?: string[];
   oauthProviderEntries?: PluginOAuthProviderEntry[];
+  supportsQuota: boolean;
+  quotaProvider?: string;
   logo: string;
   configFields: PluginConfigField[];
   menus: PluginMenu[];
