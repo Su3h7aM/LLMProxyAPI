@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0001-triage-claude-codex-oauth
 type: triage (read-only, no code changes)
 ---
