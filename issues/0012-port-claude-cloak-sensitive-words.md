@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0012-port-claude-cloak-sensitive-words
 type: port
 agent: muse-spark-1.3-contributor
@@ -55,6 +55,32 @@ Triage notes: Triage: `9a7e1e6` is large (26 files). It changes the Antigravity 
 
 ## Log
 
+- Renamed branch to `issue/0012-port-claude-cloak-sensitive-words`. Set status in-progress.
+- Ported `9a7e1e6b`: 25 of 26 files via `git apply --3way` after module-path rewrite. `internal/config/config_normalization.go` conflicted (fork `SanitizeOpenCodeGoKeys` sits where upstream inserts new code). Kept fork code and inserted upstream `NormalizeSensitiveWordsReplace`, `SanitizeAntigravity`, `SanitizeDevin`, plus the `SensitiveWordsReplace` line in `NormalizeCloakConfig`. Touched files gofmt-clean. Build and tests for touched packages pass.
+- Ported `65de937c`: 6 of 7 files via apply. `internal/runtime/executor/claude_signing.go` had the expected import-order conflict. Kept fork import order, added `claudeauth` import in sorted place and the Home cloak block in `resolveClaudeKeyCloakConfig`. Build and tests pass.
+- Ported `fa11a573`: all 16 files applied cleanly. Build and tests pass.
+- Full gate: `go build ./...` passes. `go vet ./...` shows only the known old finding (`internal/pluginhost/host_test.go:1637`). `go test ./...` passes. `git rebase main` was clean (branch already up to date).
+
 ## Follow-ups
 
+- None found. No semantic conflict met.
+
 ## Result
+
+Ported commits (fork hashes):
+
+- `8b6da2e6` feat(executor): add sensitive-words-replace and harden Antigravity obfuscation. Upstream `9a7e1e6b412747729dedecefd7e23bd2e3ee1d3d`. 26 files.
+- `1b855da0` feat(claude): consume Home credential_options cloak settings. Upstream `65de937cf19b88436ee8519caa42f0fcb66e2307`. 7 files.
+- `eeb2ca3a` fix(claude): make server-side fallback opt-in and surface serving models. Upstream `fa11a573b252b30256bef4de952a95feee3c8c9d`. 16 files.
+
+Gate: `go build ./...` passes. `go vet ./...` shows only the known old finding on main (`internal/pluginhost/host_test.go:1637`). `go test ./...` passes. `gofmt -l` clean on all touched files. Two files flagged by `gofmt -l` repo-wide (`claude_thinking_replay_test.go`, `codex_stream_bootstrap_buffering_test.go`) are pre-existing and untouched by this work.
+
+Deviations from upstream: module path rewrite only, plus import-order keeps (fork order in `claude_signing.go`; fork `sort`/`strings` imports already present in `config_normalization.go`). Fork `SanitizeOpenCodeGoKeys` kept next to new upstream sanitize calls.
+
+Wire-visible changes:
+
+- Antigravity obfuscation character changed from U+200B to CGJ (U+034F).
+- New `sensitive-words-replace` map config for cloak, Antigravity, and Devin sections (literal target to replacement text).
+- Claude Home `credential_options` cloak settings now feed cloaked requests.
+- New opt-in `server-side-fallback` flag (default false). When fallback occurs, translated OpenAI Chat and Responses payloads report the actual serving model with fallback metadata.
+- Known gaps: none.
