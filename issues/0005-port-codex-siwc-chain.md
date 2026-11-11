@@ -61,6 +61,24 @@ Triage notes: Triage: ~3000 lines, new refresh-journal and outcome machinery tha
 
 ## Log
 
+- 68cd7572 ported as d73b7d0c. `git apply --3way` failed on two files (fork
+  files match upstream parent; used `patch -p1 -F3` instead).
+  `nocopy_invariant_test.go`: upstream adds a
+  `internal/kvstore/bolt_store.go` entry, fork already has one with other
+  wording. A Go map cannot hold two same keys, so merged into one entry
+  `{1, ...}` that keeps both wordings. gofmt: fixed import order in 3 new
+  files. Gate: `go build ./...` OK, touched packages OK.
+- 80ee739f: patch applied with `patch -p1 -F3` (2 hunks offset in types.go
+  around fork `opencode-go` case; fork extras kept). New test
+  `TestSIWCTokenResponseValidatesScope` fails at this commit (4 refresh
+  subtests get nil error). Cause: subtests share `(clientID, grant)` key
+  `oaiapp_scope:refresh` through the process-global `processRefreshJournal`
+  from 68cd7572, so subtest 1 receipt is reused. Upstream fixes this in this
+  same chain at a46be7ae (`auth.SetRefreshJournal(&memoryRefreshJournal{})`).
+  My files match upstream 80ee739f exactly except fork branding/import order,
+  so this failure is upstream-faithful intermediate state. Continue chain;
+  full gate must pass after 09b3a579.
+
 ## Follow-ups
 
 ## Result
