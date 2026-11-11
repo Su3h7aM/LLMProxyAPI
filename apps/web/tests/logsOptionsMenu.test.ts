@@ -120,11 +120,17 @@ describe('Options disclosure', () => {
 });
 
 describe('active filter summary', () => {
-  const renderSummary = (methods: string[], statuses: string[], paths: string[]) =>
+  const renderSummary = (
+    methods: string[],
+    statuses: string[],
+    paths: string[],
+    levels: string[] = []
+  ) =>
     renderToStaticMarkup(
       createElement(ActiveLogFilters, {
         methods,
         statuses,
+        levels,
         paths,
         onRemove: noop,
         onClear: noop,
@@ -136,9 +142,9 @@ describe('active filter summary', () => {
   });
 
   test('lists active filters in panel order, whatever order they were chosen in', () => {
-    const html = renderSummary(['POST', 'GET'], ['5xx', '2xx'], ['/v1/models']);
+    const html = renderSummary(['POST', 'GET'], ['5xx', '2xx'], ['/v1/models'], ['error', 'info']);
     const names = [...html.matchAll(/aria-label="Remove filter ([^"]+)"/g)].map(([, name]) => name);
-    expect(names).toEqual(['GET', 'POST', '2xx', '5xx', '/v1/models']);
+    expect(names).toEqual(['GET', 'POST', '2xx', '5xx', 'INFO', 'ERROR', '/v1/models']);
   });
 
   test('shows a count, one named remove button per filter and a clear action', () => {
