@@ -8,12 +8,16 @@ import {
   Divider,
   FieldAnchor,
   FieldGrid,
+  FieldGroup,
+  FieldShell,
   FieldStack,
   ToggleRow,
   YamlKey,
 } from '../fields/FieldPrimitives';
 import { ApiKeysField, HostField, PortField } from '../fields/sharedFields';
+import { StringListEditor } from '../blocks/StringListEditor';
 import { getValidationMessage } from '../blocks/shared';
+import { SectionDiscovery } from './SectionDiscovery';
 import { iconSize } from '@/design-system';
 
 const Icon = CONFIG_TAB_ICONS.connectivity;
@@ -60,6 +64,51 @@ export function SectionConnectivity({
         </FieldAnchor>
 
         <ApiKeysField values={values} disabled={disabled} onChange={onChange} />
+
+        <FieldAnchor fieldId="githubToken">
+          <Input
+            label={
+              <>
+                {t('config_management.visual.sections.server.github_token')}
+                <YamlKey name="server.github-token" />
+              </>
+            }
+            type="password"
+            autoComplete="new-password"
+            value={values.githubToken}
+            onChange={(e) => onChange({ githubToken: e.target.value })}
+            disabled={disabled}
+            hint={t('config_management.visual.sections.server.github_token_hint')}
+          />
+        </FieldAnchor>
+
+        <FieldAnchor fieldId="trustedProxies">
+          <FieldGroup
+            title={t('config_management.visual.serverExtras.trustedProxies.label')}
+            description={t('config_management.visual.serverExtras.trustedProxies.hint')}
+          >
+            <FieldShell
+              label={t('config_management.visual.serverExtras.trustedProxies.label')}
+              hint={t('config_management.visual.serverExtras.trustedProxies.hint')}
+              error={getValidationMessage(t, validationErrors?.trustedProxies)}
+            >
+              <StringListEditor
+                value={values.trustedProxies}
+                disabled={disabled}
+                placeholder="192.168.0.0/24"
+                inputAriaLabel={t('config_management.visual.serverExtras.trustedProxies.label')}
+                onChange={(trustedProxies) => onChange({ trustedProxies })}
+              />
+            </FieldShell>
+          </FieldGroup>
+        </FieldAnchor>
+
+        <SectionDiscovery
+          values={values}
+          validationErrors={validationErrors}
+          disabled={disabled}
+          onChange={onChange}
+        />
 
         <Collapsible
           label={t('config_management.visual.sections.tls.title')}

@@ -22,7 +22,7 @@ describe('visual config disable-image-generation', () => {
         return createElement(
           'pre',
           null,
-          visualConfig.applyVisualChangesToYaml('disable-image-generation: false\n')
+          visualConfig.applyVisualChangesToYaml('multimedia:\n  disable-image-generation: false\n')
         );
       }
 
@@ -32,6 +32,6 @@ describe('visual config disable-image-generation', () => {
     const markup = renderToStaticMarkup(createElement(Harness));
     const result = markup.slice('<pre>'.length, -'</pre>'.length);
 
-    expect(parseYaml(result)).toEqual({ 'disable-image-generation': 'passthrough' });
+    expect(parseYaml(result)).toEqual({ multimedia: { 'disable-image-generation': 'passthrough' } });
   });
 });

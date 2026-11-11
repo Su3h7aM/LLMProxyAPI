@@ -40,6 +40,14 @@ export function SectionNetwork({
     t,
     validationErrors?.authAutoRefreshWorkers
   );
+  const transientErrorCooldownSecondsError = getValidationMessage(
+    t,
+    validationErrors?.transientErrorCooldownSeconds
+  );
+  const videoResultAuthCacheTTLError = getValidationMessage(
+    t,
+    validationErrors?.videoResultAuthCacheTTL
+  );
 
   const disableImageGenerationOptions = [
     {
@@ -142,6 +150,10 @@ export function SectionNetwork({
                     value: 'fill-first',
                     label: t('config_management.visual.sections.network.strategy_fill_first'),
                   },
+                  {
+                    value: 'soonest-reset',
+                    label: t('config_management.visual.sections.network.strategy_soonest_reset'),
+                  },
                 ]}
                 id={`${routingStrategyLabelId}-select`}
                 disabled={disabled}
@@ -200,6 +212,49 @@ export function SectionNetwork({
         </FieldGrid>
 
         <FieldGrid>
+          <FieldAnchor fieldId="routingSessionAffinitySubagents">
+            <ToggleRow
+              title={t('config_management.visual.additions.routingSessionAffinitySubagents.label')}
+              description={t(
+                'config_management.visual.additions.routingSessionAffinitySubagents.hint'
+              )}
+              checked={values.routingSessionAffinitySubagents}
+              disabled={disabled}
+              onChange={(routingSessionAffinitySubagents) =>
+                onChange({ routingSessionAffinitySubagents })
+              }
+            />
+          </FieldAnchor>
+          <FieldAnchor fieldId="saveCooldownStatus">
+            <ToggleRow
+              title={t('config_management.visual.additions.saveCooldownStatus.label')}
+              description={t('config_management.visual.additions.saveCooldownStatus.hint')}
+              checked={values.saveCooldownStatus}
+              disabled={disabled}
+              onChange={(saveCooldownStatus) => onChange({ saveCooldownStatus })}
+            />
+          </FieldAnchor>
+          <FieldAnchor fieldId="transientErrorCooldownSeconds">
+            <Input
+              label={t('config_management.visual.additions.transientErrorCooldownSeconds.label')}
+              hint={t('config_management.visual.additions.transientErrorCooldownSeconds.hint')}
+              type="number"
+              value={values.transientErrorCooldownSeconds}
+              onChange={(e) => onChange({ transientErrorCooldownSeconds: e.target.value })}
+              disabled={disabled}
+              error={transientErrorCooldownSecondsError}
+            />
+          </FieldAnchor>
+          <FieldAnchor fieldId="videoResultAuthCacheTTL">
+            <Input
+              label={t('config_management.visual.additions.videoResultAuthCacheTTL.label')}
+              hint={t('config_management.visual.additions.videoResultAuthCacheTTL.hint')}
+              value={values.videoResultAuthCacheTTL}
+              onChange={(e) => onChange({ videoResultAuthCacheTTL: e.target.value })}
+              disabled={disabled}
+              error={videoResultAuthCacheTTLError}
+            />
+          </FieldAnchor>
           <FieldAnchor fieldId="forceModelPrefix">
             <ToggleRow
               title={t('config_management.visual.sections.network.force_model_prefix')}
