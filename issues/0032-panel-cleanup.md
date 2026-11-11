@@ -68,6 +68,56 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Branch from `integration/panel-bumpyclock`. Gate at each
+  commit: `bun run type-check`, `bun run lint`, `bun test`.
+- Step 1, Usage. Removed the nav entry (`MainLayout.tsx`), the `/usage`
+  route (`MainRoutes.tsx`), the quick start step, the dashboard usage
+  panel, and the "usage differs" caveat. Also stopped the dashboard
+  polling the usage-statistics flag: nothing rendered its result, so the
+  dashboard keeps only its four sources, and `DashboardPolledSourceId`
+  (`Exclude<DashboardSourceId, 'usage'>`) types them. `attention.ts`
+  keeps `'usage'` in `DashboardSourceId`, so its logic file stays whole.
+  The runtime panel takes the full width with the existing
+  `section + panel` pattern; the `.detailGrid` rule is gone. Usage page,
+  guard, `UsagePanel`, `logic/usage.ts`, `types/usage.ts`, and the
+  `dashboard.usage_*` locale keys stay. No test asserted the route, the
+  nav entry, or the dashboard panel, so no test changed.
+- Step 1 decision (assumption, not from the issue): `UsagePanel` keeps
+  its two `to="/usage"` links. The component is unreachable, and the
+  later issue that restores the page needs them. Say if the links must
+  go now.
+- Step 2, `codexIdentityConfuse`. Confirmed absent from the Go config
+  (`grep -rn "identity-confuse" --include=*.go` finds nothing; issue
+  0022 says the same). Removed UI, search index, field anchors, types,
+  defaults, read and write paths, four locales, and the test
+  `visualConfigCodexIdentityConfuse.test.ts` (it pins the removed
+  behaviour).
+- Step 3. OAuth 404 hint and `getErrorStatus` removed (issue 0025
+  follow-up): the panel and the proxy are one unit, so no 404 branch.
+  `isPluginQuotaFile` no longer lists `github-copilot` and `qoder`; the
+  README sentence about Qoder is gone. `pluginQuota.test.ts` no longer
+  lists those two providers (it pinned the removed special cases).
+  Deleted the unreferenced `QuickStartSteps` component, its stylesheet,
+  `QUICK_START_STEPS`, the unused `quickStart` sidebar icon entry.
+  `createLabel.ts` stays: `ProviderResourcePanel` and
+  `ProvidersWorkbenchPage` import `getProviderCreateLabel`.
+  Deleted `tests/visual-audit/`: three manual browser scripts that stub
+  the v0 management API (paths `/auth-files`, `/logs`, `/plugins`,
+  `/usage`, `/latest-version`, ...). No task, CI job, or doc references
+  them; nothing in the repo can run them against the v8 API.
+  Locales: removed `apikeyFun`, `fennoAI`, `qiniuCloud` from
+  `providerNames` (no reader; brand ids come from `ProviderBrand`).
+  `kimi` stays because the backend serves Kimi.
+- Step 4, brand. Changed `login.error_not_found` and
+  `plugin_store.cli_proxy_api_source` in all four locales. Kept
+  `CPA-<ShortID>` (the Go discovery code generates it), the
+  `router-for-me` URLs and plugin org prefix, `x-cpa-*` headers,
+  `cpa-management-key`, and code comments that say CPA for the backend.
+- Known gaps left on purpose: `nav.usage_statistics`,
+  `nav_meta.usage_statistics`, and `redesign.providers.setup*` locale
+  keys now have no reader. Other issues may want them, and this issue
+  does not list locale cleanup beyond `providerNames`.
+
 ## Follow-ups
 
 ## Result
