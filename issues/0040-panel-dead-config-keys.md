@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0040-panel-dead-config-keys
 type: panel
 agent: deepseek-v4.1-flash
