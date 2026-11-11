@@ -1,6 +1,6 @@
 # PLAN: vendor proxy + dashboard into one binary
 
-Goal: bring `.refs/LLMProxyAPI` and `.refs/CPA-Manager-Plus` into this repo
+Goal: bring `.refs/CLIProxyAPI` and `.refs/CPA-Manager-Plus` into this repo
 as one project where the panel ships native with the proxy, while the
 external management API keeps working. No feature is removed in this plan.
 
