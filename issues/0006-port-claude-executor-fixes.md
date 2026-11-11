@@ -62,6 +62,32 @@ Triage notes: Triage: apply clean. `b4e7dbd` changes the emulated Claude Code CL
 
 ## Log
 
+- Renamed checkout branch to `issue/0006-port-claude-executor-fixes`, set in-progress.
+- Created stub `apps/web/dist/management.html` for builds (not committed).
+- Ported all 10 commits in order with `/usr/bin/go`. Module path rewritten in each patch. Only import-order fix needed: `oauth_claude_authorize_test.go` (`gofmt -w`).
+- `2c5b01f`: fork lacks upstream `ce38c75`, so ported net effect only (`git diff ce38c75^ 2c5b01f` on the 8 paths = 4 files: stream terminal test, proxy_helpers, utls_client, pool test) as one commit with a port note in the body.
+- Commit bodies use upstream text; preserved upstream Co-authored-By trailers; each body ends with `Upstream:` line.
+- `main` moved during the port (issue 0003 landed). Rebases clean, no conflicts. Re-ran gate after rebase.
+- Final gate: `go build ./...` pass; `go vet ./...` shows only the known pre-existing `pluginhost/host_test.go:1637` finding (DECISIONS.md rule: no new finding); `go test ./...` 103 packages ok, 0 fail.
+
 ## Follow-ups
 
+- `b4e7dbd` changes the wire-visible emulated CLI fingerprint to 2.1.321 (per triage note).
+- Upstream `ce38c75` (stream drain) was skipped per triage; only the net effect of its revert `2c5b01f` is in the fork.
+
 ## Result
+
+All 10 commits ported (fork hash / upstream subject / upstream hash):
+
+- `ae075a46` fix(claude): align OAuth authorization state and scopes / `ea0b4712`
+- `565350df` fix(claude): keep mid-session responses system items in place to preserve prompt cache / `27762819`
+- `4be461ae` fix(claude): disable default upstream connection reuse and revert post-stream draining / `2c5b01f4` (net effect only, fork lacks `ce38c75`)
+- `1d7dda03` fix(claude): recognize native client user-agent extensions / `542a525f`
+- `9155d44b` fix(claude): retain request fields with stabilized client profiles / `59304330`
+- `f278ee48` fix(claude): materialize top-level cache_control in cloaked requests / `beb43359`
+- `f5de5a1a` fix(claude): bump Claude Code CLI fingerprint baseline to 2.1.321 / `b4e7dbd2` (wire-visible)
+- `6986be83` fix(claude): extend preserved thinking and per-turn timing gates to Claude Fable 5.2 / `6db7d4b8`
+- `d33d099a` fix(claude): embed tool schemas with rejected property names in descriptions / `f0c9c2d0`
+- `63d04cf2` fix(claude): treat cli-bg x-app header as native claude code client / `6876a2eb`
+
+Gate: build pass; vet only known pre-existing finding; `go test ./...` 103 ok, 0 fail. Branch rebased on current `main` (53f611e2). No merge done. No known gaps.
