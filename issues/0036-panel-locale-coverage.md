@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0036-panel-locale-coverage
 type: panel
 agent: deepseek-v4.1-flash
@@ -61,13 +61,30 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Workflow
 
-1. Create the branch as written above. Set `status: in-progress` in this file and commit.
+1. Create the branch as written above. Set `status: done` in this file and commit.
 2. Work in small steps, commit often. Keep `## Log` current.
 3. When the gate passes: `git rebase integration/panel-bumpyclock`, re-run the gate, set `status: done`, fill `## Result` (what landed, commit list, gate output summary, known gaps, follow-ups), commit.
 4. Do NOT merge. Report: short summary, branch, commit range, follow-ups, surprises, unconfirmed claims.
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Branch `issue/0036-panel-locale-coverage` from `integration/panel-bumpyclock`. Read `DECISIONS.md` (panel migration plan, one unit, design rule) and the 0032 steps for the key list.
+- 2026-11-11: Step 1. Added the nine keys to en, zh-CN, zh-TW, ru as single inserted lines; no re-dump, so the duplicate `providersPage.errorRules` key stays. Text for `providersPage.discovery.syncHint` and `applyChanges` comes from the pre-import locale (`git show panel-pre-bumpyclock:apps/web/src/i18n/locales/<locale>.json`). `common.clear` is "Clear" (icon title and aria-label of the log search clear button). `notification.load_failed` / `save_failed` follow the existing `*_failed` pattern. The four `defaultValue` keys use the fallback text that the callers already show.
+- 2026-11-11: Finding, not in the issue list. The new coverage guard found two more missing keys: `auth_login.login_another_account` and `auth_login.view_auth_files` exist in en, zh-CN and ru but not in zh-TW, so zh-TW showed raw keys on the OAuth page and the SIWC dialog. They came with the SIWC work (`91e633c1`). Added the two zh-TW strings (`4b261059`); the guard cannot pass without them and allow-listing them would hide a real defect.
+- 2026-11-11: Step 2. `tests/localeKeyCoverage.test.ts` scans `src` for `t('namespace.key')` and `i18n.t(...)` with a static key; template keys and keys built in variables are skipped. A key counts as defined when the locale has it, or any i18next plural suffix (`_zero`, `_one`, `_two`, `_few`, `_many`, `_other`). Calls that pass `defaultValue` are skipped only for keys in `DEFAULT_VALUE_ALLOWED` (empty: every `defaultValue` key exists today). Self-tests cover a missing key, plural forms, blank values and the allow-list.
+- 2026-11-11: Step 3. Removed 12 keys from all four locales (no code reads them): `nav.usage_statistics`, `nav_meta.usage_statistics`, `redesign.providers.setup{Title,Provider,OAuth,Client,Usage}`, `dashboard.usage_eyebrow`, `dashboard.usage_title`, `dashboard.usage_window_bounds`, `dashboard.vitals_usage_differs`, `dashboard.vitals_usage_differs_short`. Grepped `src` and `tests` for each key and for template or prefix building before removal. Keys that `UsagePanel.tsx` reads stay, as the issue requires. `tests/dashboardVitalsScope.test.ts` pinned the text of the two `vitals_usage_differs` keys and listed them; that case and those list entries go with the keys (the keys described the dashboard usage section that 0032 removed).
+- 2026-11-11: Step 4. The System page "WebUI Repository" link (`system_info.link_webui_repo`) pointed to `router-for-me/Cli-Proxy-API-Management-Center`; it now points to `https://github.com/Su3h7aM/LLMProxyAPI`. The URL is a literal in `SystemPage.tsx`; no Go code and no config key changed. `tests/round2SystemPage.test.ts` pins it.
+- 2026-11-11: Gate. `bun install --frozen-lockfile` and `bun run verify` green before and after the rebase: 2092 tests pass, 0 fail; `eslint`, `type-check`, token check and the one-file `vite build` pass. Rebase onto `integration/panel-bumpyclock` (`8f589ac6`, includes 0037) clean.
+
 ## Follow-ups
 
+- The guard sees static keys only. Keys built from a template (`t(`dashboard.source_${id}`)`) still need the locale parity tests or a reviewer.
+- `system_info.link_main_repo` still points to `router-for-me/LLMProxyAPI`. The issue named only the WebUI link; a later issue can decide the main repository link.
+- The guard proves that a key exists, not that its text is right. Native-speaker review of the new ru and zh strings is still open.
+
 ## Result
+
+- Landed: the nine missing keys in en, zh-CN, zh-TW, ru (`common.clear`, `providersPage.discovery.syncHint`, `providersPage.discovery.applyChanges`, `notification.load_failed`, `notification.save_failed`, `auth_files.delete_title`, `auth_files.delete_all_title`, `oauth_excluded.delete_title`, `oauth_model_alias.delete_title`); the two zh-TW `auth_login` keys the guard found; `tests/localeKeyCoverage.test.ts`; 12 unused keys removed; the System page WebUI repository link now points to the fork.
+- Commits on `issue/0036-panel-locale-coverage` over `integration/panel-bumpyclock` (`2b64d406..a02fff92`): `89bdf86d` nine keys, `6eb184b7` zh-TW `auth_login`, `70fbef9b` coverage guard, `c74a9a2a` unused keys, `a02fff92` repository link. Rebase clean.
+- Gate: `bun install --frozen-lockfile` and `bun run verify` green at the rebase head: 2092 tests pass, 0 fail; lint, type-check, token check pass; `vite build` writes one `dist/index.html` (3,469 kB).
+- Known gaps: the guard skips dynamic keys and does not judge translation quality. Not merged, as ordered.
