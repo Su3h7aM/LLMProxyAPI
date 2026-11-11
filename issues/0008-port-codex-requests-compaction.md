@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0008-port-codex-requests-compaction
 type: port
 agent: muse-spark-1.3-contributor
@@ -60,6 +60,31 @@ Triage notes: Triage: `bfac858`, `2443e88`, `374056f`, `23e31fe`, `714f052` appl
 
 ## Log
 
+- Ported all 8 upstream commits in order, one fork commit each.
+- bfac8586, 2443e883, 374056f2, 23e31fe2, d576416a: `git apply` clean. gofmt fix on the new output-budget test only (fork import order).
+- 216f2947: `git apply` atomic fail on 4 files. Applied 11 files directly (6 modified + 5 new). Manual port of 4 files: duplex.go (import + followupCtx + 2 reporter lines), duplex test (import + setup block + 3-turn accounting check), config.example.yaml (2 Home comment lines in the session-affinity block), docs/management-api-v8.md (Home usage paragraph in Access section, product name CPA as the fork already uses). New-test import paths needed module rewrite (the split patch was made after sed, from `git show` output).
+- 714f0526: 9 files applied. imagegen_test.go needed manual import lines (fork keeps gorilla/websocket last); rest of the hunks applied after import fix.
+- 61f1ad5e: 14 files applied. antigravity_compaction.go ported by hand (fork keeps `fixedCompactionKeySecret = "LLMProxyAPI"` and its own const layout; added only the new prefix, the 2 new functions, and type/event_id removal). compact_test.go: manual imports + appended upstream test block. Fork Issue7118 capsule tests still pass.
+- Gate: `go build ./...` ok. `go vet ./...` shows only the known old pluginhost finding. Full `go test ./...`: 103 packages ok, 0 fail. Rebased on main (9 commits replay clean), re-ran the gate on touched packages: all ok.
+
 ## Follow-ups
 
+- Fork docs (management-api-v8.md) lack the upstream credits/scheduling section. The Home usage paragraph now lives in the Access section. A wider docs sync is outside this port.
+- The fork docs and config Home wording may need review by the coordinator for tone fit.
+
 ## Result
+
+All 8 upstream commits ported in order (fork hashes, after rebase on main 6deacf71):
+
+- 29144e3f fix(codex): normalize small output budgets for all source formats (Upstream bfac8586)
+- 6bcd9c60 fix(codex): normalize nested custom tools across Chat Completions round trips (Upstream 2443e883)
+- 41a9a79a fix(codex): preserve prompt cache prefix when loading deferred tools via ToolSearch (Upstream 374056f2)
+- 30574ac1 feat(home): report reused dispatch turns in usage (Upstream 216f2947)
+- bbd0c31d fix(executor): stabilize Codex refresh and websocket tests under CPU contention (Upstream 23e31fe2)
+- cff1fa62 fix(codex): allow hosted image_generation injection on standard Responses without reasoning (Upstream 714f0526)
+- 85a77fed fix(codex): support local compaction for compatible Responses endpoints (Upstream 61f1ad5e)
+- ca4a5f4b fix(compaction): strip text format constraints and configuration_update from summary requests (Upstream d576416a)
+
+Gate: `go build ./...` ok. `go vet ./...` shows only the known old pluginhost finding (host_test.go:1637). Full `go test ./...`: 103 packages ok, 0 fail. After rebase on main: re-ran the gate on all touched packages, all ok.
+
+Deviations from upstream: 4 files of 216f2947 ported by hand (config comment placed in the fork session-affinity block; docs Home paragraph placed in the Access section with product name CPA; duplex import order follows gofmt). imagegen_test.go and compact_test.go import blocks adapted to fork order. antigravity_compaction.go keeps the fork `LLMProxyAPI` key secret; only the new prefix, the 2 new functions, and the type/event_id removal were added. Fork Issue7118 capsule tests still pass. Known gaps: none found. Did not merge to main.
