@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0015-triage-panel-api-and-content
 type: triage (read-only, no code changes)
 agent: muse-spark-1.3-contributor
