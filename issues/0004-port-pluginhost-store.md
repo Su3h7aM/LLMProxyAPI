@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0004-port-pluginhost-store
 type: port
 agent: deepseek-v4.1-flash
@@ -56,6 +56,58 @@ Triage notes: Triage: apply clean. `14e57717` has context from upstream `68cd757
 
 ## Log
 
+- 2026-11-11: Created branch `issue/0004-port-pluginhost-store`, stub
+  `apps/web/dist/management.html`, status in-progress.
+- 2026-11-11: Ported all four commits in order; no semantic conflict. Each
+  patch first failed on import-order context only (fork puts
+  `github.com/Su3h7aM/...` before third-party imports). Fixed by hand, then
+  compared each touched file against the upstream tree at the commit, with the
+  module path rewritten: all equal, except the fork-only `GOWORK=off` line in
+  `loader_unix_test.go` and the known `~/.llm-proxy-api` path renames.
+- 2026-11-11: `14e57717` applied without the `68cd7572` context, because the
+  hunk offsets do not overlap. The fork still lacks upstream
+  `refresh_outcome_unknown` in `conductor_cooldown.go`; this commit does not
+  touch those lines.
+- 2026-11-11: Finding, confirmed: `go vet ./internal/pluginhost/` fails on
+  `main` at `host_test.go:1637` before this branch. Proven with
+  `git archive main` into a temp tree. Cause on `main`: fork commit
+  `6e103599`. `DECISIONS.md` on `main` (commit `53f611e2`) already allows
+  this one finding. No other vet finding. No new finding from this port.
+- 2026-11-11: Rebased onto `main` (no conflict). Gate re-run after rebase.
+
 ## Follow-ups
 
+- The panel has no control for the new `?refresh=true` store query. The store
+  page always lists without refresh. Add a control only on request.
+- `sdk/pluginapi` and `sdk/pluginabi` changes are not shown in the plugin SDK
+  docs (`docs/sdk-*.md`). No doc update was in scope.
+- The old vet finding at `internal/pluginhost/host_test.go:1637` still needs
+  its own small issue, as `DECISIONS.md` states.
+
 ## Result
+
+Ported four upstream commits, one fork commit each:
+
+| Fork commit | Upstream commit | Subject |
+| --- | --- | --- |
+| `8a6d26cc` | `b5b724d06df01748055259512d163605fd2f482d` | fix(pluginhost): reuse content-addressed plugin shadow copies across restarts |
+| `b3d12c33` | `f69db99d5ebb9f0a68ea2e6741257968eb27536d` | feat(plugin-store): support opt-in release cache refresh on store listing |
+| `3d1ce8f1` | `0074897481fee1dcd595c1caa1d57e6a379b6be6` | feat(pluginhost): expose token modality details in usage.handle |
+| `4a3d5e2a` | `14e577174a37b339c6b6862b4a08543f2e10a15e` | fix(pluginhost): credential-scoped rate limit errors from plugin executors |
+
+Also `e50961b2` for the issue status start.
+
+Gate after final rebase onto `main` (`de6975ea`):
+
+- `go build ./...`: pass.
+- `go vet ./...`: one finding, `internal/pluginhost/host_test.go:1637`, the
+  known `main` finding that `DECISIONS.md` allows. No new finding.
+- `go test ./...`: pass.
+- `gofmt -l` on all touched files: clean.
+
+Deviations from upstream: import order only, to keep the fork convention.
+The fork-only `GOWORK=off` line in `loader_unix_test.go` and the
+`~/.llm-proxy-api` path renames stay. No test was changed or weakened.
+
+Known gaps: see Follow-ups.
+
