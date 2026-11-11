@@ -17,8 +17,20 @@ describe('round 2 system page', () => {
     expect(systemPage.match(/\{auth\.apiBase \|\| '-'\}/g)).toHaveLength(1);
   });
 
-  test('the WebUI repository link points to the fork, not the reference repository', () => {
-    expect(systemPage).toContain('href="https://github.com/Su3h7aM/LLMProxyAPI"');
+  test('repository links point to the fork, not to a repository that does not exist', () => {
+    const linkCard = (titleKey: string) => {
+      const title = systemPage.indexOf(titleKey);
+      return systemPage.slice(systemPage.lastIndexOf('<a', title), systemPage.indexOf('</a>', title));
+    };
+
+    expect(linkCard('system_info.link_main_repo')).toContain(
+      'href="https://github.com/Su3h7aM/LLMProxyAPI"'
+    );
+    expect(linkCard('system_info.link_webui_repo')).toContain(
+      'href="https://github.com/Su3h7aM/LLMProxyAPI"'
+    );
+    expect(linkCard('system_info.link_docs')).toContain('href="https://help.router-for.me/"');
+    expect(systemPage).not.toContain('router-for-me/LLMProxyAPI');
     expect(systemPage).not.toContain('router-for-me/Cli-Proxy-API-Management-Center');
   });
 

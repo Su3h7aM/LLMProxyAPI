@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0039-panel-links
 type: panel
 agent: deepseek-v4.1-flash
@@ -66,6 +66,19 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 4. Do NOT merge. Report: short summary, branch, commit range, follow-ups, surprises, unconfirmed claims.
 
 ## Log
+
+- 2026-11-11: Read `DECISIONS.md`, issues 0015 to 0017, `apps/web/src`, and
+  `git show panel-pre-bumpyclock:apps/web/src/pages/SystemPage.tsx`.
+- 2026-11-11: Step 1 done. `src/pages/SystemPage.tsx` main repository link
+  now points to `https://github.com/Su3h7aM/LLMProxyAPI`. Locale keys
+  `system_info.link_main_repo` ("Main Repository", "LLM Proxy API core
+  program source code") and `system_info.link_webui_repo` ("WebUI
+  Repository") fit the fork text; no locale change needed. Note: commit
+  `5e5b131c` (already on the base) moved the WebUI card to the fork, so
+  both repository cards now point to the same URL.
+- 2026-11-11: `tests/round2SystemPage.test.ts` now checks each quick-link
+  card on its own and fails if the page links
+  `router-for-me/LLMProxyAPI`.
 
 ## Follow-ups
 
