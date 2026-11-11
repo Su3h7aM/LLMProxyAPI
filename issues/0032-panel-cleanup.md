@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0032-panel-cleanup
 type: panel
 agent: deepseek-v4.1-flash
@@ -118,6 +118,52 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
   keys now have no reader. Other issues may want them, and this issue
   does not list locale cleanup beyond `providerNames`.
 
+
 ## Follow-ups
 
+- Delete the unused Usage and quick start locale keys, or restore them
+  with the page.
+- Decide the fate of `UsagePage`/`UsagePanel` if a v8 usage route
+  appears later.
+- The System quick link "WebUI Repository" still points at the
+  reference repo; decide the fork target.
+- `panel-github-repository` (Go default and the config placeholder) still
+  names the reference repo.
+- The brand pass left `CPA` in code comments and test names.
+
 ## Result
+
+Landed on `issue/0032-panel-cleanup`:
+
+- `feat(panel)!: hide the Usage page and the dashboard usage section`
+  - no `/usage` route, no nav entry, no quick start step, no dashboard
+    usage panel or usage caveat
+  - the dashboard no longer polls the usage-statistics flag
+- `fix(panel): remove the codexIdentityConfuse setting`
+  - the toggle, its search entry, its types, defaults, YAML paths, and
+    locales are gone; the backend never had the field
+- `chore(panel): remove leftovers from the earlier panel issues`
+  - OAuth 404 "upgrade" hint, Copilot and Qoder quota special cases,
+    Qoder README text, `QuickStartSteps`, `tests/visual-audit`, three
+    sponsor `providerNames` keys
+- `chore(panel): finish the brand pass in visible text`
+  - login not-found error and default plugin source label name
+    `LLM Proxy API` in all four locales
+
+Gate: from `apps/web`, `bun install --frozen-lockfile`, then
+`bun run verify`: 2059 tests pass in 248 files, `eslint` clean,
+`tsc` clean, vite build writes `dist/index.html`. `bun run tokens:check`
+reports up to date. Rebased onto `integration/panel-bumpyclock`
+(`ade773b1`); the only conflict was `isPluginQuotaFile`, resolved by
+keeping the `opencode-go` adapter from issue 0030 and dropping only
+`github-copilot` and `qoder`. No Go code changed.
+
+Known gaps:
+
+- `nav.usage_statistics`, `nav_meta.usage_statistics`,
+  `redesign.providers.setup*`, `dashboard.usage_*`, and
+  `dashboard.vitals_usage_differs*` locale keys now have no reader, or
+  only an unreachable reader. Kept on purpose.
+- `UsagePage`, its guard, `UsagePanel`, and `logic/usage.ts` stay, with
+  no route.
+- `UsagePanel` keeps its two `to="/usage"` links.
