@@ -68,6 +68,8 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
-## Follow-ups
+- 2026-11-11: Set `status: in-progress`. Branch from `integration/panel-bumpyclock`.
+- 2026-11-11: Inventory. `760d7f3a` adds provider `opencodeGo` (key-only: API key, prefix, priority, excluded models; no URL/models/headers) on family `opencode-go-api-key` via v8 config groups, plus quota tab (`opencodeGo/OpencodeGoQuotaBody.tsx`, `data.ts`), `TYPE_COLORS['opencode-go']`, `OPENCODE_GO_USAGE_URL=https://opencode.ai/zen/go/v1/usage` with `x-opencode-session` headers, `filter_opencode-go`, `providerNames.opencodeGo`, `opencode_go_quota` strings, icons `opencode.svg`/`opencode-dark.svg`, and 2 tests. `c712e17f` adds 7-locale strings and LPA/LPAMC/LLM Proxy API brand text. `f3912994` maps `api-keys.opencode-go` groups to `openCodeGoApiKeys` in `transformers.ts` and marks config-backed keys `runtime_only=true` in Go synthesizer.
+- 2026-11-11: Go side. Config key `opencode-go-api-key` (`internal/config/config.go:166`, `config_types.go:987`); v8 read via tree `PUT /config/*path` (`internal/api/server_management_v8.go`). Quota: `internal/auth/opencode/usage.go` (5h/weekly/monthly windows, session header); `plugin_quota.go:154` routes `opencode-go` auth to quota fetch; v8 `credentials/quota/fetch` removed (404 per `server_management_v8_test.go:119`). So panel uses `POST /requests/api-call` with fixed usage URL. Current panel already reads `api-keys.opencode-go` (`transformers.ts:384`), has `openCodeGoApiKeys`, family CRUD, `useConfigStore` case. Missing: descriptors, adapters, brandLogos, ProviderBrand, workbench mapping, dashboard count, authFiles icons/filter, quota provider, timeline/resetSchedule, locale strings (4 locales), icons.
 
 ## Result

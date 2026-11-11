@@ -9,6 +9,8 @@ import openaiDarkLogo from '@/assets/icons/openai-dark.svg';
 import vertexLogo from '@/assets/icons/vertex.svg';
 import xaiLightLogo from '@/assets/icons/grok.svg';
 import xaiDarkLogo from '@/assets/icons/grok-dark.svg';
+import opencodeLightLogo from '@/assets/icons/opencode.svg';
+import opencodeDarkLogo from '@/assets/icons/opencode-dark.svg';
 import type { ProviderBrand } from './types';
 
 export interface ProviderBrandLogo {
@@ -31,4 +33,5 @@ export const PROVIDER_LOGOS: Record<ProviderBrandLogoKey, ProviderBrandLogo> = {
   xai: { src: xaiLightLogo, darkSrc: xaiDarkLogo, transparent: true },
   vertex: { src: vertexLogo },
   openaiCompatibility: { src: openaiLightLogo, darkSrc: openaiDarkLogo, transparent: true },
+  opencodeGo: { src: opencodeLightLogo, darkSrc: opencodeDarkLogo, transparent: true },
 };

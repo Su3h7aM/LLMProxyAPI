@@ -19,6 +19,7 @@ import {
   geminiToResource,
   interactionsToResource,
   metaToResource,
+  opencodeGoToResource,
   openaiToResource,
   vertexToResource,
   xaiToResource,
@@ -117,7 +118,7 @@ const buildModelAliases = (
     .filter((m) => m.name);
 
 const buildProviderKeyConfig = (
-  brand: 'gemini' | 'interactions' | 'codex' | 'meta' | 'xai' | 'claude' | 'vertex',
+  brand: 'gemini' | 'interactions' | 'codex' | 'meta' | 'xai' | 'opencodeGo' | 'claude' | 'vertex',
   input: ProviderEntryFormInput,
   existing?: ProviderKeyConfig | GeminiKeyConfig | null
 ): ProviderKeyConfig | GeminiKeyConfig => {
@@ -224,6 +225,11 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
         break;
       case 'xai':
         resources = (config.xaiApiKeys ?? []).map((item, index) => xaiToResource(item, index));
+        break;
+      case 'opencodeGo':
+        resources = (config.openCodeGoApiKeys ?? []).map((item, index) =>
+          opencodeGoToResource(item, index)
+        );
         break;
       case 'claude':
         resources = (config.claudeApiKeys ?? []).map((item, index) =>
@@ -345,6 +351,10 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           await providersApi.createXAIConfig(
             buildProviderKeyConfig('xai', input) as ProviderKeyConfig
           );
+        } else if (brand === 'opencodeGo') {
+          await providersApi.createOpenCodeGoConfig(
+            buildProviderKeyConfig('opencodeGo', input) as ProviderKeyConfig
+          );
         } else if (brand === 'claude') {
           await providersApi.createClaudeConfig(
             buildProviderKeyConfig('claude', input) as ProviderKeyConfig
@@ -404,6 +414,13 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             selector.apiKey,
             selector.baseUrl,
             buildProviderKeyConfig('xai', input, existing) as ProviderKeyConfig
+          );
+        } else if (brand === 'opencodeGo' && selector.brand === 'opencodeGo') {
+          const existing = resource.raw as ProviderKeyConfig;
+          await providersApi.updateOpenCodeGoConfig(
+            selector.apiKey,
+            selector.baseUrl,
+            buildProviderKeyConfig('opencodeGo', input, existing) as ProviderKeyConfig
           );
         } else if (brand === 'claude' && selector.brand === 'claude') {
           const existing = resource.raw as ProviderKeyConfig;
@@ -479,6 +496,14 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           );
           const next = (config?.xaiApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('xai-api-key', next);
+        } else if (sel.brand === 'opencodeGo') {
+          await providersApi.deleteOpenCodeGoConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
+          const next = (config?.openCodeGoApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('opencode-go-api-key', next);
         } else if (sel.brand === 'claude') {
           await providersApi.deleteClaudeConfig(
             sel.apiKey,
@@ -541,6 +566,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           (brand === 'codex' && selector.brand === 'codex') ||
           (brand === 'meta' && selector.brand === 'meta') ||
           (brand === 'xai' && selector.brand === 'xai') ||
+          (brand === 'opencodeGo' && selector.brand === 'opencodeGo') ||
           (brand === 'claude' && selector.brand === 'claude') ||
           (brand === 'vertex' && selector.brand === 'vertex')
         ) {
@@ -555,6 +581,8 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             await providersApi.updateMetaConfig(selector.apiKey, selector.baseUrl, next);
           } else if (selector.brand === 'xai') {
             await providersApi.updateXAIConfig(selector.apiKey, selector.baseUrl, next);
+          } else if (selector.brand === 'opencodeGo') {
+            await providersApi.updateOpenCodeGoConfig(selector.apiKey, selector.baseUrl, next);
           } else if (selector.brand === 'claude') {
             await providersApi.updateClaudeConfig(selector.apiKey, selector.baseUrl, next);
           } else if (selector.brand === 'vertex') {
