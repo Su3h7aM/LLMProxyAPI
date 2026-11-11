@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0019-panel-v8-plumbing
 type: panel
 agent: muse-spark-1.3-contributor
@@ -70,6 +70,46 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md`, issues 0015/0016/0017, current `apps/web` area files, pre-import reference (`panel-pre-bumpyclock`), Go v8 handlers.
+- 2026-11-11: Committed v8 plumbing (constants, same-origin connection, client with revision guard, key-only store/login, version path, configValue/configPatch helpers, minimal consumer fixes in `pluginResources.ts` and `models.ts`).
+- 2026-11-11: Committed locales and tests (removed 6 unused keys per locale, deleted 2 tests pinning removed behavior, ported `versionFailure` and `configPatch` tests, added same-origin tests; 11 visual-integration expectations in `configPatch.test.ts` stay skipped, see Result).
+- 2026-11-11: Gate green (`bun run verify`: 1694 pass, 11 skip, 0 fail; lint, type-check, build). Set `status: done`. No merge.
+
 ## Follow-ups
 
+Remaining v0 paths in `src/services/api/*` (file:line path; all under the `/v8/management` base after this issue). Next issues pick them up. v8 targets from issue 0015.
+
+- `apiCall.ts:80` POST `/api-call` -> POST `/requests/api-call`.
+- `apiKeys.ts:9,14,16,18` GET/PUT/PATCH/DELETE `/api-keys` -> v8 config key groups (`PUT /config/api-keys/<family>`); no direct twin.
+- `apiKeyUsage.ts:8` GET `/api-key-usage` -> GET `/observability/usage/api-keys`.
+- `authFiles.ts:446,475,485,493` `/auth-files` (+`497` `/auth-files/download`, `452` `/auth-files/status`, `455` `/auth-files/fields`, `459` `/auth-files/refresh`, `568` `/auth-files/models`) -> `/credentials*` equivalents.
+- `authFiles.ts:512,517,524,528` `/oauth-excluded-models` -> `PUT /config/oauth/excluded-models`; `:440` `/oauth-model-alias` -> `/config/oauth/model-alias`.
+- `authFiles.ts:583` `/model-definitions/:channel` -> GET `/routing/model-definitions/:channel`.
+- `config.ts:21` PUT `/request-log` -> PUT `/config/<tree-path>`; `config.ts:14`, `providers.ts:218` GET `/config` and `configFile.ts:9,20` `/config.yaml` already exist on v8.
+- `logs.ts:67,71` GET/DELETE `/logs`, `:74,77` `/request-error-logs[/:name]`, `:83` `/request-log-by-id/:id` -> `/observability/logs*` equivalents.
+- `oauth.ts:55` `/{provider}-auth-url`, `:62` `/get-auth-status`, `:68` `/oauth-session`, `:76` `/oauth-callback` -> `/oauth/auth-url`, `/oauth/status`, `/oauth/session`, `/oauth/callback`.
+- `plugins.ts:316,321,324,329,334` `/plugins*` -> GET/DELETE served on v8, `enabled` and `:id/config` via `/config/plugins/configs/:id`; `:339,347` `/plugin-store[/:id/install]` -> `/plugins/store[/:id/install]`.
+- `providers.ts:220` PUT `/${section}`, `:454-590` per-family key-list GET/DELETE, `:593-623` `/openai-compatibility` -> v8 config tree writes.
+- `usage.ts:14` GET `/usage`, `:21` `/usage-statistics-enabled` -> v8 has no route (Usage page rewrite or removal, later issue).
+- `vertex.ts:23` POST `/vertex/import` -> POST `/oauth/import?provider=vertex`.
+- `copilot.ts` `/copilot-quota`: no backend route; hide or remove (unchanged by this issue).
+- `supportsPlugin` store field, `server-plugin-support-update` listener, and plugin-route gating in `MainLayout.tsx`/`MainRoutes.tsx` are now dead (client no longer emits the event). The plugin issue decides: remove the gate or rewire it.
+- `AuthState.apiBase` is kept (always page origin) as cache scope and asset-URL base for out-of-scope modules. The auth-file/config/logs/provider issues must not reintroduce custom-base UI around it.
+- Skipped tests: 11 visual-integration expectations in `tests/configPatch.test.ts` await the config-page issue (v8 visual port), then unskip.
+- No unused "remote access" or "minimum version" locale strings found in this tree; only `login.error_forbidden` mentions remote management and it is still used. Nothing removed there.
+
 ## Result
+
+Landed on `issue/0019-panel-v8-plumbing` (4 commits, see log above):
+
+- `src/utils/constants.ts`: `MANAGEMENT_API_PREFIX` `/v8/management`; deleted `DEFAULT_API_PORT`, support-plugin and `x-server-*` header key lists, scoped storage prefixes. Kept `x-cpa-version`/`x-cpa-build-date` display keys.
+- `src/utils/connection.ts`: same-origin only (`getSameOriginApiBase`, `getManagementApiUrl`). Deleted `normalizeApiBase`, `computeApiUrl`, `detectApiBaseFromLocation`, `resolvePanelBasePath`.
+- `src/services/api/client.ts`: v8 base, Bearer key, 401 logout event; ported `connectionRevision`/`getConnectionRevision`/`captureConnection` with `emitEvents` gating; kept version/build-date header reading; deleted version negotiation and the support-plugin gate.
+- `src/stores/useAuthStore.ts` + `src/services/storage/secureStorage.ts`: single `isLoggedIn` flag, plain obfuscated persistence; deleted scoped storage, legacy `apiBase`/`apiUrl` migration, custom-base handling. Login is key-only with remember option, auto-login, logout.
+- `src/pages/LoginPage.tsx`: key-only form; removed address readout, custom-base UI, remote hint, CORS string mapping (CORS now maps to network error).
+- Locales (en, zh-CN, zh-TW, ru): removed `connection_current`, `connection_auto_hint`, `custom_connection_*` (3), `error_cors`.
+- `src/services/api/version.ts`: `GET /server/latest-version` (matches Go `GetLatestVersion`, returns `{"latest-version": ...}`; 404/502 propagate, no release reported).
+- Added `src/services/api/configValue.ts`, `src/services/api/configPatch.ts` (verbatim v8 helpers) for later issues; not wired into pages.
+- Minimal out-of-scope touch-ups to keep the build green: `pluginResources.ts` (inline origin trim), `models.ts` (local provider-URL trimmer `normalizeProviderBaseUrl`), `tests/logsOptionsMenu.test.ts` (v8 label).
+- Gate: `bun run verify` green (1694 pass, 11 skip, 0 fail; lint clean; type-check clean; `dist/index.html` 3.19 MB builds).
+- Known gaps: only login, System page, and the shared client work on v8; all `## Follow-ups` paths still call v0 shapes. `supportsPlugin` gating is dead until the plugin issue decides.
