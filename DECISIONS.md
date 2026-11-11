@@ -2,6 +2,25 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: Panel migration plan (after triage 0015, 0016, 0017).
+  The BumpyClock panel is v0-based and older than the vendored official
+  panel in coverage (no routing board, no v8 policy editors, no Claude
+  reset grants, 4 locales instead of 7). Decisions: (1) replace the
+  `apps/web` tree with the BumpyClock tree, then port its API layer to v8
+  only, using the pre-import panel (tag `panel-pre-bumpyclock`) as the
+  reference for v8 request and response shapes; (2) work on branch
+  `integration/panel-bumpyclock`, merge to `main` only when the panel
+  reaches parity (builds, serves, works on v8, fork features present),
+  because the import alone would drop fork features; (3) parity rule: the
+  features of the current panel (routing board, provider and auth-file
+  policy editors, Claude reset grants, OpenCode Go, soonest-reset) are
+  rebuilt in the BumpyClock design, none is dropped; (4) locales: keep the
+  4 of BumpyClock for now; ko, tr, vi are a later, low-priority step; (5)
+  remove sponsor content and the Copilot and Qoder pages (no backend
+  route); (6) remove version negotiation and legacy probes; keep the
+  revision guard and 401 handling; (7) shortcut endpoints (`views/`
+  prefix, `observed_at`) come after parity, as additive endpoints only;
+  contract generation stays deferred. Reason: developer order.
 - 2026-11-11: Panel design rule. The BumpyClock interface, style, and
   design system are not changed. Fork-only features are added to it so that
   they look native: they use its components, tokens, layout, and patterns.
