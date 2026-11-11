@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0035-triage-panel-parity
 type: triage (read-only, no code changes)
 agent: deepseek-v4.1-flash
