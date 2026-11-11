@@ -3,14 +3,14 @@
 Format: date, context, decision, reason. Newest first.
 
 - 2026-11-11: Fork focus is the API on a server or in a container (VPS,
-  container image). Features for a program that runs on the user's own
-  machine are out of scope: local CLI login helpers, harness or agent
-  auto-configuration, desktop or OS-specific behavior. Do not port them
-  from upstream. Skipped now: `bebd92c4` (`-login-proxy` CLI flag).
-  Already on `main` and left in place (inert on Linux, build-tagged or
-  CLI-only; removing them would widen the diff against upstream):
-  `8c6d8b18` and `03c394ee` (macOS wake handling, `*_darwin*` files),
-  `3891ebaa` (CLI re-login client reuse). Reason: developer order.
+  container image); the developer connects harnesses to the API only.
+  Features for a program on the user's own machine (CLI login helpers,
+  harness auto-configuration, OS-specific behavior) are low priority: do
+  not spend effort on them, do not remove them. Port them when they come
+  with a normal upstream sync, because staying close to upstream makes
+  later syncs easier. Example: `bebd92c4` (`-login-proxy`) is ported;
+  macOS wake handling (`8c6d8b18`, `03c394ee`) and CLI re-login
+  (`3891ebaa`) stay in place. Reason: developer order.
 - 2026-11-11: `go vet ./...` has one old finding on `main`:
   `internal/pluginhost/host_test.go:1637` (copies `sync.Once`). Gate rule
   for ports: vet must show no new finding beyond this one. Fix it in a
