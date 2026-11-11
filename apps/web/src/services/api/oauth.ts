@@ -9,14 +9,7 @@ import {
 } from '@/utils/providerKeys';
 
 export type BuiltInOAuthProvider =
-  | 'codex'
-  | 'anthropic'
-  | 'antigravity'
-  | 'kimi'
-  | 'kimi-ai'
-  | 'xai'
-  | 'devin'
-  | 'meta';
+  'codex' | 'anthropic' | 'antigravity' | 'kimi' | 'kimi-ai' | 'xai' | 'devin' | 'meta';
 
 export interface OAuthStartResponse {
   url: string;
@@ -35,6 +28,21 @@ export interface OAuthCancelResponse {
   cancelled: boolean;
 }
 
+export interface SiwcBindResponse {
+  status: 'ok';
+  url: string;
+  state: string;
+  flow: 'siwc_bind';
+  expires_in: number;
+}
+
+/** Read-only local SIWC state of one Codex credential. No upstream request. */
+export type SiwcStatus = 'off' | 'valid' | 'invalid';
+
+export interface SiwcStatusResponse {
+  status: SiwcStatus;
+}
+
 const WEBUI_SUPPORTED = new Set<string>(['codex', 'claude', 'antigravity', 'devin', 'xai']);
 
 const normalizeProviderForManagementPath = (provider: string): string => {
@@ -46,6 +54,23 @@ const normalizeProviderForManagementPath = (provider: string): string => {
 };
 
 export const oauthApi = {
+  startSiwcBind: (name: string, signal?: AbortSignal) =>
+    apiClient.post<SiwcBindResponse>('/oauth/siwc/bind', { name }, signal ? { signal } : undefined),
+
+  /** Both v8 status paths use one handler; the OAuth path is kept for the caller that owns a
+   * pending binding, the credential path for a credential row. */
+  getSiwcStatus: (name: string, signal?: AbortSignal) =>
+    apiClient.get<SiwcStatusResponse>('/oauth/siwc/status', {
+      params: { name },
+      ...(signal ? { signal } : {}),
+    }),
+
+  getCredentialSiwcStatus: (name: string, signal?: AbortSignal) =>
+    apiClient.get<SiwcStatusResponse>('/credentials/siwc/status', {
+      params: { name },
+      ...(signal ? { signal } : {}),
+    }),
+
   startAuth: (provider: string, signal?: AbortSignal) => {
     const providerKey = normalizeProviderForManagementPath(provider);
     const params: Record<string, string | boolean> = { provider: providerKey };
@@ -79,3 +104,12 @@ export const oauthApi = {
     );
   },
 };
+
+/** Start and cleanup must use the same connection, even after the dialog closes. */
+export function captureSiwcBindingApi() {
+  const client = apiClient.captureConnection();
+  return {
+    start: (name: string) => client.post<SiwcBindResponse>('/oauth/siwc/bind', { name }),
+    cancel: (state: string) => client.delete('/oauth/session', { params: { state } }),
+  };
+}
