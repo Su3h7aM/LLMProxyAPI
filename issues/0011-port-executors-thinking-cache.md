@@ -120,6 +120,14 @@ executor tests pass.
 
 Question for the coordinator: use A or B? Work is stopped at `e8bb77b7`.
 
+### 2026-11-11: decision (coordinator)
+
+Option A. Order is now: `f36b195e`, `eb6e25ab`, `949b43b3`, `f77a3c10`,
+`13fdcc5e`, `00c6ae82`, `cc95661c`. `00c6ae82` goes before `cc95661c`. The
+`cc95661c` commit body gets the line `Port note: applied after 00c6ae82
+because upstream cc95661c does not build without it.` The order change is also
+recorded in `## Result`.
+
 ## Follow-ups
 
 ## Result
