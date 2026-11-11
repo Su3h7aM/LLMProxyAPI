@@ -2,6 +2,13 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: Panel migration done and merged to `main` (issues 0018 to
+  0040). Gate at merge: `bun run verify` 2096 tests, `go build`, `go vet`,
+  `go test`, `gofmt` all clean; smoke test serves the panel and the v8
+  routes. Open items: ko, tr, vi locales; usage summary endpoint and the
+  Usage page (no backend data); shortcut endpoints (`views/`, quota batch);
+  xAI and Kimi plan names; Claude dollar windows; no browser check yet;
+  weighted-routing chain from the proxy sync (see earlier entry).
 - 2026-11-11: Panel migration plan (after triage 0015, 0016, 0017).
   The BumpyClock panel is v0-based and older than the vendored official
   panel in coverage (no routing board, no v8 policy editors, no Claude
