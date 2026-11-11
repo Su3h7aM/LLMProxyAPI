@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0040-panel-dead-config-keys
 type: panel
 agent: deepseek-v4.1-flash
@@ -100,3 +100,42 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
   no behavior change.
 
 ## Result
+
+The config page no longer has editors for `disable-auto-update-panel` and
+`panel-github-repository`. Both keys stay in the YAML: the visual config
+edits the parsed document and writes only the fields of its own editors.
+
+What landed:
+
+- `SectionConnectivity.tsx`: removed the auto-update toggle and the panel
+  repository input from the remote management group. Other fields stay.
+- `useVisualConfig.ts`: removed the values, the dirty-key set entries, the
+  load reads, and the YAML writes for the two keys.
+- `types/visualConfig.ts`: removed `rmDisableAutoUpdatePanel` and
+  `rmPanelRepo` from the values type and the defaults.
+- `searchIndex.ts`, `constants.ts`: removed the two search entries and
+  their `FIELD_VALUE_KEYS` mappings.
+- Locales (en, zh-CN, zh-TW, ru): removed `disable_auto_update_panel`,
+  `disable_auto_update_panel_desc`, and `panel_repo`. Text edits only; the
+  duplicated `errorRules` key and the file layout stay as they are.
+- `tests/visualConfigDeadPanelKeys.test.ts`: new round-trip test. It loads
+  a YAML with the two keys under `management` and under `remote-management`,
+  edits another field, saves, and checks that both keys keep their values.
+  It also checks that values and the field index have no entries for them.
+
+Commits (`integration/panel-bumpyclock` base `cd6ae9f0`):
+
+- `c5e395af` docs(0040): start panel dead config keys
+- `9af87066` fix(panel): drop editors for dead panel update keys
+- `3e5e02bf` test(panel): keep dead panel config keys on save
+- `5db0609a` docs(0040): log the dead key removal and the round-trip test
+
+Gate: `bun install --frozen-lockfile` and `bun run verify` pass (2096
+tests, 0 fail; lint, type-check, build). The gate ran again after the
+rebase onto `integration/panel-bumpyclock`.
+
+Known gaps: none.
+
+Follow-ups: the comment on `RemoteManagement` in
+`internal/config/config_types.go` says `remote-management`, but the
+canonical key is `management`. Comment only.
