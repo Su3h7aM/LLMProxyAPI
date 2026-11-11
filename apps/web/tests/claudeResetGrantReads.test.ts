@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import {
   createResetGrantReader,
   scheduleResetGrantRead,
-  RESET_GRANT_READ_DELAY_MS,
+  RESET_GRANT_READ_TIMEOUT_MS,
 } from '../src/features/quota/providers/claude/resetGrantReads';
 import type { AnthropicResetGrantStatus } from '../src/services/api/claudeResetGrants';
 
@@ -26,7 +26,7 @@ const deferred = () => {
 };
 
 test('waits 2000ms; cleanup cancels and stale sessions cannot dispatch', async () => {
-  expect(RESET_GRANT_READ_DELAY_MS).toBe(2000);
+  expect(RESET_GRANT_READ_TIMEOUT_MS).toBe(2000);
   let reads = 0;
   let session = 1;
   const start = () => {

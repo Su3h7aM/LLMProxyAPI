@@ -1,13 +1,14 @@
 import { apiClient } from '@/services/api/client';
 import { readClaudeResetGrants } from '@/services/api/claudeResetGrants';
 
-export const RESET_GRANT_READ_DELAY_MS = 2000;
+/** One delayed attempt per effect activation, never an automatic retry. */
+export const RESET_GRANT_READ_TIMEOUT_MS = 2000;
 
 /** One delayed attempt per effect activation, never an automatic retry. */
 export function scheduleResetGrantRead(start: () => void, current: () => boolean) {
   const timeout = setTimeout(() => {
     if (current()) start();
-  }, RESET_GRANT_READ_DELAY_MS);
+  }, RESET_GRANT_READ_TIMEOUT_MS);
   return () => clearTimeout(timeout);
 }
 
