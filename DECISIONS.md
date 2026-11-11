@@ -2,6 +2,24 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: Upstream sync, round 1 (baseline e5e6ad1e to 8bba7a77).
+  Port bug fixes and valid improvements only; one fork commit per upstream
+  commit with an `Upstream:` trailer. Skip: `ce38c75` (reverted upstream by
+  `2c5b01f`), sponsor and README commits (`8bba7a77`, `d1ea84f4`,
+  `418b824c`, `59a2b353`). Reason: developer order; fork features stay.
+- 2026-11-11: Weighted-routing rewrite chain is deferred: `40c16182`
+  (rebind-on `never`), `d2045150`, `e479ab12`, `e84d4836`, `9d7d012b`.
+  These are features, not fixes (~8,500 lines) and they rewrite the selector
+  that the fork extends (soonest-reset, affinity persister, strikes).
+  Revisit as one dedicated issue after the other ports land.
+- 2026-11-11: Out-of-range dependencies are ported first: `f36b195e`
+  before `cc95661`; `4b3f2c7e` before `ece3f52`. Both are small, tested
+  fixes. Reason: the dependent commits do not apply without them.
+- 2026-11-11: The upstream clone lives in `.refs/CLIProxyAPI`, named after
+  the upstream repository (`router-for-me/CLIProxyAPI`), not after the fork.
+- 2026-11-11: Go gate for ports: `/usr/bin/go build ./... && go vet ./... &&
+  go test ./...` (needs a stub `apps/web/dist/management.html`). Plain `go`
+  is a mise shim that needs `mise trust`; agents must not trust it.
 - 2026-11-06: Panel is part of the fork. The official CLI Proxy API
   Management Center is vendored into `apps/web` (pin `953fb24`) and the
   server binary embeds `dist/management.html`. No console bundle is
