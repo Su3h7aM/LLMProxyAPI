@@ -11,6 +11,8 @@ const COLLAPSED_LIMIT = 10;
 
 interface ModelEntriesEditorProps {
   models: ModelEntryInput[];
+  /** Restrict the rows to the credential alias contract (no image/thinking controls). */
+  oauthAliasOnly?: boolean;
   /** Only OpenAI-compatible entries can expose the image-generation capability. */
   supportsImage: boolean;
   /** Every backend provider model can override its thinking capability. */
@@ -24,6 +26,7 @@ interface ModelEntriesEditorProps {
 
 export function ModelEntriesEditor({
   models,
+  oauthAliasOnly = false,
   supportsImage,
   supportsThinking,
   mutating,
@@ -57,7 +60,7 @@ export function ModelEntriesEditor({
   return (
     <>
       {visible.map((entry, idx) => {
-        const hasExtendedOptions = supportsImage || supportsThinking;
+        const hasExtendedOptions = !oauthAliasOnly && (supportsImage || supportsThinking);
         const expanded = hasExtendedOptions && expandedIdx === idx;
         const thinkingLevels = entry.thinkingLevels ?? [];
         const hasThinking = entry.thinkingLevelsTouched
@@ -81,7 +84,11 @@ export function ModelEntriesEditor({
               />
               <input
                 className={styles.input}
-                placeholder="alias (optional)"
+                placeholder={oauthAliasOnly ? t('auth_files.policy_alias_name') : 'alias (optional)'}
+                aria-label={
+                  oauthAliasOnly ? t('auth_files.policy_alias_name') : 'alias (optional)'
+                }
+                required={oauthAliasOnly}
                 value={entry.alias ?? ''}
                 onChange={(e) => onUpdate(idx, { alias: e.target.value })}
                 disabled={mutating}

@@ -28,6 +28,7 @@ interface SelectProps {
   ariaLabel?: string;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
+  ariaInvalid?: boolean;
   fullWidth?: boolean;
   size?: 'sm' | 'md';
   id?: string;
@@ -87,6 +88,7 @@ export function Select({
   ariaLabel,
   ariaLabelledBy,
   ariaDescribedBy,
+  ariaInvalid,
   fullWidth = true,
   size = 'md',
   id,
@@ -326,6 +328,7 @@ export function Select({
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid}
           disabled={disabled}
         >
           <span className={`${styles.triggerText} ${isPlaceholder ? styles.placeholder : ''}`}>
