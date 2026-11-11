@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0019-panel-v8-plumbing
 type: panel
 agent: muse-spark-1.3-contributor
