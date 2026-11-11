@@ -5,14 +5,16 @@ import { RefreshButton } from '@/components/ui/RefreshButton';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
-import { useRevealGroup, useRevealOnScroll } from '@/hooks/motion';
+import { useRevealOnScroll } from '@/hooks/motion';
 import { formatCompactNumber, formatDateValue, formatPercent } from '@/utils/format';
 import { getErrorMessage } from '@/utils/helpers';
 import { resolveTimeZoneLabel } from '@/utils/time/timezone';
 import {
   DASHBOARD_POLL_MS,
   DASHBOARD_SOURCE_IDS,
+  isDashboardPolledSource,
   useDashboardOverview,
+  type DashboardPolledSourceId,
 } from './hooks/useDashboardOverview';
 import { useDashboardClock } from './hooks/useDashboardClock';
 import {
@@ -25,14 +27,11 @@ import {
 } from './logic/attention';
 import { classifyFreshness, worstFreshness, type SourceFreshness } from './logic/freshness';
 import { redactUrlCredentials } from './logic/redact';
-import { formatInstant } from './logic/time';
 import { deriveRequestScope, requestScopeLabel } from './logic/requestScope';
 import { credentialsVitalLine } from './logic/vitals';
-import { summarizeUsage } from './logic/usage';
 import { deriveHealthStatus, verdictInTitle } from './logic/healthStatus';
 import { useDashboardAnnouncer } from './hooks/useDashboardAnnouncer';
 import { useFocusRescue } from './hooks/useFocusRescue';
-import type { CredentialRow } from './types';
 import { AttentionPanel } from './components/AttentionPanel';
 import { CredentialList } from './components/CredentialList';
 import { ProviderHealthList } from './components/ProviderHealthList';
@@ -40,7 +39,6 @@ import { SourceStamp, type StampEntry } from './components/SourceStamp';
 import { EmptyRequestFlow, ThroughputChart } from './components/ThroughputChart';
 import { HealthStatusRow } from './components/HealthStatusRow';
 import { QuotaSummaryChart } from './components/QuotaSummaryChart';
-import { UsagePanel } from './components/UsagePanel';
 import { VitalsStrip, type Vital } from './components/VitalsStrip';
 import { providerLabel, splitWindowMinutes, toneForSuccessRate } from './utils';
 import styles from './dashboard.module.scss';
@@ -100,7 +98,6 @@ export function DashboardPage() {
     credentials,
     credentialFiles,
     credentialFilesReady,
-    usage,
     sources,
     refresh,
     retrySource,
@@ -115,7 +112,7 @@ export function DashboardPage() {
   const trafficRef = useRevealOnScroll<HTMLElement>();
   const fleetRef = useRevealOnScroll<HTMLElement>();
   const credentialsRef = useRevealOnScroll<HTMLElement>();
-  const detailRef = useRevealGroup<HTMLElement>();
+  const runtimeRef = useRevealOnScroll<HTMLElement>();
 
   /* ---------- Freshness ---------- */
 
@@ -126,10 +123,10 @@ export function DashboardPage() {
           id,
           classifyFreshness(sources[id], DASHBOARD_POLL_MS[id], now),
         ])
-      ) as Record<DashboardSourceId, SourceFreshness>,
+      ) as Record<DashboardPolledSourceId, SourceFreshness>,
     [sources, now]
   );
-  const stampEntries = (ids: DashboardSourceId[]): StampEntry[] =>
+  const stampEntries = (ids: DashboardPolledSourceId[]): StampEntry[] =>
     ids.map((id) => ({ id, status: sources[id], freshness: freshness[id] }));
   const primaryFreshness = worstFreshness([freshness.credentials, freshness.traffic]);
   const hasData = sources.credentials.receivedAt !== null || sources.traffic.receivedAt !== null;
@@ -154,49 +151,21 @@ export function DashboardPage() {
     return t('dashboard.window_hm', { hours, minutes });
   }, [windowMinutes, t]);
 
-  // Every source can raise an attention item when it fails or goes stale. Usage is skipped
-  // only while the server's latest successful answer says it has no usage statistics.
+  // Every source can raise an attention item when it fails or goes stale.
   const sourceHealth = useMemo<SourceHealth[]>(
     () =>
-      DASHBOARD_SOURCE_IDS.filter(
-        (id) => !(id === 'usage' && usage?.enabled === null && freshness.usage === 'live')
-      ).map((id) => ({
+      DASHBOARD_SOURCE_IDS.map((id) => ({
         id,
         freshness: freshness[id],
         error: sources[id].error,
         receivedAt: sources[id].receivedAt,
       })),
-    [freshness, sources, usage?.enabled]
+    [freshness, sources]
   );
   const attention = useMemo(
     () => (connected ? buildAttention(providers, sourceHealth) : []),
     [connected, providers, sourceHealth]
   );
-  /* ---------- Usage (separate source, same window) ---------- */
-
-  const usageWindowStart = traffic.startMs ?? now - DEFAULT_WINDOW_MINUTES * 60_000;
-  const usageWindowEnd = traffic.endMs ?? now;
-  const usageSummary = useMemo(
-    () => (usage?.enabled ? summarizeUsage(usage.usage, usageWindowStart, usageWindowEnd) : null),
-    [usage, usageWindowStart, usageWindowEnd]
-  );
-  const usageWindowLabel = t('dashboard.usage_window_bounds', {
-    start: `${formatInstant(usageWindowStart, now, i18n.language)} ${resolveTimeZoneLabel(new Date(usageWindowStart))}`,
-    end: `${formatInstant(usageWindowEnd, now, i18n.language)} ${resolveTimeZoneLabel(new Date(usageWindowEnd))}`,
-  });
-  // Credential traffic covers credentials listed now; usage statistics also keep requests
-  // from credentials that were removed. Flag a material disagreement instead of letting
-  // one of them read as the whole truth.
-  // Without a usage snapshot source there is nothing to compare: the null
-  // snapshot must not read as zero recorded requests against live traffic.
-  const comparableUsageRequests =
-    usage?.usage && usageSummary && usageSummary.coverageStartMs === null && freshness.usage === 'live'
-      ? usageSummary.requests
-      : null;
-  const usageDiffers =
-    comparableUsageRequests !== null &&
-    Math.abs(comparableUsageRequests - traffic.total) >
-      Math.max(5, 0.1 * Math.max(comparableUsageRequests, traffic.total));
 
   // Receipts of the sources behind provider evidence: credential files and API-key traffic.
   const evidence = useMemo(
@@ -222,7 +191,6 @@ export function DashboardPage() {
     primaryFreshness,
     hasData,
     trafficTotal: traffic.total,
-    otherScopeActivity: freshness.usage === 'live' && (usageSummary?.requests ?? 0) > 0,
   });
   const verdictTitle = useVerdictTitle(verdict, windowLabel);
   const primaryReceivedAt =
@@ -284,14 +252,6 @@ export function DashboardPage() {
     return raw;
   }, [config, t]);
 
-  const credentialsByIndex = useMemo(() => {
-    const map = new Map<string, CredentialRow>();
-    credentials?.rows.forEach((row) => {
-      if (row.authIndex) map.set(row.authIndex, row);
-    });
-    return map;
-  }, [credentials]);
-
   const handleRefresh = async () => {
     if (refreshing) return;
     setRefreshing(true);
@@ -310,7 +270,9 @@ export function DashboardPage() {
 
   // Retry announces its outcome; a failure leaves the error in place, so say it again.
   const retryAndAnnounce = useCallback(
-    async (id: Parameters<typeof retrySource>[0]) => {
+    async (id: DashboardSourceId) => {
+      // This page polls four sources. An item for any other source has nothing to retry.
+      if (!isDashboardPolledSource(id)) return;
       const source = t(`dashboard.source_${id}`);
       await trackAction(() => retrySource(id), {
         ok: t('dashboard.announce_source_loaded', { source }),
@@ -422,24 +384,7 @@ export function DashboardPage() {
       key: 'requests',
       label: t('dashboard.vitals_requests'),
       value: measured ? formatHeadline(traffic.total) : null,
-      detail: (
-        <>
-          {requestsLine}
-          {usageDiffers && (
-            <details className={styles.vitalCaveat}>
-              <summary>
-                {t('dashboard.vitals_usage_differs_short', { count: comparableUsageRequests ?? 0 })}
-              </summary>
-              <span>
-                {t('dashboard.vitals_usage_differs', { count: comparableUsageRequests ?? 0 })}{' '}
-                <Link to="/usage" className={styles.vitalLink}>
-                  {t('dashboard.usage_link')} <span aria-hidden="true">→</span>
-                </Link>
-              </span>
-            </details>
-          )}
-        </>
-      ),
+      detail: requestsLine,
     },
     {
       key: 'success',
@@ -663,57 +608,43 @@ export function DashboardPage() {
         />
       </section>
 
-      {/* ---------- Usage + runtime ---------- */}
-      <section className={styles.detailGrid} ref={detailRef}>
-        <div className={styles.panel} data-reveal>
-          <header className={styles.panelHead}>
-            <h2 className={styles.panelTitle}>{t('dashboard.usage_title')}</h2>
-            <SourceStamp entries={stampEntries(['usage'])} now={now} />
-          </header>
-          <UsagePanel
-            usage={usage}
-            summary={usageSummary}
-            windowLabel={usageWindowLabel}
-            historicalWindow={usageWindowEnd < now}
-            credentialsByIndex={credentialsByIndex}
-          />
-        </div>
-
-        <div className={styles.panel} data-reveal>
-          <header className={styles.panelHead}>
-            <h2 className={styles.panelTitle}>{t('dashboard.runtime_title')}</h2>
+      {/* ---------- Runtime ---------- */}
+      <section className={`${styles.section} ${styles.panel}`} ref={runtimeRef}>
+        <header className={styles.sectionHeadRow}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>{t('dashboard.runtime_title')}</h2>
             <SourceStamp entries={stampEntries(['config'])} now={now} />
-          </header>
-          <dl className={styles.specList}>
-            {runtimeRows.map((row) => (
-              <div key={row.label} className={styles.specRow}>
-                <dt className={styles.specLabel}>{row.label}</dt>
-                <dd className={`${styles.specValue} ${row.mono ? styles.specMono : ''}`}>
-                  {row.value}
+          </div>
+        </header>
+        <dl className={styles.specList}>
+          {runtimeRows.map((row) => (
+            <div key={row.label} className={styles.specRow}>
+              <dt className={styles.specLabel}>{row.label}</dt>
+              <dd className={`${styles.specValue} ${row.mono ? styles.specMono : ''}`}>
+                {row.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {runtimeSwitches.length > 0 && (
+          <dl className={`${styles.specList} ${styles.switchList}`}>
+            {runtimeSwitches.map((item) => (
+              <div key={item.label} className={styles.specRow}>
+                <dt className={styles.specLabel}>{item.label}</dt>
+                <dd className={`${styles.specValue} ${item.on ? '' : styles.specOff}`}>
+                  {item.on ? t('dashboard.runtime_on') : t('dashboard.runtime_off')}
                 </dd>
               </div>
             ))}
           </dl>
-          {runtimeSwitches.length > 0 && (
-            <dl className={`${styles.specList} ${styles.switchList}`}>
-              {runtimeSwitches.map((item) => (
-                <div key={item.label} className={styles.specRow}>
-                  <dt className={styles.specLabel}>{item.label}</dt>
-                  <dd className={`${styles.specValue} ${item.on ? '' : styles.specOff}`}>
-                    {item.on ? t('dashboard.runtime_on') : t('dashboard.runtime_off')}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
-          <div className={styles.panelLinks}>
-            <Link to="/config" className={styles.panelLink}>
-              {t('dashboard.runtime_link')} <span aria-hidden="true">→</span>
-            </Link>
-            <Link to="/system" className={styles.panelLink}>
-              {t('dashboard.runtime_system_link')} <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+        )}
+        <div className={styles.panelLinks}>
+          <Link to="/config" className={styles.panelLink}>
+            {t('dashboard.runtime_link')} <span aria-hidden="true">→</span>
+          </Link>
+          <Link to="/system" className={styles.panelLink}>
+            {t('dashboard.runtime_system_link')} <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
     </div>

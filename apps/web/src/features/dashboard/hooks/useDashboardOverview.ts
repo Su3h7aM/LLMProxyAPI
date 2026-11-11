@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { publishAuthFilesCount } from '@/features/authFiles/authFilesEvents';
 import { useTranslation } from 'react-i18next';
-import { apiKeyUsageApi, authFilesApi, modelsApi, usageApi } from '@/services/api';
+import { apiKeyUsageApi, authFilesApi, modelsApi } from '@/services/api';
 import { useAuthStore, useConfigStore } from '@/stores';
 import { useApiKeysForModels } from '@/hooks/useApiKeysForModels';
 import type { Config } from '@/types';
@@ -13,32 +13,39 @@ import { buildFleetModel } from '../logic/fleet';
 import type { SourceStatus } from '../logic/freshness';
 import { usePolledResource, type PolledResource } from './usePolledResource';
 
+/**
+ * Sources the dashboard polls. The usage source is hidden until a v8 route serves
+ * aggregate usage data; its id stays in `DashboardSourceId` for the stale logic.
+ */
+export type DashboardPolledSourceId = Exclude<DashboardSourceId, 'usage'>;
+
 /** Polling cadence per source while the dashboard is visible. */
-export const DASHBOARD_POLL_MS: Record<DashboardSourceId, number> = {
+export const DASHBOARD_POLL_MS: Record<DashboardPolledSourceId, number> = {
   credentials: 15_000,
   traffic: 15_000,
   config: 15_000,
   /** The advertised model list rarely changes; its stamp states the slower cadence. */
   models: 60_000,
-  usage: 15_000,
 };
 
 /** Upper bound per attempt, so a stalled request surfaces as a failure instead of hanging. */
-const DASHBOARD_TIMEOUT_MS: Record<DashboardSourceId, number> = {
+const DASHBOARD_TIMEOUT_MS: Record<DashboardPolledSourceId, number> = {
   credentials: 20_000,
   traffic: 20_000,
   config: 20_000,
   models: 15_000,
-  usage: 75_000,
 };
 
-export const DASHBOARD_SOURCE_IDS: DashboardSourceId[] = [
+export const DASHBOARD_SOURCE_IDS: DashboardPolledSourceId[] = [
   'credentials',
   'traffic',
   'config',
   'models',
-  'usage',
 ];
+
+/** True for the ids the dashboard polls; other ids can only arrive from stored data. */
+export const isDashboardPolledSource = (id: DashboardSourceId): id is DashboardPolledSourceId =>
+  (DASHBOARD_SOURCE_IDS as DashboardSourceId[]).includes(id);
 
 export interface UsageSourceData {
   /** null when the backend does not expose usage statistics at all. */
@@ -67,9 +74,9 @@ const statusOf = <T>(resource: PolledResource<T>): SourceStatus => ({
 /**
  * Everything the dashboard shows, kept current by polling.
  *
- * Credentials, API-key traffic, configuration, and usage statistics refresh every 15
- * seconds; the model list every minute. Each source reports its own receipt time and
- * error so the page can say how old every number is.
+ * Credentials, API-key traffic, and configuration refresh every 15 seconds; the model
+ * list every minute. Each source reports its own receipt time and error so the page can
+ * say how old every number is.
  */
 export function useDashboardOverview() {
   const { t } = useTranslation();
@@ -129,21 +136,6 @@ export function useDashboardOverview() {
     },
   });
 
-  const usageResource = usePolledResource<UsageSourceData>({
-    scope,
-    enabled: connected,
-    intervalMs: DASHBOARD_POLL_MS.usage,
-    timeoutMs: DASHBOARD_TIMEOUT_MS.usage,
-    load: async () => {
-      // No v8 route serves the aggregate usage snapshot (`GET /usage` is
-      // Plus-only and `/observability/usage/queue` is a destructive pop of the
-      // internal relay queue, never a display source). The usage section shows
-      // the collection flag from the v8 config tree plus an empty state.
-      const enabled = await usageApi.getStatisticsEnabled();
-      return { enabled, usage: null };
-    },
-  });
-
   // Keep the sidebar's Auth Files badge in step with what the dashboard shows. While the
   // credentials source is failing, the count is unknown rather than last-known.
   const credentialFileCount = credentialsResource.data?.files.length ?? null;
@@ -160,9 +152,8 @@ export function useDashboardOverview() {
       traffic: trafficResource,
       config: configResource,
       models: modelsResource,
-      usage: usageResource,
     }),
-    [credentialsResource, trafficResource, configResource, modelsResource, usageResource]
+    [credentialsResource, trafficResource, configResource, modelsResource]
   );
 
   const fleet = useMemo(
@@ -205,7 +196,7 @@ export function useDashboardOverview() {
     () =>
       Object.fromEntries(
         DASHBOARD_SOURCE_IDS.map((id) => [id, statusOf(resources[id] as PolledResource<unknown>)])
-      ) as Record<DashboardSourceId, SourceStatus>,
+      ) as Record<DashboardPolledSourceId, SourceStatus>,
     [resources]
   );
 
@@ -213,7 +204,7 @@ export function useDashboardOverview() {
   // when both have answered, so they stay in step and the Retry's announcement covers the
   // whole headline. The result (success or failure) is the requested source's.
   const retrySource = useCallback(
-    async (id: DashboardSourceId) => {
+    async (id: DashboardPolledSourceId) => {
       const partner = id === 'credentials' ? 'traffic' : id === 'traffic' ? 'credentials' : null;
       const requested = resources[id].refresh();
       if (partner) await Promise.allSettled([requested, resources[partner].refresh()]);
@@ -248,7 +239,6 @@ export function useDashboardOverview() {
     credentialFiles: credentialsResource.data?.files ?? [],
     credentialFilesReady:
       credentialsResource.receivedAt !== null && credentialsResource.error === null,
-    usage: usageResource.data,
     sources,
     refresh,
     retrySource,

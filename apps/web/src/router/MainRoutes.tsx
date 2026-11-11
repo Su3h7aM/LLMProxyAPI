@@ -7,7 +7,6 @@ import { AuthFilesOAuthModelAliasEditPage } from '@/pages/AuthFilesOAuthModelAli
 import { OAuthPage } from '@/pages/OAuthPage';
 import { RoutingPage } from '@/features/routing/RoutingPage';
 import { QuotaPage } from '@/features/quota/QuotaPage';
-import { UsagePage } from '@/pages/UsagePage';
 import { PluginResourcePage } from '@/features/plugins/PluginResourcePage';
 import { PluginsPage } from '@/features/plugins/PluginsPage';
 import { PluginStorePage } from '@/features/plugins/PluginStorePage';
@@ -30,7 +29,6 @@ const mainRoutes = [
   { path: '/oauth', element: <OAuthPage /> },
   { path: '/routing', element: <RoutingPage /> },
   { path: '/quota', element: <QuotaPage /> },
-  { path: '/usage', element: <UsagePage /> },
   { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourcePage /> },
   { path: '/plugins', element: <PluginsPage /> },
   { path: '/plugin-store', element: <PluginStorePage /> },

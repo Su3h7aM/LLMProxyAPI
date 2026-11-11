@@ -49,11 +49,6 @@ export const QUICK_START_STEPS: ReadonlyArray<QuickStartStep> = [
     labelKey: 'redesign.providers.setupClient',
     destinationKey: 'nav.config_management',
   },
-  {
-    to: '/usage',
-    labelKey: 'redesign.providers.setupUsage',
-    destinationKey: 'nav.usage_statistics',
-  },
 ];
 
 export type ProviderHealth = 'active' | 'disabled' | 'failing';
