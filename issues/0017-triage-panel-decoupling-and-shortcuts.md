@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0017-triage-panel-decoupling-and-shortcuts
 type: triage (read-only, no code changes)
 agent: muse-spark-1.3-contributor
@@ -42,6 +42,9 @@ References (read-only, never edit or commit there):
 4. Report to the coordinator: short summary, branch, commit range, key findings, questions, surprises.
 
 ## Log
+
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md`, issue 0015 result. Created branch.
+- 2026-11-11: Ran parallel evidence pulls (decoupling grep, shortcut grep, contract sharing, embedded delivery). Verifying claims with file:line.
 
 ## Follow-ups
 
