@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0023-panel-logs-system
 type: panel
 agent: deepseek-v4.1-flash
@@ -67,6 +67,88 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- Checked the v8 routes (`internal/api/server_management_v8.go:37-41`) and
+  the response shapes (`internal/api/handlers/management/logs.go`,
+  `writeLogsResponse` and `GetRequestErrorLogs`): `lines`, `line-count`,
+  `latest-timestamp`, `next-cursor`, `cursor-reset`, and
+  `files[].{name,size,modified}`. The Go shapes match the pre-import client,
+  so the port is the paths plus the pre-import normalizers.
+- `src/services/api/logs.ts` now uses `/observability/logs`,
+  `/observability/logs/errors[/:name]` and
+  `/observability/logs/requests/:id`. Ported the error-file normalizer, the
+  explicit-empty-cursor rule, request options (signal), and the Blob error
+  enrichment. `LogsPage` uses the shared `responseDataToText`.
+- Logs page: it had no v0 call left after the API port. `parseLogLine`
+  already parses the fork line shape
+  (`[time] [request-id] [level ] [file.go:line] message`); `round1LogsLayout`
+  and `round1LogsParsing` cover it. No UI change.
+- System page: version and build date come from `X-CPA-VERSION` and
+  `X-CPA-BUILD-DATE` (`internal/api/handlers/management/handler.go:326-328`)
+  through `client.ts`; the release check uses `/server/latest-version`
+  (`server_management_v8.go:30`). The only v0 call was
+  `configApi.updateRequestLog` (`PUT /request-log`).
+- Overlap with issue 0022: 0022 owns the request-log write in `config.ts`.
+  I did not edit `config.ts`. To remove the v0 call on this branch,
+  `logsApi.setRequestLog` does the same v8 write
+  (`PUT /config/observability/logs/request-log`, raw boolean body, as the
+  pre-import `config.ts` did), and the System page calls it with the
+  connection-revision guard. The coordinator must keep one of the two
+  functions after 0022 lands (see Follow-ups).
+- Not verified in a live run: whether `GET /config` at the root returns the
+  flat v8 names that `transformers.ts` reads. `ProjectV8ConfigAliases`
+  returns early for an empty path, so `config.requestLog` may stay unset
+  until issue 0022 ports the transformers. The logs page and the request-log
+  toggle depend on that.
+
+
 ## Follow-ups
 
+- Deduplicate the request-log write: `logsApi.setRequestLog` (this issue)
+  and `configApi.updateRequestLog` (issue 0022) target the same route. Keep
+  one and point the System page at it.
+- The System page models card reads `config.apiKeys` and falls back to
+  `apiKeysApi` (`/api-keys`). Both paths belong to issues 0022 and 0021.
+  Test the card after those merge.
+- The pre-import log model tests (`logParsing`, `logRequests`,
+  `logSelectors`, `logBuffer`, `logFullscreen`) test modules that BumpyClock
+  does not have (it has `src/pages/hooks/*`). Only `logsApi.test.ts` fits
+  and was ported.
+- `tests/visual-audit/*.mjs` still stub `/v0/management` paths. They are
+  outside `bun run verify`; update them when the whole panel is on v8.
+
+
 ## Result
+
+Landed on `issue/0023-panel-logs-system`, rebased onto
+`integration/panel-bumpyclock` (`b2b964dc`).
+
+What landed:
+
+- `src/services/api/logs.ts` is v8 only: `/observability/logs`,
+  `/observability/logs/errors[/:name]`, `/observability/logs/requests/:id`,
+  plus the pre-import normalizers and the `setRequestLog` write.
+- `src/pages/LogsPage.tsx` uses the shared decoder from the logs module.
+- `src/pages/SystemPage.tsx` writes the request-log flag through the v8
+  config tree with the connection-revision guard; the version and release
+  paths were already v8.
+- `tests/logsApi.test.ts` ported from the pre-import panel, with one added
+  test for the request-log write.
+
+Commits:
+
+- `6e1af7d7` chore(panel): start issue 0023 logs and system v8 port
+- `915c72d6` feat(panel): move logs API to v8 observability routes
+- `3856fb4c` feat(panel): move System page request-log flag to v8
+
+Gate (`apps/web`, after the rebase): `bun install --frozen-lockfile` OK,
+`bun run verify` OK (1759 pass, 11 skip, 0 fail; lint and build OK),
+`bun run tokens:check` OK.
+
+Known gaps:
+
+- No live run against a running proxy. Behavior is checked by unit tests and
+  by reading the Go handlers.
+- The request-log toggle reads `config.requestLog` from the config store.
+  That field depends on issue 0022 (v8 config transformers).
+- Duplicate request-log writer, see Follow-ups.
+
