@@ -360,7 +360,14 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
   config.apiKeys = Array.isArray(keys)
     ? keys.filter((key): key is string => typeof key === 'string')
     : [];
+  const quota = raw['quota-exceeded'];
   config.quotaExceeded = {
+    ...(isRecord(quota)
+      ? {
+          switchProject: normalizeBoolean(quota['switch-project']),
+          switchPreviewModel: normalizeBoolean(quota['switch-preview-model']),
+        }
+      : {}),
     antigravityCredits:
       normalizeBoolean(at('oauth.providers.antigravity.antigravity-credits')) ?? false,
   };

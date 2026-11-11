@@ -14,10 +14,4 @@ export const configApi = {
     const raw = await apiClient.get('/config');
     return normalizeConfigResponse(raw);
   },
-
-  /**
-   * 请求日志开关
-   */
-  updateRequestLog: (enabled: boolean) =>
-    apiClient.put('/config/observability/logs/request-log', enabled),
 };
