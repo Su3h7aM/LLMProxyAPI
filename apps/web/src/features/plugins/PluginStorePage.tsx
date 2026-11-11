@@ -537,7 +537,9 @@ export function PluginStorePage() {
     [connected, t]
   );
 
-  useHeaderRefresh(() => loadStore(true), connected);
+  const refreshStore = useCallback(() => loadStore(true), [loadStore]);
+
+  useHeaderRefresh(refreshStore, connected);
 
   useEffect(() => {
     void loadStore();

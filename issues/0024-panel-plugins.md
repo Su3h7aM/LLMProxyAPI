@@ -68,6 +68,42 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Routes checked in Go (`internal/api/server_management_v8.go:63-69`):
+  `GET /plugins`, `DELETE /plugins/:id`, `GET /plugins/store`,
+  `POST /plugins/store/:id/install`, `GET|POST|DELETE /plugins/:id/quota`.
+  Enable and config go through `ConfigV8` (`/config/*path`), so
+  `PUT /config/plugins/configs/:id/enabled` (boolean body) and
+  `GET|PUT /config/plugins/configs/:id` (object body) are valid. A missing
+  persisted plugin config returns 404 `{"error":"not_found"}`; a missing
+  plugin in `/plugins` discovery is an error, not a capability probe.
+- 2026-11-11: The store list reads `?refresh=true` (also `1`) through
+  `pluginStoreForceRefresh` (`plugin_store.go:187-194`) and bypasses the
+  release-version cache. The panel now sends it on the header refresh and
+  on retry.
+- 2026-11-11: Plugin quota. The pre-import panel used
+  `POST /plugins/:id/quota` with `{auth_index}`, and the v8 route exists
+  (`plugin_quota.go:300`). Ported with the pre-import resolver
+  (`quotaProvider`, then plugin id, then OAuth identifiers, then a sole
+  quota plugin). Probe-only credentials (no quota provider) get
+  `plugin_quota.probe_unsupported`; no request is sent.
+- 2026-11-11: Gap: `/credentials` returns `quota_plugin_id`
+  (`auth_files.go:698`) but the BumpyClock auth-file normalizer does not
+  read it. The pre-import panel preferred it. That normalizer belongs to
+  issue 0020, so this issue does not change it; the plugin list resolver
+  is the fallback. See Follow-ups.
+- 2026-11-11: Removed the plugin-id OAuth fallback (`legacyOAuthProvider`)
+  from `plugins.ts`: the fork backend always sends `oauth_provider`. The
+  BumpyClock test `pluginOAuthEntries.test.ts` pinned that fallback; it now
+  asserts the single-provider case only. Reason: reference panel and
+  v8-only rule.
+- 2026-11-11: Removed the 404 "unsupported backend" branches from the
+  plugin pages and their locale strings. The 404 on
+  `plugin_management.config_not_found` (deleted plugin) stays.
+
 ## Follow-ups
+
+- Issue 0020: read `quota_plugin_id` from `/credentials` into
+  `AuthFileItem` (`types/authFile.ts`, `services/api/authFiles.ts`). Plugin
+  quota should then prefer it over the plugin list resolver.
 
 ## Result
