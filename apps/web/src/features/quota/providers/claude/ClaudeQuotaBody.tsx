@@ -7,18 +7,12 @@ import { useTranslation } from 'react-i18next';
 import type { ClaudeQuotaState } from '@/types';
 import { buildResetDisplay, formatQuotaResetTime, resolveResetMs } from '@/utils/quota';
 import { useNow } from '@/hooks/useNow';
-import { planValueClassForTier, resolveClaudeCardTier } from '../../cardTier';
 import { QuotaMeter } from '../../components/QuotaMeter';
 import { QuotaResetLabel } from '../../components/QuotaResetLabel';
 import { collectQuotaRowInstants, pickUrgentRowId } from '../../resetSchedule';
 import type { QuotaBodyProps } from '../../types';
 
-export function ClaudeQuotaBody({
-  quota,
-  classes,
-  planItems,
-  afterPlan,
-}: QuotaBodyProps<ClaudeQuotaState>) {
+export function ClaudeQuotaBody({ quota, classes }: QuotaBodyProps<ClaudeQuotaState>) {
   const { t, i18n } = useTranslation();
   const now = useNow();
   const soonestRowId = useMemo(
@@ -41,61 +35,27 @@ export function ClaudeQuotaBody({
     }
   };
 
-  const extraUsageNotes = extraUsage
-    ? [
-        extraUsage.userDisabled ? t('claude_quota.extra_usage_user_disabled') : '',
-        extraUsage.spendLimitReached ? t('claude_quota.extra_usage_spend_limit_reached') : '',
-        extraUsage.disabledReason
-          ? t('claude_quota.extra_usage_disabled_reason', { reason: extraUsage.disabledReason })
-          : '',
-      ].filter(Boolean)
-    : [];
-
   return (
     <>
-      {quota.stale && (
-        <div role="status" className={classes.codexResetCreditsError}>
-          {t('claude_quota.stale_snapshot', {
-            time: quota.observedAt ? new Date(quota.observedAt).toLocaleString(language) : '--',
-          })}
-        </div>
-      )}
-      {(planType || planItems) && (
+      {planType && (
         <div className={classes.codexPlan}>
-          {planType && (
-            <span className={classes.codexPlanItem}>
-              <span className={classes.codexPlanLabel}>{t('claude_quota.plan_label')}</span>
-              <span className={planValueClassForTier(resolveClaudeCardTier(planType), classes)}>
-                {t(`claude_quota.${planType}`)}
-              </span>
-            </span>
-          )}
-          {planItems}
+          <span className={classes.codexPlanLabel}>{t('claude_quota.plan_label')}</span>
+          <span className={classes.codexPlanValue}>{t(`claude_quota.${planType}`)}</span>
         </div>
       )}
-      {afterPlan}
-      {/* Extra usage and dollar balances share the window-row anatomy:
-          label + mono telemetry header, then one mono detail line. */}
       {extraUsage && (
         <div className={classes.quotaRow}>
-          <div className={classes.quotaRowHeader}>
-            <span className={classes.quotaModel}>{t('claude_quota.extra_usage_label')}</span>
-            <div className={classes.quotaMeta}>
-              <span className={classes.quotaPercent}>
-                {t(
-                  extraUsage.isEnabled === null
-                    ? 'claude_quota.plan_unknown'
-                    : extraUsage.isEnabled
-                      ? 'claude_quota.extra_usage_enabled'
-                      : 'claude_quota.extra_usage_disabled'
-                )}
-              </span>
-              {extraUsage.utilization !== null && (
-                <span className={classes.quotaResetRelative}>
-                  {t('claude_quota.usage_utilization', { percent: extraUsage.utilization })}
-                </span>
+          <div className={classes.codexPlan}>
+            <span className={classes.codexPlanLabel}>{t('claude_quota.extra_usage_label')}</span>
+            <span className={classes.codexPlanValue}>
+              {t(
+                extraUsage.isEnabled === null
+                  ? 'claude_quota.plan_unknown'
+                  : extraUsage.isEnabled
+                    ? 'claude_quota.extra_usage_enabled'
+                    : 'claude_quota.extra_usage_disabled'
               )}
-            </div>
+            </span>
           </div>
           <div className={classes.quotaAmount}>
             {t('claude_quota.usage_spent_limit', {
@@ -104,17 +64,25 @@ export function ClaudeQuotaBody({
               limit: formatMoney(extraUsage.monthlyLimit, extraUsage.currency ?? 'USD', 100),
             })}
           </div>
-          {extraUsageNotes.length > 0 && (
-            <div className={classes.quotaMeta}>
-              {extraUsageNotes.map((note, index) => (
-                <span
-                  key={note}
-                  className={index === 0 ? classes.quotaReset : classes.quotaResetRelative}
-                >
-                  {note}
-                </span>
-              ))}
-            </div>
+          {extraUsage.utilization !== null && (
+            <span className={classes.quotaReset}>
+              {t('claude_quota.usage_utilization', { percent: extraUsage.utilization })}
+            </span>
+          )}
+          {extraUsage.userDisabled && (
+            <span className={classes.quotaReset}>
+              {t('claude_quota.extra_usage_user_disabled')}
+            </span>
+          )}
+          {extraUsage.spendLimitReached && (
+            <span className={classes.quotaReset}>
+              {t('claude_quota.extra_usage_spend_limit_reached')}
+            </span>
+          )}
+          {extraUsage.disabledReason && (
+            <span className={classes.quotaReset}>
+              {t('claude_quota.extra_usage_disabled_reason', { reason: extraUsage.disabledReason })}
+            </span>
           )}
         </div>
       )}
@@ -126,18 +94,24 @@ export function ClaudeQuotaBody({
           language
         );
         return (
-          <div key={balance.key} className={classes.quotaRow}>
-            <div className={classes.quotaRowHeader}>
-              <span className={classes.quotaModel} title={balance.key}>
+          <div
+            key={balance.key}
+            className={classes.quotaRow}
+            title={
+              `dollar:${balance.key}` === soonestRowId
+                ? t('quota_management.soonest_row_hint')
+                : undefined
+            }
+          >
+            <div className={classes.codexPlan}>
+              <span className={classes.codexResetCreditLabel} title={balance.key}>
                 {balance.key}
               </span>
-              <div className={classes.quotaMeta}>
-                <span className={classes.quotaPercent}>
-                  {t('claude_quota.dollar_balance_remaining', {
-                    amount: formatMoney(balance.remainingDollars),
-                  })}
-                </span>
-              </div>
+              <span className={classes.quotaAmount}>
+                {t('claude_quota.dollar_balance_remaining', {
+                  amount: formatMoney(balance.remainingDollars),
+                })}
+              </span>
             </div>
             <div className={classes.quotaAmount}>
               {t('claude_quota.usage_spent_limit', {
@@ -145,10 +119,14 @@ export function ClaudeQuotaBody({
                 limit: formatMoney(balance.limitDollars),
               })}
             </div>
-            <div className={classes.quotaMeta}>
-              <span className={classes.quotaReset}>{t('claude_quota.balance_reset')}</span>
+            <div className={classes.codexPlan}>
+              <span className={classes.codexPlanLabel}>{t('claude_quota.balance_reset')}</span>
               {resetDisplay ? (
-                <QuotaResetLabel display={resetDisplay} classes={classes} />
+                <QuotaResetLabel
+                  display={resetDisplay}
+                  classes={classes}
+                  soon={`dollar:${balance.key}` === soonestRowId}
+                />
               ) : (
                 <span className={classes.quotaReset}>
                   {t('claude_quota.balance_reset_unknown')}

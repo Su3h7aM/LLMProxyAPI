@@ -12,12 +12,13 @@
  * quotaTimeline.ts.)
  */
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeInstant, TYPE_COLORS } from '@/utils/quota';
 import { getQuotaCacheKey, getQuotaDisplayName } from '@/utils/quota/identity';
 import { useNow } from '@/hooks/useNow';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import type { ResolvedTheme, ThemeColors } from '@/types';
 import {
   buildTimelineLane,
@@ -63,6 +64,7 @@ export interface QuotaTimelineProps {
   initialOffset?: number;
 }
 
+/** Render local calendar columns and quota windows on the same elapsed-time scale. */
 export function QuotaTimeline({
   entries,
   quotaFor,
@@ -75,6 +77,7 @@ export function QuotaTimeline({
   const { t } = useTranslation();
   const [mode, setMode] = useState<TimelineMode>(initialMode);
   const [offset, setOffset] = useState(initialOffset);
+  const modeLabelId = useId();
 
   // The clock has to advance on its own: bars are classified past/live/next
   // against it and the marker is positioned by it, so a long-lived tab would
@@ -203,22 +206,28 @@ export function QuotaTimeline({
             </button>
           </div>
 
-          <div className={styles.modes} role="group">
-            {(['weekly', 'session'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={mode === value}
-                onClick={() => {
-                  setMode(value);
-                  setOffset(0); // spans differ in size; an old offset means nothing
-                }}
-              >
-                {value === 'weekly'
-                  ? t('quota_management.windows_mode_weekly', { defaultValue: 'Weekly' })
-                  : t('quota_management.windows_mode_session', { defaultValue: '5-hour' })}
-              </button>
-            ))}
+          <div className={styles.modes}>
+            <span id={modeLabelId} className={styles.modesLabel}>
+              {t('redesign.quota.window_label')}
+            </span>
+            <SegmentedControl<TimelineMode>
+              ariaLabelledBy={modeLabelId}
+              value={mode}
+              onChange={(value) => {
+                setMode(value);
+                setOffset(0); // spans differ in size; an old offset means nothing
+              }}
+              options={[
+                {
+                  value: 'weekly',
+                  label: t('quota_management.windows_mode_weekly', { defaultValue: 'Weekly' }),
+                },
+                {
+                  value: 'session',
+                  label: t('quota_management.windows_mode_session', { defaultValue: '5-hour' }),
+                },
+              ]}
+            />
           </div>
         </div>
       </header>
@@ -326,6 +335,7 @@ interface LaneProps {
   resolvedTheme: ResolvedTheme;
 }
 
+/** Render reported usage only in its live window; projected windows remain unfilled. */
 function Lane({ lane, span, now, mode, cells, nowPercent, resolvedTheme }: LaneProps) {
   const { t, i18n } = useTranslation();
 

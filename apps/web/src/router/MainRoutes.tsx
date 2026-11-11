@@ -4,14 +4,14 @@ import { ProvidersWorkbenchPage } from '@/features/providers/ProvidersWorkbenchP
 import { AuthFilesPage } from '@/features/authFiles/AuthFilesPage';
 import { AuthFilesOAuthExcludedEditPage } from '@/pages/AuthFilesOAuthExcludedEditPage';
 import { AuthFilesOAuthModelAliasEditPage } from '@/pages/AuthFilesOAuthModelAliasEditPage';
-import { OAuthPage } from '@/features/oauth/OAuthPage';
+import { OAuthPage } from '@/pages/OAuthPage';
 import { QuotaPage } from '@/features/quota/QuotaPage';
-import { RoutingPage } from '@/features/routing/RoutingPage';
+import { UsagePage } from '@/pages/UsagePage';
 import { PluginResourcePage } from '@/features/plugins/PluginResourcePage';
 import { PluginsPage } from '@/features/plugins/PluginsPage';
 import { PluginStorePage } from '@/features/plugins/PluginStorePage';
 import { ConfigPage } from '@/features/config/ConfigPage';
-import { LogsPage } from '@/features/logs/LogsPage';
+import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
 import { useAuthStore } from '@/stores';
 
@@ -20,16 +20,16 @@ const createMainRoutes = (supportsPlugin: boolean) => [
   { path: '/dashboard', element: <DashboardPage /> },
   { path: '/settings', element: <Navigate to="/config" replace /> },
   { path: '/api-keys', element: <Navigate to="/config" replace /> },
-  { path: '/quick-start', element: <Navigate to="/ai-providers" replace /> },
-  { path: '/quick-start/*', element: <Navigate to="/ai-providers" replace /> },
+  { path: '/quick-start', element: <ProvidersWorkbenchPage fixedBrand="apikeyFun" /> },
+  { path: '/quick-start/*', element: <Navigate to="/quick-start" replace /> },
   { path: '/ai-providers', element: <ProvidersWorkbenchPage /> },
   { path: '/ai-providers/*', element: <Navigate to="/ai-providers" replace /> },
   { path: '/auth-files', element: <AuthFilesPage /> },
   { path: '/auth-files/oauth-excluded', element: <AuthFilesOAuthExcludedEditPage /> },
   { path: '/auth-files/oauth-model-alias', element: <AuthFilesOAuthModelAliasEditPage /> },
   { path: '/oauth', element: <OAuthPage /> },
-  { path: '/routing', element: <RoutingPage /> },
   { path: '/quota', element: <QuotaPage /> },
+  { path: '/usage', element: <UsagePage /> },
   ...(supportsPlugin
     ? [
         { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourcePage /> },

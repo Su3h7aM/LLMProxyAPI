@@ -1,7 +1,8 @@
 import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
+import { space } from '@/design-system';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: ReactNode;
   hint?: ReactNode;
   error?: string;
   rightElement?: ReactNode;
@@ -36,7 +37,12 @@ export function Input({
         />
         {rightElement && (
           <div
-            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}
+            style={{
+              position: 'absolute',
+              right: space['8'],
+              top: '50%',
+              transform: 'translateY(-50%)',
+            }}
           >
             {rightElement}
           </div>

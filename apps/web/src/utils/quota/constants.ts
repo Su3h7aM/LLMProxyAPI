@@ -3,70 +3,10 @@
  */
 
 import type { TypeColorSet } from '@/types';
+import { providerColors } from '@/design-system';
 
-// Theme colors for type badges — keep in sync with authFiles/constants.ts
-export const TYPE_COLORS: Record<string, TypeColorSet> = {
-  qwen: {
-    light: { bg: '#ede5fd', text: '#5530c7' },
-    dark: { bg: '#36208a', text: '#b5a3f0' },
-  },
-  gemini: {
-    light: { bg: '#e3f2fd', text: '#1565c0' },
-    dark: { bg: '#0d47a1', text: '#64b5f6' },
-  },
-  aistudio: {
-    light: { bg: '#f0f2f5', text: '#2f343c' },
-    dark: { bg: '#373c42', text: '#cfd3db' },
-  },
-  claude: {
-    light: { bg: '#fbece4', text: '#c05621' },
-    dark: { bg: '#5e2c14', text: '#e8a882' },
-  },
-  codex: {
-    light: { bg: '#eae7ff', text: '#3538d4' },
-    dark: { bg: '#262395', text: '#b5b0ff' },
-  },
-  devin: {
-    light: { bg: '#e8f4ff', text: '#155e9b' },
-    dark: { bg: '#123b5d', text: '#8dc9f5' },
-  },
-  meta: {
-    light: { bg: '#e3f2fd', text: '#1565c0' },
-    dark: { bg: '#0d47a1', text: '#64b5f6' },
-  },
-  kimi: {
-    light: { bg: '#dce8ff', text: '#0560cf' },
-    dark: { bg: '#003880', text: '#70b5ff' },
-  },
-  antigravity: {
-    light: { bg: '#e0f7fa', text: '#006064' },
-    dark: { bg: '#004d40', text: '#80deea' },
-  },
-  xai: {
-    light: { bg: '#f3f4f6', text: '#111827', border: '1px solid #d1d5db' },
-    dark: { bg: '#111827', text: '#f9fafb', border: '1px solid #374151' },
-  },
-  'opencode-go': {
-    light: { bg: '#e8e8e8', text: '#1f1f1f', border: '1px solid #d2d2d2' },
-    dark: { bg: '#2a2a2a', text: '#eeeeee', border: '1px solid #4b4b4b' },
-  },
-  iflow: {
-    light: { bg: '#f5e3fc', text: '#9025c8' },
-    dark: { bg: '#521490', text: '#d49cf5' },
-  },
-  vertex: {
-    light: { bg: '#e4edfd', text: '#2b5fbc' },
-    dark: { bg: '#1a3d80', text: '#89b3f7' },
-  },
-  empty: {
-    light: { bg: '#f5f5f5', text: '#616161' },
-    dark: { bg: '#424242', text: '#bdbdbd' },
-  },
-  unknown: {
-    light: { bg: '#f0f0f0', text: '#666666', border: '1px dashed #999999' },
-    dark: { bg: '#3a3a3a', text: '#aaaaaa', border: '1px dashed #666666' },
-  },
-};
+// Theme colors for type badges (palette.provider in the design-token registry).
+export const TYPE_COLORS: Record<string, TypeColorSet> = providerColors;
 
 // Antigravity API configuration
 export const ANTIGRAVITY_QUOTA_URLS = [
@@ -78,8 +18,6 @@ export const ANTIGRAVITY_QUOTA_URLS = [
 export const ANTIGRAVITY_CODE_ASSIST_URL =
   'https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist';
 
-// Keep aligned with the backend Antigravity Hub UA (internal/misc/antigravity_version.go):
-// Cloud Code rejects newer models for clients below 2.23.0.
 export const ANTIGRAVITY_HUB_VERSION = '2.23.0';
 export const ANTIGRAVITY_HUB_PLATFORM = 'darwin/arm64';
 
@@ -107,7 +45,6 @@ export const CLAUDE_PROFILE_URL = 'https://api.anthropic.com/api/oauth/profile';
 export const CLAUDE_USAGE_URL = 'https://api.anthropic.com/api/oauth/usage';
 
 export const CLAUDE_REQUEST_HEADERS = {
-  'User-Agent': 'claude-cli/2.1.280 (external, cli)',
   Authorization: 'Bearer $TOKEN$',
   'Content-Type': 'application/json',
   'anthropic-beta': 'oauth-2025-04-20',
@@ -152,12 +89,9 @@ export const KIMI_REQUEST_HEADERS = {
 // xAI/Grok API configuration
 export const XAI_BILLING_WEEKLY_URL = 'https://cli-chat-proxy.grok.com/v1/billing?format=credits';
 export const XAI_BILLING_MONTHLY_URL = 'https://cli-chat-proxy.grok.com/v1/billing';
-export const XAI_USER_URL = 'https://cli-chat-proxy.grok.com/v1/user?include=subscription';
-export const XAI_SETTINGS_URL = 'https://cli-chat-proxy.grok.com/v1/settings';
 export const XAI_API_ME_URL = 'https://api.x.ai/v1/me';
 export const XAI_API_CHAT_URL = 'https://api.x.ai/v1/chat/completions';
 export const XAI_PAID_HEALTH_MODEL = 'grok-4.5';
-// Keep aligned with the backend fallback; Grok rejects versions older than 1.0.13.
 export const XAI_GROK_CLIENT_VERSION = '1.0.70';
 export const XAI_GROK_USER_AGENT = `grok-pager/${XAI_GROK_CLIENT_VERSION} grok-shell/${XAI_GROK_CLIENT_VERSION} (macos; aarch64)`;
 
@@ -172,14 +106,4 @@ export const XAI_REQUEST_HEADERS = {
 export const XAI_API_REQUEST_HEADERS = {
   Authorization: 'Bearer $TOKEN$',
   accept: 'application/json',
-};
-
-// OpenCode Go subscription: fixed usage route told by the workspace
-// member's Go key. The gateway routes nothing that names no session.
-export const OPENCODE_GO_USAGE_URL = 'https://opencode.ai/zen/go/v1/usage';
-
-export const OPENCODE_GO_REQUEST_HEADERS = {
-  Authorization: 'Bearer $TOKEN$',
-  Accept: 'application/json',
-  'Accept-Language': 'en-US,en',
 };

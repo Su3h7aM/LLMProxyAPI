@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
+import iconCopilot from '@/assets/icons/github-copilot.svg';
 import iconMeta from '@/assets/icons/meta.svg';
 import iconDevin from '@/assets/icons/devin.svg';
 import iconDevinDark from '@/assets/icons/devin-dark.svg';
@@ -11,14 +12,16 @@ import iconGrokDark from '@/assets/icons/grok-dark.svg';
 import iconIflow from '@/assets/icons/iflow.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
-import iconOpencodeLight from '@/assets/icons/opencode.svg';
-import iconOpencodeDark from '@/assets/icons/opencode-dark.svg';
+import iconQoder from '@/assets/icons/qoder.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
 import iconVertex from '@/assets/icons/vertex.svg';
 import type { AuthFileItem, ResolvedTheme, ThemeColors } from '@/types';
+import type { QuotaProviderType } from '@/features/quota/providers/types';
 import { normalizeOAuthProviderKey } from '@/utils/providerKeys';
+import { formatDateTimeValue, isoTitle } from '@/utils/format';
 import { parseTimestamp } from '@/utils/timestamp';
 import { TYPE_COLORS } from '@/utils/quota';
+import { palette } from '@/design-system';
 
 export type { ResolvedTheme, ThemeColors, TypeColorSet } from '@/types';
 export type AuthFileModelItem = {
@@ -29,29 +32,21 @@ export type AuthFileModelItem = {
 };
 export type AuthFileIconAsset = string | { light: string; dark: string };
 
-export type QuotaProviderType =
-  | 'antigravity'
-  | 'claude'
-  | 'codex'
-  | 'devin'
-  | 'kimi'
-  | 'meta'
-  | 'opencode-go'
-  | 'plugin'
-  | 'xai';
+export type { QuotaProviderType } from '@/features/quota/providers/types';
 export type AuthFileQuotaFilter = string | null;
 export type OAuthConfigLoadError = 'loading' | 'unsupported' | 'load' | null;
 
 export const QUOTA_PROVIDER_TYPES = new Set<QuotaProviderType>([
+  'github-copilot',
   'meta',
   'antigravity',
   'claude',
   'codex',
   'devin',
   'kimi',
-  'opencode-go',
-  'plugin',
+  'qoder',
   'xai',
+  'plugin',
 ]);
 
 export const OAUTH_PROVIDER_PRESETS = [
@@ -93,13 +88,14 @@ export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   aistudio: iconGemini,
   claude: iconClaude,
   codex: iconCodex,
+  'github-copilot': iconCopilot,
   meta: iconMeta,
   devin: { light: iconDevin, dark: iconDevinDark },
   gemini: iconGemini,
   xai: { light: iconGrok, dark: iconGrokDark },
   iflow: iconIflow,
   kimi: { light: iconKimiDark, dark: iconKimiLight },
-  'opencode-go': { light: iconOpencodeLight, dark: iconOpencodeDark },
+  qoder: iconQoder,
   qwen: iconQwen,
   vertex: iconVertex,
 };
@@ -108,6 +104,11 @@ export const clampCardPageSize = (value: number) =>
   Math.min(MAX_CARD_PAGE_SIZE, Math.max(MIN_CARD_PAGE_SIZE, Math.round(value)));
 
 export const normalizeProviderKey = normalizeOAuthProviderKey;
+
+export const authFileProviderId = (file: AuthFileItem): string => {
+  const candidate = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
+  return candidate && candidate !== 'empty' ? candidate : 'unknown';
+};
 
 export const supportsAuthFileManualRefresh = (provider: unknown): boolean =>
   AUTH_FILE_MANUAL_REFRESH_PROVIDERS.has(normalizeProviderKey(String(provider ?? '')));
@@ -193,7 +194,7 @@ export const isThemeSurfaceIconProvider = (type: string): boolean =>
   THEME_SURFACE_ICON_PROVIDERS.has(normalizeProviderKey(type));
 
 export const getThemeSurfaceIconBackground = (resolvedTheme: ResolvedTheme): string =>
-  resolvedTheme === 'dark' ? '#ffffff' : '#000000';
+  palette['theme-surface-icon'][resolvedTheme];
 
 export const parsePriorityValue = (value: unknown): number | undefined => {
   if (typeof value === 'number') {
@@ -241,12 +242,6 @@ export const applyAuthFileWebsockets = (
   return next;
 };
 
-export const supportsAuthFileSiwc = (providerKey: string): boolean =>
-  normalizeProviderKey(providerKey) === 'codex';
-
-export const readAuthFileUseSiwc = (value: Record<string, unknown>): boolean =>
-  parseDisableCoolingValue(value.use_siwc) ?? false;
-
 export const supportsAuthFileUsingApi = (providerKey: string): boolean =>
   AUTH_FILE_USING_API_PROVIDERS.has(normalizeProviderKey(providerKey));
 
@@ -265,15 +260,26 @@ export function isRuntimeOnlyAuthFile(file: AuthFileItem): boolean {
   return false;
 }
 
-export const formatModified = (item: AuthFileItem): string => {
+export type ModifiedTimeParts = {
+  /** ISO 8601 value for `<time dateTime>` and its `title`. */
+  iso: string;
+  /** The app's one-line metadata format, e.g. "Nov 6, 2026, 8:27 PM". */
+  label: string;
+};
+
+export const getModifiedTimeParts = (
+  item: AuthFileItem,
+  locale?: string
+): ModifiedTimeParts | null => {
   const raw = item['modtime'] ?? item.modified;
-  if (!raw) return '-';
+  if (!raw) return null;
   const asNumber = Number(raw);
   const date =
     Number.isFinite(asNumber) && !Number.isNaN(asNumber)
       ? new Date(asNumber < 1e12 ? asNumber * 1000 : asNumber)
       : (parseTimestamp(raw) ?? new Date(String(raw)));
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
+  if (Number.isNaN(date.getTime())) return null;
+  return { iso: isoTitle(date), label: formatDateTimeValue(date, locale) };
 };
 
 // 检查模型是否被 OAuth 排除

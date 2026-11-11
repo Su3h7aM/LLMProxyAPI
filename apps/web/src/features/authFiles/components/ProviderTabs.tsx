@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconFilterAll } from '@/components/ui/icons';
+import { IconChevronLeft, IconFilterAll } from '@/components/ui/icons';
+import { NativeSelect } from '@/components/ui/NativeSelect';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import {
   getAuthFileIcon,
   getThemeSurfaceIconBackground,
@@ -8,8 +10,10 @@ import {
   isThemeSurfaceIconProvider,
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
+import { useOverflowStrip } from '@/features/authFiles/hooks/useOverflowStrip';
 import { scrollProviderTabs } from './providerTabsWheel';
 import styles from './ProviderTabs.module.scss';
+import { iconSize } from '@/design-system';
 
 export type ProviderTabsProps = {
   types: string[];
@@ -20,8 +24,9 @@ export type ProviderTabsProps = {
 };
 
 /**
- * 提供商过滤 tabs：水平排布，支持鼠标滚轮与触屏横向滚动。
- * 品牌色只出现在图标上，激活态是文字 + 2px 墨色下划线。
+ * Provider filter. Desktop: one scrollable segmented row with brand icons and counts; the edge
+ * that hides providers fades and the active provider stays in view. Phones: a labelled native
+ * select listing every provider with its count, so nothing wraps or hides.
  */
 export function ProviderTabs({
   types,
@@ -32,6 +37,9 @@ export function ProviderTabs({
 }: ProviderTabsProps) {
   const { t } = useTranslation();
   const tabsRef = useRef<HTMLDivElement>(null);
+  const overflow = useOverflowStrip(tabsRef, active, types.join('|'));
+  const labelOf = (type: string) =>
+    type === 'all' ? t('auth_files.filter_all') : getTypeLabel(t, type);
 
   useEffect(() => {
     const strip = tabsRef.current;
@@ -42,45 +50,71 @@ export function ProviderTabs({
     return () => strip.removeEventListener('wheel', onWheel);
   }, []);
 
-  return (
-    <div ref={tabsRef} className={styles.tabs} role="group" aria-label={t('auth_files.filter_all')}>
-      {types.map((type) => {
-        const isActive = active === type;
-        const label = type === 'all' ? t('auth_files.filter_all') : getTypeLabel(t, type);
-        const iconSrc = type === 'all' ? null : getAuthFileIcon(type, resolvedTheme);
+  const options = types.map((type) => {
+    const iconSrc = type === 'all' ? null : getAuthFileIcon(type, resolvedTheme);
+    const label = labelOf(type);
+    const icon =
+      type === 'all' ? (
+        <IconFilterAll className={styles.glyph} size={iconSize['15']} />
+      ) : (
+        <span
+          className={styles.iconWrap}
+          style={
+            isThemeSurfaceIconProvider(type)
+              ? { background: getThemeSurfaceIconBackground(resolvedTheme) }
+              : undefined
+          }
+        >
+          {iconSrc ? (
+            <img src={iconSrc} alt="" className={styles.icon} />
+          ) : (
+            <span className={styles.iconFallback}>{label.slice(0, 1).toUpperCase()}</span>
+          )}
+        </span>
+      );
+    return { value: type, label, count: counts[type] ?? 0, icon };
+  });
 
-        return (
+  return (
+    <>
+      <div className={styles.strip}>
+        <SegmentedControl
+          options={options}
+          value={active}
+          onChange={onChange}
+          ariaLabel={t('auth_files.provider_filter_label')}
+          scrollable
+          className={styles.tabs}
+          trackRef={tabsRef}
+          dataOverflow={overflow}
+        />
+        {overflow !== 'none' && (
           <button
-            key={type}
             type="button"
-            className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
-            aria-pressed={isActive}
-            onClick={() => onChange(type)}
+            className={styles.more}
+            aria-label={t('quota_management.pool_more_providers')}
+            onClick={() => {
+              const strip = tabsRef.current;
+              if (!strip) return;
+              const atEnd = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 2;
+              strip.scrollTo({ left: atEnd ? 0 : strip.scrollLeft + strip.clientWidth * 0.75 });
+            }}
           >
-            {type === 'all' ? (
-              <IconFilterAll className={styles.tabGlyph} size={15} />
-            ) : (
-              <span
-                className={styles.tabIconWrap}
-                style={
-                  // 与 AI 提供商界面一致：Kimi 图标底座随主题切换颜色
-                  isThemeSurfaceIconProvider(type)
-                    ? { background: getThemeSurfaceIconBackground(resolvedTheme) }
-                    : undefined
-                }
-              >
-                {iconSrc ? (
-                  <img src={iconSrc} alt="" className={styles.tabIcon} />
-                ) : (
-                  <span className={styles.tabIconFallback}>{label.slice(0, 1).toUpperCase()}</span>
-                )}
-              </span>
-            )}
-            <span className={styles.tabLabel}>{label}</span>
-            <span className={styles.tabCount}>{counts[type] ?? 0}</span>
+            <IconChevronLeft size={iconSize['16']} aria-hidden="true" />
           </button>
-        );
-      })}
-    </div>
+        )}
+      </div>
+      <NativeSelect
+        className={styles.picker}
+        layout="stacked"
+        label={t('auth_files.provider_select_label')}
+        value={active}
+        onChange={onChange}
+        options={types.map((type) => ({
+          value: type,
+          label: `${labelOf(type)} (${counts[type] ?? 0})`,
+        }))}
+      />
+    </>
   );
 }

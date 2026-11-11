@@ -1,0 +1,14 @@
+.stamp {
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp_stale {
+  color: var(--amber-text);
+}
+
+.stamp_failed {
+  color: var(--failure-badge-text);
+}

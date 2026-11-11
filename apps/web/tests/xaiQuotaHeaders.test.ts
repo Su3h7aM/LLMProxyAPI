@@ -1,30 +1,43 @@
-import { describe, expect, test } from 'bun:test';
-import {
-  XAI_GROK_CLIENT_VERSION,
-  XAI_GROK_USER_AGENT,
-  XAI_REQUEST_HEADERS,
-} from '@/utils/quota/constants';
+import { afterEach, describe, expect, test } from 'bun:test';
+import type { TFunction } from 'i18next';
+import { XAI_CONFIG } from '@/features/quota/providers/xai/data';
+import { apiCallApi, type ApiCallRequest } from '@/services/api';
+import { XAI_BILLING_MONTHLY_URL, XAI_BILLING_WEEKLY_URL } from '@/utils/quota';
 
-describe('Grok quota client headers', () => {
-  test('uses Grok CLI version 1.0.70 for quota requests', () => {
-    expect(XAI_GROK_CLIENT_VERSION).toBe('1.0.70');
-  });
+const t = ((key: string) => key) as TFunction;
+const originalRequest = apiCallApi.request;
 
-  test('meets the upstream minimum client version of 1.0.13', () => {
-    expect(XAI_GROK_CLIENT_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
-    const [major, minor, patch] = XAI_GROK_CLIENT_VERSION.split('.').map(Number);
-    expect(major > 1 || (major === 1 && (minor > 0 || (minor === 0 && patch >= 13)))).toBe(
-      true
+afterEach(() => {
+  apiCallApi.request = originalRequest;
+});
+
+describe('Grok quota request identity', () => {
+  test('sends version 1.0.70 in both billing headers and user-agent segments', async () => {
+    const requests: ApiCallRequest[] = [];
+    apiCallApi.request = async (request) => {
+      requests.push(request);
+      const body = { config: { monthlyLimit: { val: 10000 }, used: { val: 1000 } } };
+      return { statusCode: 200, header: {}, body, bodyText: JSON.stringify(body) };
+    };
+
+    await XAI_CONFIG.fetchQuota(
+      { name: 'xai.json', authIndex: 'xai:fixture', user_id: 'fixture-user' },
+      t
     );
-    expect(XAI_REQUEST_HEADERS['x-grok-client-version']).toBe(XAI_GROK_CLIENT_VERSION);
-  });
 
-  test('keeps both user-agent versions aligned with the client version header', () => {
-    expect(XAI_GROK_USER_AGENT).toBe(
-      `grok-pager/${XAI_GROK_CLIENT_VERSION} grok-shell/${XAI_GROK_CLIENT_VERSION} (macos; aarch64)`
+    expect(requests.map((request) => request.url).sort()).toEqual(
+      [XAI_BILLING_WEEKLY_URL, XAI_BILLING_MONTHLY_URL].sort()
     );
-    expect(XAI_REQUEST_HEADERS['user-agent']).toBe(XAI_GROK_USER_AGENT);
-    expect(XAI_REQUEST_HEADERS['x-xai-token-auth']).toBe('xai-grok-cli');
-    expect(XAI_REQUEST_HEADERS.Authorization).toBe('Bearer $TOKEN$');
+    for (const request of requests) {
+      expect(request.authIndex).toBe('xai:fixture');
+      expect(request.header).toEqual({
+        Authorization: 'Bearer $TOKEN$',
+        'x-xai-token-auth': 'xai-grok-cli',
+        'x-grok-client-version': '1.0.70',
+        accept: '*/*',
+        'user-agent': 'grok-pager/1.0.70 grok-shell/1.0.70 (macos; aarch64)',
+        'x-userid': 'fixture-user',
+      });
+    }
   });
 });

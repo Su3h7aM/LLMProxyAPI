@@ -100,9 +100,6 @@ export interface CodexUsagePayload {
 export interface ClaudeUsageWindow {
   utilization: number | null;
   resets_at: string | null;
-  limit_dollars?: number | null;
-  used_dollars?: number | null;
-  remaining_dollars?: number | null;
 }
 
 export interface ClaudeUsageLimit {
@@ -130,7 +127,7 @@ export interface ClaudeExtraUsagePayload {
   spend_limit_reached?: boolean | null;
 }
 
-/** Amounts are in minor currency units, unlike the separate dollar windows. */
+/** Amounts are minor currency units, unlike the separate dollar windows. */
 export interface ClaudeExtraUsage {
   isEnabled: boolean | null;
   monthlyLimit: number | null;
@@ -143,7 +140,6 @@ export interface ClaudeExtraUsage {
 }
 
 export interface ClaudeDollarWindow {
-  /** Original upstream key; never conflated with extra usage. */
   key: string;
   limitDollars: number | null;
   usedDollars: number | null;
@@ -215,8 +211,6 @@ export interface ClaudeQuotaState {
   windows: ClaudeQuotaWindow[];
   extraUsage?: ClaudeExtraUsage | null;
   dollarWindows?: ClaudeDollarWindow[];
-  observedAt?: string | null;
-  stale?: boolean;
   planType?: string | null;
   error?: string;
   errorStatus?: number;
@@ -264,20 +258,6 @@ export interface AntigravityQuotaState {
   serverTimeOffsetMs?: number | null;
   error?: string;
   errorStatus?: number;
-}
-
-/** A provider-defined numeric/currency value rendered above generic quota windows. */
-export interface PluginQuotaMetric {
-  key: string;
-  label: string;
-  value: number;
-  unit?: string;
-  format?: 'number' | 'currency';
-  currency?: string;
-}
-
-export interface PluginQuotaState extends AntigravityQuotaState {
-  summary: PluginQuotaMetric[];
 }
 
 export interface CodexQuotaWindow {
@@ -331,6 +311,28 @@ export interface DevinQuotaState extends DevinQuotaData {
   errorStatus?: number;
 }
 
+export interface CopilotQuotaResource {
+  id: 'premium_interactions' | 'chat' | 'completions';
+  remainingPercent: number | null;
+  remaining: number | null;
+  entitlement: number | null;
+  unlimited: boolean | null;
+}
+
+/** Display fields only, normalized at the Management API boundary. */
+export interface CopilotQuotaData {
+  plan: string | null;
+  resetAtMs: number | null;
+  resources: CopilotQuotaResource[];
+}
+
+export interface CopilotQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  data?: CopilotQuotaData;
+  error?: string;
+  errorStatus?: number;
+}
+
 /** A whitelisted quota observation from Meta's Muse key endpoint. */
 export interface MetaQuotaWindow {
   id: 'window' | 'weekly';
@@ -350,6 +352,38 @@ export interface MetaQuotaData {
 export interface MetaQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   data?: MetaQuotaData;
+  error?: string;
+  errorStatus?: number;
+}
+
+export interface PluginQuotaMetric {
+  key: string;
+  label: string;
+  value: number;
+  unit?: string;
+  format?: 'number' | 'currency';
+  currency?: string;
+}
+
+export interface PluginQuotaBucket {
+  id: string;
+  label: string;
+  description: string;
+  remainingPercent: number | null;
+  resetAtMs: number | null;
+}
+
+export interface PluginQuotaGroup {
+  id: string;
+  label: string;
+  buckets: PluginQuotaBucket[];
+}
+
+export interface PluginQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  groups: PluginQuotaGroup[];
+  subscription: string | null;
+  summary: PluginQuotaMetric[];
   error?: string;
   errorStatus?: number;
 }
@@ -401,10 +435,8 @@ export interface KimiUsageRatio {
 export interface KimiUsagePayload {
   usage?: KimiUsageDetail;
   limits?: KimiLimitItem[];
-  /** Plans without a weekly limit report their monthly total here as a 0–1 ratio. */
-  usages?: {
-    limit_month_total?: KimiUsageRatio;
-  };
+  /** Monthly plans report a used fraction without a fixed window duration. */
+  usages?: { limit_month_total?: KimiUsageRatio };
 }
 
 export interface KimiQuotaRow {
@@ -424,8 +456,27 @@ export interface KimiQuotaRow {
 export interface KimiQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   rows: KimiQuotaRow[];
-  /** Official user_level_name from /me; absent for unavailable account information. */
-  planName?: string | null;
+  error?: string;
+  errorStatus?: number;
+}
+
+export interface QoderUsageSnapshot {
+  used?: number | string;
+  total?: number | string;
+  remaining?: number | string;
+  percentage?: number | string;
+  unit?: string;
+  is_quota_exceeded?: boolean;
+  isQuotaExceeded?: boolean;
+  expires_at?: number | string;
+  expiresAt?: number | string;
+  org_resource_remaining?: number | string;
+  orgResourceRemaining?: number | string;
+}
+
+export interface QoderQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  usage?: QoderUsageSnapshot | null;
   error?: string;
   errorStatus?: number;
 }
@@ -461,8 +512,6 @@ export interface XaiBillingConfig {
   on_demand_cap?: XaiBillingCent | number | string | null;
   onDemandUsed?: XaiBillingCent | number | string | null;
   on_demand_used?: XaiBillingCent | number | string | null;
-  prepaidBalance?: XaiBillingCent | number | string | null;
-  prepaid_balance?: XaiBillingCent | number | string | null;
   billingPeriodStart?: string;
   billing_period_start?: string;
   billingPeriodEnd?: string;
@@ -498,10 +547,6 @@ export interface XaiBillingSummary {
   onDemandCapCents: number | null;
   onDemandUsedCents: number | null;
   onDemandUsedPercent: number | null;
-  prepaidBalanceCents?: number | null;
-  /** Display name from Grok settings, for example "SuperGrok Heavy". */
-  planLabel?: string;
-  planTier?: 'elite' | 'premium' | 'standard';
   billingPeriodStart?: string;
   billingPeriodEnd?: string;
   usedPercent: number | null;
@@ -520,30 +565,6 @@ export interface XaiBillingSummary {
 export interface XaiQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   billing: XaiBillingSummary | null;
-  error?: string;
-  errorStatus?: number;
-}
-
-// OpenCode Go subscription windows. The usage route tells used percent
-// (whole numbers, floored), so rows run on a 0-100 scale: used is the
-// reported percent, limit is always 100.
-export interface OpencodeGoQuotaRow {
-  id: string;
-  label?: string;
-  labelKey?: string;
-  labelParams?: Record<string, string | number>;
-  used: number;
-  limit: number;
-  /** Reset instant in epoch ms; null when the window reports none. */
-  resetAtMs?: number | null;
-  /** Window length in hours; null for the calendar month. */
-  periodHours?: number | null;
-}
-
-export interface OpencodeGoQuotaState {
-  status: 'idle' | 'loading' | 'success' | 'error';
-  rows: OpencodeGoQuotaRow[];
-  planName?: string | null;
   error?: string;
   errorStatus?: number;
 }

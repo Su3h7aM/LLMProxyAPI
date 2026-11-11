@@ -10,7 +10,9 @@ import {
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { IconX } from './icons';
+import { openModalSurface, type ModalSurface } from './modalStack';
 import { FOCUSABLE_SELECTOR, lockScroll, unlockScroll } from './scrollLock';
+import { duration, iconSize, size } from '@/design-system';
 
 interface ModalProps {
   open: boolean;
@@ -22,14 +24,15 @@ interface ModalProps {
   closeDisabled?: boolean;
 }
 
-const CLOSE_ANIMATION_DURATION = 350;
+// Matches the `.modal-overlay.closing` / `.modal.closing` animations in components.scss.
+const CLOSE_ANIMATION_DURATION = duration['modal-exit'];
 
 export function Modal({
   open,
   title,
   onClose,
   footer,
-  width = 520,
+  width = size['520'],
   className,
   closeDisabled = false,
   children,
@@ -41,7 +44,7 @@ export function Modal({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const surfaceRef = useRef<ModalSurface | null>(null);
 
   const getFocusableElements = useCallback(() => {
     if (!modalRef.current) return [] as HTMLElement[];
@@ -111,11 +114,20 @@ export function Modal({
     return () => unlockScroll();
   }, [shouldLockScroll]);
 
+  // Joins the modal stack: background (and any sheet beneath) inert while open,
+  // focus restored to the opener on close.
+  useEffect(() => {
+    if (!shouldLockScroll) return;
+    const surface = openModalSurface(() => modalRef.current);
+    surfaceRef.current = surface;
+    return () => {
+      surfaceRef.current = null;
+      surface.release();
+    };
+  }, [shouldLockScroll]);
+
   useEffect(() => {
     if (!open) return;
-
-    previouslyFocusedRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     const focusTimer = window.setTimeout(() => {
       const firstFocusable = getFocusableElements()[0];
@@ -128,15 +140,11 @@ export function Modal({
   }, [getFocusableElements, open]);
 
   useEffect(() => {
-    if (open || isVisible) return;
-    previouslyFocusedRef.current?.focus();
-    previouslyFocusedRef.current = null;
-  }, [isVisible, open]);
-
-  useEffect(() => {
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Only the top surface of the modal stack handles the keyboard.
+      if (surfaceRef.current && !surfaceRef.current.isTop()) return;
       if (event.key === 'Escape') {
         if (closeDisabled) return;
         event.preventDefault();
@@ -199,7 +207,7 @@ export function Modal({
           aria-label={t('common.close')}
           disabled={closeDisabled}
         >
-          <IconX size={20} />
+          <IconX size={iconSize['20']} />
         </button>
         <div className="modal-header">
           <div className="modal-title" id={title ? titleId : undefined}>

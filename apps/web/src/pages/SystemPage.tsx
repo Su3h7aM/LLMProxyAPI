@@ -1,10 +1,20 @@
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Input } from '@/components/ui/Input';
+import { copyToClipboard } from '@/utils/clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import { IconGithub, IconBookOpen, IconExternalLink, IconCode } from '@/components/ui/icons';
+import {
+  IconGithub,
+  IconBookOpen,
+  IconExternalLink,
+  IconCode,
+  IconDownload,
+} from '@/components/ui/icons';
 import {
   useAuthStore,
   useConfigStore,
@@ -14,10 +24,13 @@ import {
 } from '@/stores';
 import { configApi, versionApi } from '@/services/api';
 import { useApiKeysForModels } from '@/hooks/useApiKeysForModels';
-import { formatDateTimeValue } from '@/utils/format';
+import { formatDateTimeValue, isoTitle } from '@/utils/format';
 import { classifyModels } from '@/utils/models';
-import { STORAGE_KEY_AUTH } from '@/utils/constants';
+import { clearAllAuthStorage } from '@/services/storage/secureStorage';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
+import { SPONSORS } from '@/features/config/sponsors';
+import { PROVIDER_LOGOS } from '@/features/providers/brandLogos';
+import { APIKEY_FUN_AFFILIATE_URL, APIKEY_FUN_DISPLAY_NAME } from '@/features/providers/sponsor';
 import iconGemini from '@/assets/icons/gemini.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconMeta from '@/assets/icons/meta.svg';
@@ -28,15 +41,14 @@ import iconOpenaiDark from '@/assets/icons/openai-dark.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
+import iconQoder from '@/assets/icons/qoder.svg';
 import iconGlm from '@/assets/icons/glm.svg';
 import iconGrok from '@/assets/icons/grok.svg';
 import iconGrokDark from '@/assets/icons/grok-dark.svg';
 import iconDeepseek from '@/assets/icons/deepseek.svg';
 import iconMinimax from '@/assets/icons/minimax.svg';
-import iconXiaomi from '@/assets/icons/xiaomi.svg';
-import iconStepfun from '@/assets/icons/stepfun.svg';
-import iconStepfunDark from '@/assets/icons/stepfun-dark.svg';
 import styles from './SystemPage.module.scss';
+import { iconSize } from '@/design-system';
 
 const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: string }> = {
   devin: { light: iconDevinLight, dark: iconDevinDark },
@@ -46,12 +58,11 @@ const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: strin
   gemini: iconGemini,
   qwen: iconQwen,
   kimi: { light: iconKimiDark, dark: iconKimiLight },
+  qoder: iconQoder,
   glm: iconGlm,
   grok: { light: iconGrok, dark: iconGrokDark },
   deepseek: iconDeepseek,
   minimax: iconMinimax,
-  xiaomi: iconXiaomi,
-  stepfun: { light: iconStepfun, dark: iconStepfunDark },
 };
 
 const parseVersionSegments = (version?: string | null) => {
@@ -66,6 +77,9 @@ const parseVersionSegments = (version?: string | null) => {
   return parts.length ? parts : null;
 };
 
+/** Window for the repeated version taps that open the request log (interaction timing). */
+const VERSION_TAP_WINDOW_MS = 1500;
+
 const compareVersions = (latest?: string | null, current?: string | null) => {
   const latestParts = parseVersionSegments(latest);
   const currentParts = parseVersionSegments(current);
@@ -79,6 +93,59 @@ const compareVersions = (latest?: string | null, current?: string | null) => {
   }
   return 0;
 };
+
+type OptionalResource = { name: string; url: string; logo?: string; descriptionKey: string };
+
+const OPTIONAL_RESOURCES: readonly OptionalResource[] = [
+  ...SPONSORS.map((sponsor) => ({ ...sponsor, descriptionKey: 'system_info.resource_proxy_desc' })),
+  {
+    name: APIKEY_FUN_DISPLAY_NAME,
+    url: APIKEY_FUN_AFFILIATE_URL,
+    logo: PROVIDER_LOGOS.apikeyFun.src,
+    descriptionKey: 'system_info.resource_api_desc',
+  },
+];
+
+/** Sponsored third-party links, kept apart from settings and labeled as sponsored. */
+export function OptionalResources() {
+  const { t } = useTranslation();
+  if (OPTIONAL_RESOURCES.length === 0) return null;
+  return (
+    <section className={`card ${styles.resourcesCard}`} aria-labelledby="system-optional-resources">
+      <div className={styles.resourcesHeader}>
+        <h2 id="system-optional-resources" className={styles.resourcesTitle}>
+          {t('system_info.resources_title')}
+        </h2>
+        <span className={styles.sponsoredLabel}>{t('system_info.resources_sponsored')}</span>
+      </div>
+      <p className={styles.sectionDescription}>{t('system_info.resources_desc')}</p>
+      <ul className={styles.resourceList}>
+        {OPTIONAL_RESOURCES.map((resource) => (
+          <li key={resource.url}>
+            <a
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className={styles.resourceLink}
+            >
+              {resource.logo ? (
+                <img src={resource.logo} alt="" className={styles.resourceLogo} />
+              ) : null}
+              <span className={styles.resourceText}>
+                <span className={styles.resourceName}>
+                  {resource.name}
+                  <IconExternalLink size={iconSize['13']} aria-hidden="true" />
+                  <span className={styles.visuallyHidden}>{t('system_info.resource_new_tab')}</span>
+                </span>
+                <span className={styles.resourceDesc}>{t(resource.descriptionKey)}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 export function SystemPage() {
   const { t, i18n } = useTranslation();
@@ -112,7 +179,19 @@ export function SystemPage() {
     () => (i18n.language?.toLowerCase().startsWith('zh') ? '其他' : 'Other'),
     [i18n.language]
   );
-  const groupedModels = useMemo(() => classifyModels(models, { otherLabel }), [models, otherLabel]);
+  const [modelSearch, setModelSearch] = useState('');
+  const groupedModels = useMemo(
+    () =>
+      classifyModels(
+        models.filter((model) =>
+          [model.name, model.alias, model.description].some((value) =>
+            value?.toLowerCase().includes(modelSearch.trim().toLowerCase())
+          )
+        ),
+        { otherLabel }
+      ),
+    [models, modelSearch, otherLabel]
+  );
   const requestLogEnabled = config?.requestLog ?? false;
   const requestLogDirty = requestLogDraft !== requestLogEnabled;
   const canEditRequestLog = auth.connectionStatus === 'connected' && Boolean(config);
@@ -121,6 +200,22 @@ export function SystemPage() {
   const apiVersion = auth.serverVersion || t('system_info.version_unknown');
   const buildTime =
     formatDateTimeValue(auth.serverBuildDate, i18n.language) || t('system_info.version_unknown');
+  const buildTimeIso = isoTitle(auth.serverBuildDate);
+  const connectionLabel = t(`common.${auth.connectionStatus}_status`);
+  const versionDetails = [
+    `${t('footer.version')}: ${appVersion}`,
+    `${t('footer.api_version')}: ${apiVersion}`,
+    `${t('footer.build_date')}: ${buildTime}`,
+    `${t('connection.status')}: ${connectionLabel}`,
+    auth.apiBase,
+  ]
+    .filter(Boolean)
+    .join('\n');
+  // Success already shows as the plain count line; muted is the loading hint below.
+  const modelStatusNotice =
+    modelStatus && (modelStatus.type === 'warning' || modelStatus.type === 'error')
+      ? modelStatus
+      : undefined;
 
   const getIconForCategory = (categoryId: string): string | null => {
     const iconEntry = MODEL_CATEGORY_ICONS[categoryId];
@@ -173,9 +268,7 @@ export function SystemPage() {
       confirmText: t('common.confirm'),
       onConfirm: () => {
         auth.logout();
-        if (typeof localStorage === 'undefined') return;
-        const keysToRemove = [STORAGE_KEY_AUTH, 'isLoggedIn', 'apiBase', 'apiUrl', 'managementKey'];
-        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        clearAllAuthStorage();
         showNotification(t('notification.login_storage_cleared'), 'success');
       },
     });
@@ -203,7 +296,7 @@ export function SystemPage() {
     versionTapTimer.current = setTimeout(() => {
       versionTapCount.current = 0;
       versionTapTimer.current = null;
-    }, 1500);
+    }, VERSION_TAP_WINDOW_MS);
   }, [openRequestLogModal]);
 
   const handleRequestLogClose = useCallback(() => {
@@ -300,12 +393,25 @@ export function SystemPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('system_info.title')}</h1>
+      <PageHeader
+        title={t('system_info.title')}
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() => void handleVersionCheck()}
+            loading={checkingVersion}
+          >
+            {/* Header actions carry an icon; while checking, the spinner takes its place. */}
+            {!checkingVersion && <IconDownload size={iconSize['16']} aria-hidden="true" />}
+            {t('system_info.version_check_button')}
+          </Button>
+        }
+      />
       <div className={styles.content}>
         <Card className={styles.aboutCard}>
           <div className={styles.aboutHeader}>
-            <img src={INLINE_LOGO_JPEG} alt="LPAMC" className={styles.aboutLogo} />
-            <div className={styles.aboutTitle}>{t('system_info.about_title')}</div>
+            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.aboutLogo} />
+            <div className={styles.aboutTitle}>{t('title.login')}</div>
           </div>
 
           <div className={styles.aboutInfoGrid}>
@@ -317,57 +423,70 @@ export function SystemPage() {
               <div className={styles.tileHeader}>
                 <div className={styles.tileLabel}>{t('footer.version')}</div>
               </div>
-              <div className={styles.tileValue}>{appVersion}</div>
+              <div className={`${styles.tileValue} ${styles.tileLiteral}`}>{appVersion}</div>
             </button>
 
             <div className={styles.infoTile}>
               <div className={styles.tileHeader}>
                 <div className={styles.tileLabel}>{t('footer.api_version')}</div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className={styles.tileAction}
-                  onClick={() => void handleVersionCheck()}
-                  loading={checkingVersion}
-                  title={t('system_info.version_check_button')}
-                  aria-label={t('system_info.version_check_button')}
-                >
-                  {t('system_info.version_check_button')}
-                </Button>
               </div>
-              <div className={styles.tileValue}>{apiVersion}</div>
+              <div className={`${styles.tileValue} ${styles.tileLiteral}`}>{apiVersion}</div>
             </div>
 
             <div className={styles.infoTile}>
               <div className={styles.tileLabel}>{t('footer.build_date')}</div>
-              <div className={styles.tileValue}>{buildTime}</div>
+              <div className={styles.tileValue}>
+                {buildTimeIso ? (
+                  <time dateTime={buildTimeIso} title={buildTimeIso}>
+                    {buildTime}
+                  </time>
+                ) : (
+                  buildTime
+                )}
+              </div>
             </div>
 
             <div className={styles.infoTile}>
               <div className={styles.tileLabel}>{t('connection.status')}</div>
-              <div className={styles.tileValue}>{t(`common.${auth.connectionStatus}_status`)}</div>
+              <div className={styles.tileValue}>{connectionLabel}</div>
               <div className={styles.tileSub}>{auth.apiBase || '-'}</div>
             </div>
           </div>
+          <div className={styles.factActions}>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                const copied = await copyToClipboard(versionDetails);
+                showNotification(
+                  t(copied ? 'logs.copy_success' : 'logs.copy_failed'),
+                  copied ? 'success' : 'error'
+                );
+              }}
+            >
+              {t('system_info.copy_details')}
+            </Button>
+            <Button variant="secondary" onClick={openRequestLogModal} aria-haspopup="dialog">
+              {t('system_info.request_log_open')}
+            </Button>
+          </div>
         </Card>
 
-        <Card title={t('system_info.quick_links_title')}>
+        <Card title={t('system_info.quick_links_title')} className={styles.linksCard}>
           <p className={styles.sectionDescription}>{t('system_info.quick_links_desc')}</p>
           <div className={styles.quickLinks}>
             <a
-              href="https://github.com/Su3h7aM/LLMProxyAPI"
+              href="https://github.com/router-for-me/CLIProxyAPI"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.linkCard}
             >
               <div className={`${styles.linkIcon} ${styles.github}`}>
-                <IconGithub size={22} />
+                <IconGithub size={iconSize['22']} />
               </div>
               <div className={styles.linkContent}>
                 <div className={styles.linkTitle}>
                   {t('system_info.link_main_repo')}
-                  <IconExternalLink size={14} />
+                  <IconExternalLink size={iconSize['14']} />
                 </div>
                 <div className={styles.linkDesc}>{t('system_info.link_main_repo_desc')}</div>
               </div>
@@ -380,12 +499,12 @@ export function SystemPage() {
               className={styles.linkCard}
             >
               <div className={`${styles.linkIcon} ${styles.github}`}>
-                <IconCode size={22} />
+                <IconCode size={iconSize['22']} />
               </div>
               <div className={styles.linkContent}>
                 <div className={styles.linkTitle}>
                   {t('system_info.link_webui_repo')}
-                  <IconExternalLink size={14} />
+                  <IconExternalLink size={iconSize['14']} />
                 </div>
                 <div className={styles.linkDesc}>{t('system_info.link_webui_repo_desc')}</div>
               </div>
@@ -398,12 +517,12 @@ export function SystemPage() {
               className={styles.linkCard}
             >
               <div className={`${styles.linkIcon} ${styles.docs}`}>
-                <IconBookOpen size={22} />
+                <IconBookOpen size={iconSize['22']} />
               </div>
               <div className={styles.linkContent}>
                 <div className={styles.linkTitle}>
                   {t('system_info.link_docs')}
-                  <IconExternalLink size={14} />
+                  <IconExternalLink size={iconSize['14']} />
                 </div>
                 <div className={styles.linkDesc}>{t('system_info.link_docs_desc')}</div>
               </div>
@@ -414,40 +533,57 @@ export function SystemPage() {
         <Card
           title={t('system_info.models_title')}
           extra={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => fetchModels({ forceRefresh: true })}
-              loading={modelsLoading}
-            >
-              {t('common.refresh')}
-            </Button>
+            <RefreshButton
+              onClick={() => void fetchModels({ forceRefresh: true })}
+              label={t('system_info.models_refresh')}
+              refreshing={modelsLoading}
+            />
           }
         >
-          <p className={styles.sectionDescription}>{t('system_info.models_desc')}</p>
-          {modelStatus && (
-            <div className={`status-badge ${modelStatus.type}`}>{modelStatus.message}</div>
+          <Input
+            type="search"
+            value={modelSearch}
+            onChange={(event) => setModelSearch(event.target.value)}
+            placeholder={t('redesign.settings.modelSearch')}
+            aria-label={t('redesign.settings.modelSearch')}
+          />
+          {!modelsLoading && models.length > 0 && (
+            <p className={styles.sectionDescription}>
+              {t('system_info.models_count', { count: models.length })}
+            </p>
           )}
-          {modelsError && <div className="error-box">{modelsError}</div>}
+          {modelStatusNotice && (
+            <div className={`status-badge ${modelStatusNotice.type}`}>
+              {modelStatusNotice.message}
+            </div>
+          )}
+          {modelsError && !modelStatusNotice && <div className="error-box">{modelsError}</div>}
           {modelsLoading ? (
             <div className="hint">{t('common.loading')}</div>
           ) : models.length === 0 ? (
-            <div className="hint">{t('system_info.models_empty')}</div>
+            modelStatusNotice ? null : (
+              <div className="hint">{t('system_info.models_empty')}</div>
+            )
           ) : (
             <div className="item-list">
+              {groupedModels.length === 0 && <p role="status">{t('redesign.settings.noModels')}</p>}
               {groupedModels.map((group) => {
                 const iconSrc = getIconForCategory(group.id);
                 return (
-                  <div key={group.id} className="item-row">
-                    <div className="item-meta">
-                      <div className={styles.groupTitle}>
+                  <details
+                    key={group.id}
+                    className={styles.modelGroup}
+                    open={modelSearch.trim() ? true : undefined}
+                  >
+                    <summary className={styles.groupSummary}>
+                      <span className={styles.groupIconSlot} aria-hidden="true">
                         {iconSrc && <img src={iconSrc} alt="" className={styles.groupIcon} />}
-                        <span className="item-title">{group.label}</span>
-                      </div>
-                      <div className="item-subtitle">
+                      </span>
+                      <span className={styles.groupLabel}>{group.label}</span>
+                      <span className={styles.groupCount}>
                         {t('system_info.models_count', { count: group.items.length })}
-                      </div>
-                    </div>
+                      </span>
+                    </summary>
                     <div className={styles.modelTags}>
                       {group.items.map((model) => (
                         <span
@@ -460,7 +596,7 @@ export function SystemPage() {
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </details>
                 );
               })}
             </div>
@@ -470,11 +606,13 @@ export function SystemPage() {
         <Card title={t('system_info.clear_login_title')}>
           <p className={styles.sectionDescription}>{t('system_info.clear_login_desc')}</p>
           <div className={styles.clearLoginActions}>
-            <Button variant="danger" onClick={handleClearLoginStorage}>
+            <Button variant="danger-outline" onClick={handleClearLoginStorage}>
               {t('system_info.clear_login_button')}
             </Button>
           </div>
         </Card>
+
+        <OptionalResources />
       </div>
 
       <Modal

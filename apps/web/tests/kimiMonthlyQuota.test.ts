@@ -1,70 +1,82 @@
-import { describe, expect, spyOn, test } from 'bun:test';
-import { KIMI_CONFIG } from '@/features/quota/providers/kimi/data';
-import { apiCallApi, authFilesApi } from '@/services/api';
-import { KIMI_AI_USAGE_URL, KIMI_USAGE_URL, buildKimiQuotaRows } from '@/utils/quota';
-import type { AuthFileItem } from '@/types';
+import { describe, expect, test } from 'bun:test';
+import { buildKimiQuotaRows } from '@/utils/quota';
+import { getQuotaObservations } from '@/features/quota/providers/registry';
+import { selectQuotaWindow } from '@/features/quota/providers/observations';
+import { buildTimelineLane } from '@/features/quota/quotaTimelineModel';
+import { buildAccountSeries } from '@/features/quota/quotaAccountSeries';
 
-describe('Kimi monthly quota', () => {
-  test('plans without a weekly limit show the monthly total from usages', () => {
+const reset = Date.UTC(2099, 1, 1);
+const resetTime = new Date(reset).toISOString();
+
+describe('Kimi monthly allowance', () => {
+  test('keeps session rows before the monthly ratio without inventing a fixed period', () => {
     const rows = buildKimiQuotaRows({
-      limits: [
-        {
-          detail: { limit: '100', used: '5', remaining: '95', resetTime: '2099-09-27T00:30:34Z' },
-          window: { duration: 300, timeUnit: 'TIME_UNIT_MINUTE' },
-        },
-      ],
-      usages: { limit_month_total: { used_ratio: 0.2529, reset_time: '2099-10-22T00:00:00Z' } },
+      limits: [{ used: 1, limit: 100, window: { duration: 5, timeUnit: 'hour' } }],
+      usages: { limit_month_total: { used_ratio: '0.42', reset_time: resetTime } },
     });
-
-    expect(rows.map(({ id }) => id)).toEqual(['limit-0', 'monthly']);
+    expect(rows.map((row) => row.id)).toEqual(['limit-0', 'monthly']);
     expect(rows[1]).toMatchObject({
-      labelKey: 'kimi_quota.monthly_limit',
-      used: 25,
+      used: 42,
       limit: 100,
-      resetAtMs: Date.parse('2099-10-22T00:00:00Z'),
-      periodHours: 720,
+      labelKey: 'kimi_quota.monthly_limit',
+      resetAtMs: reset,
+      periodHours: null,
     });
   });
 
-  test('weekly plans without a monthly total keep their rows unchanged', () => {
-    const rows = buildKimiQuotaRows({
-      usage: { limit: '100', used: '97', resetTime: '2099-09-30T16:48:39Z' },
-      usages: {},
+  for (const ratio of [0, 1, -1, 2]) {
+    test(`normalizes the ${ratio} monthly ratio to a valid quota`, () => {
+      const rows = buildKimiQuotaRows({ usages: { limit_month_total: { used_ratio: ratio } } });
+      expect(rows[0]?.used).toBe(ratio <= 0 ? 0 : 100);
+      expect(rows[0]?.periodHours).toBeNull();
     });
-    expect(rows.map(({ id }) => id)).toEqual(['summary']);
-  });
-});
+  }
 
-describe('Kimi International auth files', () => {
-  test('kimi-ai credentials are listed on the Kimi quota page', () => {
-    const file = { name: 'kimi-ai-1.json', provider: 'kimi-ai', type: 'kimi-ai' } as AuthFileItem;
-    expect(KIMI_CONFIG.filterFn(file)).toBe(true);
-  });
+  for (const ratio of [undefined, '', 'invalid', Number.NaN, Number.POSITIVE_INFINITY]) {
+    test(`ignores unusable monthly ratio ${String(ratio)}`, () => {
+      expect(buildKimiQuotaRows({ usages: { limit_month_total: { used_ratio: ratio } } })).toEqual(
+        []
+      );
+    });
+  }
 
-  test('kimi-ai credentials query the kimi.ai host', async () => {
-    const urls: string[] = [];
-    const download = spyOn(authFilesApi, 'downloadText').mockResolvedValue('{}');
-    const request = apiCallApi.request;
-    apiCallApi.request = (async ({ url }: { url: string }) => {
-      urls.push(url);
-      return { statusCode: 200, body: { limits: [] } };
-    }) as unknown as typeof apiCallApi.request;
-    try {
-      for (const provider of ['kimi', 'kimi-ai', 'kimi_ai']) {
-        await KIMI_CONFIG.fetchQuota(
-          { name: 'k.json', provider, auth_index: 'a1' } as AuthFileItem,
-          ((key: string) => key) as never
-        );
-      }
-    } finally {
-      apiCallApi.request = request;
-      download.mockRestore();
-    }
-    expect(urls).toEqual(
-      [KIMI_USAGE_URL, KIMI_AI_USAGE_URL, KIMI_AI_USAGE_URL].flatMap((url) => [
-        url,
-        url.replace('/usages', '/me'),
-      ])
-    );
-  });
+  for (const reset_time of [resetTime, undefined, 'invalid']) {
+    test(`monthly snapshot remains measurable with reset ${String(reset_time)}`, () => {
+      const rows = buildKimiQuotaRows({
+        limits: [
+          {
+            used: 1,
+            limit: 100,
+            resetAt: resetTime,
+            window: { duration: 5, timeUnit: 'hour' },
+          },
+        ],
+        usages: { limit_month_total: { used_ratio: 0.42, reset_time } },
+      });
+      const quota = { status: 'success' as const, rows };
+      const observations = getQuotaObservations('kimi', quota);
+      expect(selectQuotaWindow(observations)?.id).toBe('monthly');
+      expect(selectQuotaWindow(observations)?.label).toBe('kimi_quota.monthly_limit');
+      expect(selectQuotaWindow(observations)?.remainingPercent).toBe(58);
+      expect(selectQuotaWindow(observations, 5)?.id).toBe('limit-0');
+      const { accounts } = buildAccountSeries(
+        [{ type: 'kimi', file: { name: 'kimi.json', provider: 'kimi' } }],
+        () => quota,
+        'weekly',
+        reset - 60_000,
+        reset + 60_000,
+        new Map()
+      );
+      expect(accounts[0]?.remaining).toBe(58);
+      expect(accounts[0]?.window?.periodHours).toBeNull();
+      const lane = buildTimelineLane({
+        provider: 'kimi',
+        name: 'kimi.json',
+        displayName: 'Kimi',
+        quota: { status: 'success', rows: rows.filter((row) => row.id === 'monthly') },
+      });
+      expect(lane.anchorMs).toBeNull();
+      expect(lane.periodHours).toBeNull();
+    });
+  }
 });

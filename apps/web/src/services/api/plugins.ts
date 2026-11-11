@@ -1,5 +1,4 @@
 import { apiClient } from './client';
-import { getConfigValue, guardConfigConnection } from './configValue';
 import { isRecord } from '@/utils/helpers';
 import {
   isManagementOAuthProviderKey,
@@ -26,9 +25,8 @@ const asString = (value: unknown): string => {
   return String(value);
 };
 
-// Entry metadata is escaped by the backend's Go html.EscapeString. Undo only
-// that encoding in one pass: literal entity text must not be decoded twice.
-// These remain untrusted strings rendered through React text/attribute props.
+// Go html.EscapeString escapes entry metadata before JSON serialization. Decode once;
+// React still treats the result as untrusted text and attribute values.
 const pluginEntryEntities: Record<string, string> = {
   '&amp;': '&',
   '&lt;': '<',
@@ -48,7 +46,6 @@ const normalizePluginOAuthProvider = (value: unknown): string | undefined => {
   return isManagementOAuthProviderKey(provider) ? provider : undefined;
 };
 
-/** 同一插件可声明多个登录入口：按声明顺序去重，逐项做与单数字段相同的归一化。 */
 const normalizePluginOAuthProviders = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   const providers: string[] = [];
@@ -59,12 +56,11 @@ const normalizePluginOAuthProviders = (value: unknown): string[] => {
   return providers;
 };
 
-/** 入口级名称与图标，只保留插件真正声明过的 identifier。 */
 const normalizePluginOAuthProviderEntries = (
   value: unknown,
   providers: readonly string[]
 ): PluginOAuthProviderEntry[] => {
-  if (!Array.isArray(value) || providers.length === 0) return [];
+  if (!Array.isArray(value)) return [];
   const entries: PluginOAuthProviderEntry[] = [];
   for (const item of value) {
     if (!isRecord(item)) continue;
@@ -77,6 +73,9 @@ const normalizePluginOAuthProviderEntries = (
   }
   return entries;
 };
+
+const hasOwn = (source: Record<string, unknown>, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(source, key);
 
 const normalizeConfigField = (value: unknown): PluginConfigField | null => {
   if (!isRecord(value)) return null;
@@ -147,13 +146,15 @@ const normalizePluginEntry = (value: unknown): PluginListEntry | null => {
   const configFields = normalizeConfigFields(value.config_fields);
   const supportsOAuth = asBoolean(value.supports_oauth);
   const oauthProvider = normalizePluginOAuthProvider(value.oauth_provider);
-  // 旧后端只发单数 `oauth_provider`，单数字段原样保留，既有消费方行为不变。
   const oauthProviders = normalizePluginOAuthProviders(value.oauth_providers);
   const oauthProviderEntries = normalizePluginOAuthProviderEntries(
     value.oauth_provider_entries,
     oauthProviders
   );
-  const quotaProvider = asString(value.quota_provider).trim().toLowerCase();
+  const legacyOAuthProvider =
+    supportsOAuth && !hasOwn(value, 'oauth_provider')
+      ? normalizePluginOAuthProvider(id)
+      : undefined;
 
   return {
     id,
@@ -163,11 +164,9 @@ const normalizePluginEntry = (value: unknown): PluginListEntry | null => {
     enabled: value.enabled !== false,
     effectiveEnabled: asBoolean(value.effective_enabled),
     supportsOAuth,
-    oauthProvider,
-    ...(oauthProviders.length > 0 ? { oauthProviders } : {}),
-    ...(oauthProviderEntries.length > 0 ? { oauthProviderEntries } : {}),
-    supportsQuota: asBoolean(value.supports_quota),
-    ...(quotaProvider ? { quotaProvider } : {}),
+    oauthProvider: oauthProvider ?? legacyOAuthProvider,
+    ...(oauthProviders.length ? { oauthProviders } : {}),
+    ...(oauthProviderEntries.length ? { oauthProviderEntries } : {}),
     logo: asString(value.logo || metadata?.logo).trim(),
     configFields: configFields.length > 0 ? configFields : (metadata?.configFields ?? []),
     menus: normalizeMenus(value.menus),
@@ -319,7 +318,7 @@ export const pluginsApi = {
   },
 
   updateEnabled: (id: string, enabled: boolean) =>
-    apiClient.put(`/config/plugins/configs/${encodeURIComponent(id)}/enabled`, enabled),
+    apiClient.patch(`/plugins/${encodeURIComponent(id)}/enabled`, { enabled }),
 
   async deletePlugin(id: string): Promise<PluginDeleteResult> {
     const data = await apiClient.delete(`/plugins/${encodeURIComponent(id)}`);
@@ -327,29 +326,17 @@ export const pluginsApi = {
   },
 
   async getConfig(id: string): Promise<PluginConfigObject> {
-    const data = await getConfigValue(`/config/plugins/configs/${encodeURIComponent(id)}`, {});
+    const data = await apiClient.get(`/plugins/${encodeURIComponent(id)}/config`);
     return normalizePluginConfig(data);
   },
 
-  async patchConfig(id: string, changes: PluginConfigObject) {
-    // Form fields are complete values: clearing removes a field and editing an
-    // object replaces that object. A v8 PATCH would instead retain nulls and
-    // recursively merge objects, so merge touched fields into the latest object
-    // and replace only this plugin instance (never the complete config tree).
-    const assertConnection = guardConfigConnection();
-    const next = { ...(await pluginsApi.getConfig(id)) };
-    assertConnection();
-    for (const [key, value] of Object.entries(changes)) {
-      if (value === null) delete next[key];
-      else next[key] = value;
-    }
-    return apiClient.put(`/config/plugins/configs/${encodeURIComponent(id)}`, next);
-  },
+  patchConfig: (id: string, config: PluginConfigObject) =>
+    apiClient.patch(`/plugins/${encodeURIComponent(id)}/config`, config),
 };
 
 export const pluginStoreApi = {
   async list(): Promise<PluginStoreResponse> {
-    const data = await apiClient.get('/plugins/store');
+    const data = await apiClient.get('/plugin-store');
     return normalizeStoreList(data);
   },
 
@@ -357,7 +344,7 @@ export const pluginStoreApi = {
     id: string,
     options: PluginStoreInstallOptions = {}
   ): Promise<PluginStoreInstallResult> {
-    const path = `/plugins/store/${encodeURIComponent(id)}/install`;
+    const path = `/plugin-store/${encodeURIComponent(id)}/install`;
     const params = new URLSearchParams();
     const sourceId = options.sourceId?.trim();
     const version = options.version?.trim();

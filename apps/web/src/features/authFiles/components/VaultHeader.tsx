@@ -1,8 +1,21 @@
+import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { IconRefreshCw, IconUpload } from '@/components/ui/icons';
-import { useRevealGroup } from '@/hooks/motion';
+import { IconUpload } from '@/components/ui/icons';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import styles from './VaultHeader.module.scss';
+import { iconSize, media } from '@/design-system';
+
+const PHONE_QUERY = media.mobile;
+const subscribePhone = (onChange: () => void) => {
+  const query = window.matchMedia(PHONE_QUERY);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+};
+const readPhone = () => window.matchMedia(PHONE_QUERY).matches;
+const readPhoneOnServer = () => false;
 
 export type VaultHeaderProps = {
   totalCount: number;
@@ -14,15 +27,8 @@ export type VaultHeaderProps = {
   disableControls: boolean;
   onUpload: () => void;
   onRefresh: () => void;
-  refreshingCredentials?: boolean;
-  credentialRefreshDisabled?: boolean;
-  onRefreshCredentials?: () => void;
 };
 
-/**
- * 凭证库头部：eyebrow（▍游标前缀）+ 标题 + mono 遥测 meta 行 + 动作区。
- * meta 行同时承载 VaultPulse 的文字等价信息（谱条本身 aria-hidden）。
- */
 export function VaultHeader(props: VaultHeaderProps) {
   const {
     totalCount,
@@ -34,20 +40,17 @@ export function VaultHeader(props: VaultHeaderProps) {
     disableControls,
     onUpload,
     onRefresh,
-    refreshingCredentials = false,
-    credentialRefreshDisabled = false,
-    onRefreshCredentials,
   } = props;
   const { t } = useTranslation();
-  const revealRef = useRevealGroup<HTMLElement>();
+  // Phones already show the top bar's refresh, which runs this page's refresh; dropping the
+  // duplicate lets Upload share the title row.
+  const isPhone = useSyncExternalStore(subscribePhone, readPhone, readPhoneOnServer);
 
   return (
-    <header className={styles.header} ref={revealRef}>
-      <div className={styles.copy}>
-        <h1 className={styles.title} data-reveal>
-          {t('auth_files.title')}
-        </h1>
-        <p className={styles.meta} data-reveal>
+    <PageHeader
+      title={t('auth_files.title')}
+      meta={
+        <p className={styles.meta}>
           <span className={styles.metaTotal}>
             {t('auth_files.meta_total', { count: totalCount })}
           </span>
@@ -68,40 +71,27 @@ export function VaultHeader(props: VaultHeaderProps) {
             </>
           )}
         </p>
-      </div>
-      <div className={styles.actions} data-reveal>
-        {onRefreshCredentials && (
-          <button
-            type="button"
-            className={styles.ghostAction}
-            onClick={onRefreshCredentials}
-            disabled={
-              disableControls || loading || refreshingCredentials || credentialRefreshDisabled
-            }
-          >
-            {refreshingCredentials ? <LoadingSpinner size={14} /> : <IconRefreshCw size={14} />}
-            {t('auth_files.refresh_all_button')}
-          </button>
-        )}
-        <button
-          type="button"
-          className={styles.ghostAction}
-          onClick={onRefresh}
-          disabled={loading || refreshing}
-        >
-          <IconRefreshCw size={14} className={refreshing ? styles.spinning : undefined} />
-          {t('common.refresh')}
-        </button>
-        <button
-          type="button"
-          className={styles.primaryAction}
-          onClick={onUpload}
-          disabled={disableControls || uploading}
-        >
-          {uploading ? <LoadingSpinner size={14} /> : <IconUpload size={15} />}
-          {t('auth_files.upload_button')}
-        </button>
-      </div>
-    </header>
+      }
+      actions={
+        <div className={styles.actions}>
+          {!isPhone && (
+            <RefreshButton
+              onClick={onRefresh}
+              label={t('auth_files.refresh_credentials')}
+              refreshing={refreshing}
+              disabled={loading}
+            />
+          )}
+          <Button onClick={onUpload} disabled={disableControls || uploading}>
+            {uploading ? (
+              <LoadingSpinner size={iconSize['14']} />
+            ) : (
+              <IconUpload size={iconSize['15']} />
+            )}
+            {t('auth_files.upload_button')}
+          </Button>
+        </div>
+      }
+    />
   );
 }

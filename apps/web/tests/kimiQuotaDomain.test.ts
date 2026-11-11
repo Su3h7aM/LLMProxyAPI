@@ -1,168 +1,214 @@
-import { afterEach, describe, expect, spyOn, test } from 'bun:test';
-import i18n from '@/i18n';
+import { afterEach, describe, expect, test } from 'bun:test';
+import type { TFunction } from 'i18next';
+import { parseKimiQuotaUrl, resolveKimiQuotaUrl } from '@/services/api/kimiQuota';
+import { apiCallApi, authFilesApi, type ApiCallRequest } from '@/services/api';
 import { KIMI_CONFIG } from '@/features/quota/providers/kimi/data';
-import { apiCallApi, authFilesApi } from '@/services/api';
-import { parseKimiQuotaUrl } from '@/services/api/kimiQuota';
+import { KIMI_AI_USAGE_URL, KIMI_USAGE_URL, isKimiFile } from '@/utils/quota';
 import { useQuotaStore } from '@/stores/useQuotaStore';
-import { KIMI_AI_USAGE_URL, KIMI_USAGE_URL } from '@/utils/quota';
+import type { AuthFileItem } from '@/types';
 
-const file = { name: 'kimi-ai-fixture.json', provider: 'kimi-ai', authIndex: 'fixture-index' };
-const response = { statusCode: 200, header: {}, bodyText: '', body: { limits: [] } };
-afterEach(() => useQuotaStore.getState().clearQuotaCache());
+const file: AuthFileItem = { name: 'kimi-ai.json', provider: 'kimi-ai', authIndex: '1' };
+const t = ((key: string) => key) as TFunction;
+const originalDownload = authFilesApi.downloadText;
+const originalRequest = apiCallApi.request;
 
-describe('Kimi effective quota domain', () => {
-  test.each([
-    [{ type: 'kimi-ai', domain: 'kimi.com' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', domain: 'ai' }, KIMI_AI_USAGE_URL],
-    [{ domain: ' COM ', base_url: 'https://api.kimi.ai/coding' }, KIMI_USAGE_URL],
-    [{ domain: 'auth.kimi.ai', base_url: 'https://api.kimi.com/coding' }, KIMI_AI_USAGE_URL],
-    [{ type: 'kimi-ai', base_url: 'https://api.kimi.com/coding' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', base_url: 'https://api.kimi.ai/coding' }, KIMI_AI_USAGE_URL],
-    [{ type: 'kimi', 'base-url': 'https://api.kimi.ai/coding' }, KIMI_AI_USAGE_URL],
-    [{ type: 'kimi-ai', 'base-url': 'https://api.kimi.com/coding' }, KIMI_USAGE_URL],
-    [
-      { type: 'kimi', base_url: 'https://api.kimi.com', 'base-url': 'https://api.kimi.ai' },
-      KIMI_USAGE_URL,
-    ],
-    [{ type: 'kimi', base_url: null, 'base-url': 'https://api.kimi.ai' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', base_url: '', 'base-url': 'https://api.kimi.ai' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', base_url: 'https://kimi.ai.evil.invalid/coding' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', base_url: 'https://kimi.ai@evil.invalid/coding' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', base_url: 'not a URL' }, KIMI_USAGE_URL],
-    [{ type: 'kimi', domain: ' ', base_url: 'https://api.kimi.ai/coding' }, KIMI_AI_USAGE_URL],
-    // The file synthesizer normalizes an unrecognized explicit domain to kimi.com.
-    [{ type: 'kimi-ai', domain: 'unknown', base_url: 'https://api.kimi.ai' }, KIMI_USAGE_URL],
-    [{ type: 'kimi' }, KIMI_USAGE_URL],
-    [{ type: 'kimi-ai' }, KIMI_AI_USAGE_URL],
-  ])('resolves %j to an allowlisted endpoint', (credential, expected) => {
-    expect(parseKimiQuotaUrl(JSON.stringify(credential), file)).toBe(expected);
-  });
+afterEach(() => {
+  authFilesApi.downloadText = originalDownload;
+  apiCallApi.request = originalRequest;
+  useQuotaStore.getState().clearQuotaCache();
+});
 
-  test.each(['null', '[]', '"secret-fixture"', '{"access_token":"secret-fixture"'])(
-    'rejects malformed/non-object credentials without echoing contents: %s',
-    (text) => {
-      expect(() => parseKimiQuotaUrl(text, file)).toThrow('Invalid Kimi credential');
-    }
-  );
-
-  test('downloads the credential and honors its domain instead of its provider', async () => {
-    const download = spyOn(authFilesApi, 'downloadText').mockResolvedValue(
-      JSON.stringify({ type: 'kimi-ai', domain: 'kimi.com', access_token: 'fixture-secret' })
-    );
-    const request = spyOn(apiCallApi, 'request').mockResolvedValue(response);
-    try {
-      const rows = await KIMI_CONFIG.fetchQuota(file, i18n.t);
-      expect(download).toHaveBeenCalledWith(file.name);
-      expect(request.mock.calls[0][0]).toMatchObject({
-        authIndex: 'fixture-index',
-        url: KIMI_USAGE_URL,
-        header: { Authorization: 'Bearer $TOKEN$' },
-      });
-      expect(JSON.stringify(request.mock.calls)).not.toContain('fixture-secret');
-      expect(JSON.stringify(KIMI_CONFIG.buildSuccessState(rows))).not.toContain('fixture-secret');
-    } finally {
-      download.mockRestore();
-      request.mockRestore();
-    }
-  });
-
-  test.each(['download', 'json'])('does not guess a host after a %s failure', async (failure) => {
-    const download = spyOn(authFilesApi, 'downloadText').mockImplementation(async () => {
-      if (failure === 'download') throw new Error('fixture-secret');
-      return '{"access_token":"fixture-secret"';
-    });
-    const request = spyOn(apiCallApi, 'request');
-    try {
-      await expect(KIMI_CONFIG.fetchQuota(file, i18n.t)).rejects.toThrow(
-        i18n.t('kimi_quota.domain_unavailable')
-      );
-      expect(request).not.toHaveBeenCalled();
-    } finally {
-      download.mockRestore();
-      request.mockRestore();
-    }
-  });
-
-  test.each([{ runtimeOnly: true }, { runtime_only: 'true' }, { name: '' }])(
-    'rejects credentials that cannot be downloaded: %j',
-    async (fields) => {
-      const download = spyOn(authFilesApi, 'downloadText');
-      const request = spyOn(apiCallApi, 'request');
-      try {
-        await expect(KIMI_CONFIG.fetchQuota({ ...file, ...fields }, i18n.t)).rejects.toThrow(
-          i18n.t('kimi_quota.domain_unavailable')
-        );
-        expect(download).not.toHaveBeenCalled();
-        expect(request).not.toHaveBeenCalled();
-      } finally {
-        download.mockRestore();
-        request.mockRestore();
-      }
-    }
-  );
-
-  for (const scope of ['session', 'file', 'unrelated'] as const) {
-    test(`guards ${scope} invalidation while downloading`, async () => {
-      const download = spyOn(authFilesApi, 'downloadText').mockImplementation(async () => {
-        useQuotaStore
-          .getState()
-          .clearQuotaCache(
-            scope === 'session' ? undefined : [scope === 'file' ? file.name : 'unrelated.json']
-          );
-        return '{"type":"kimi-ai","domain":"kimi.com"}';
-      });
-      const request = spyOn(apiCallApi, 'request').mockResolvedValue(response);
-      try {
-        if (scope === 'unrelated') {
-          await KIMI_CONFIG.fetchQuota(file, i18n.t);
-          expect(request).toHaveBeenCalledTimes(2);
-        } else {
-          await expect(KIMI_CONFIG.fetchQuota(file, i18n.t)).rejects.toThrow(
-            i18n.t('kimi_quota.stale_request')
-          );
-          expect(request).not.toHaveBeenCalled();
-        }
-      } finally {
-        download.mockRestore();
-        request.mockRestore();
-      }
+describe('Kimi quota domain resolution', () => {
+  for (const provider of ['kimi', 'kimi-ai', 'KIMI_AI']) {
+    test(`classifies ${provider} as a Kimi quota account`, () => {
+      expect(isKimiFile({ ...file, provider })).toBe(true);
     });
   }
 
-  test('reads the domain again on each refresh instead of caching credentials', async () => {
-    const download = spyOn(authFilesApi, 'downloadText')
-      .mockResolvedValueOnce('{"type":"kimi-ai","domain":"kimi.com"}')
-      .mockResolvedValueOnce('{"type":"kimi-ai","domain":"kimi.ai"}');
-    const request = spyOn(apiCallApi, 'request').mockResolvedValue(response);
+  const cases: [string, Record<string, unknown>, Partial<AuthFileItem>, string][] = [
+    [
+      'China domain beats international filename/type',
+      { domain: 'com', type: 'kimi-ai' },
+      {},
+      KIMI_USAGE_URL,
+    ],
+    [
+      'international domain beats China base URL',
+      { domain: 'ai', base_url: 'https://api.kimi.com' },
+      {},
+      KIMI_AI_USAGE_URL,
+    ],
+    [
+      'unknown explicit domain normalizes to China',
+      { domain: 'unknown', base_url: 'https://api.kimi.ai' },
+      {},
+      KIMI_USAGE_URL,
+    ],
+    [
+      'China base URL beats credential type',
+      { base_url: 'https://api.kimi.com', type: 'kimi-ai' },
+      {},
+      KIMI_USAGE_URL,
+    ],
+    [
+      'international base URL beats provider',
+      { base_url: 'https://api.kimi.ai', type: 'kimi' },
+      { provider: 'kimi' },
+      KIMI_AI_USAGE_URL,
+    ],
+    ['legacy base URL is accepted', { 'base-url': 'https://api.kimi.com' }, {}, KIMI_USAGE_URL],
+    [
+      'canonical null base URL beats legacy key',
+      { base_url: null, 'base-url': 'https://api.kimi.com', type: 'kimi-ai' },
+      {},
+      KIMI_AI_USAGE_URL,
+    ],
+    ['credential type beats provider', { type: 'kimi' }, {}, KIMI_USAGE_URL],
+    ['provider beats filename', {}, { provider: 'kimi' }, KIMI_USAGE_URL],
+    ['filename is final fallback', {}, { provider: undefined, type: undefined }, KIMI_AI_USAGE_URL],
+    [
+      'lookalike hosts never receive credentials',
+      { base_url: 'https://api.kimi.ai.evil.test', type: 'kimi' },
+      {},
+      KIMI_USAGE_URL,
+    ],
+    [
+      'URL path does not determine domain',
+      { base_url: 'https://example.test/kimi.ai', type: 'kimi' },
+      {},
+      KIMI_USAGE_URL,
+    ],
+  ];
+  for (const [name, credential, overrides, expected] of cases) {
+    test(name, () => {
+      expect(parseKimiQuotaUrl(JSON.stringify(credential), { ...file, ...overrides })).toBe(
+        expected
+      );
+    });
+  }
+
+  for (const text of ['secret invalid JSON', '[]', 'null', '42']) {
+    test('invalid downloaded credentials fail without including their contents', () => {
+      expect(() => parseKimiQuotaUrl(text, file)).toThrow('Invalid Kimi credential');
+    });
+  }
+
+  test('downloads each time instead of caching credential contents', async () => {
+    let downloads = 0;
+    authFilesApi.downloadText = async () =>
+      JSON.stringify({ domain: ++downloads === 1 ? 'ai' : 'com' });
+    expect(await resolveKimiQuotaUrl(file)).toBe(KIMI_AI_USAGE_URL);
+    expect(await resolveKimiQuotaUrl(file)).toBe(KIMI_USAGE_URL);
+    expect(downloads).toBe(2);
+  });
+
+  for (const provider of ['kimi', 'kimi-ai']) {
+    test(`dispatches ${provider} quota to its fixed usage host`, async () => {
+      authFilesApi.downloadText = async () => JSON.stringify({ type: provider });
+      const requests: ApiCallRequest[] = [];
+      apiCallApi.request = async (request) => {
+        requests.push(request);
+        return {
+          statusCode: 200,
+          header: {},
+          bodyText: '',
+          body: { usages: { limit_month_total: { used_ratio: 0.25 } } },
+        };
+      };
+      const rows = await KIMI_CONFIG.fetchQuota({ ...file, provider }, t);
+      expect(requests).toHaveLength(1);
+      expect(requests[0]?.url).toBe(provider === 'kimi-ai' ? KIMI_AI_USAGE_URL : KIMI_USAGE_URL);
+      expect(requests[0]?.authIndex).toBe('1');
+      expect(rows[0]?.used).toBe(25);
+    });
+  }
+
+  test('download failure never dispatches quota and does not expose credential errors', async () => {
+    authFilesApi.downloadText = async () => {
+      throw new Error('secret credential');
+    };
+    let dispatched = false;
+    apiCallApi.request = async () => {
+      dispatched = true;
+      throw new Error('unexpected dispatch');
+    };
+    await expect(KIMI_CONFIG.fetchQuota(file, t)).rejects.toThrow('kimi_quota.domain_unavailable');
+    expect(dispatched).toBe(false);
+  });
+
+  test('runtime-only credentials fail without downloading or dispatching', async () => {
+    let downloads = 0;
+    let requests = 0;
+    authFilesApi.downloadText = async () => {
+      downloads += 1;
+      return '{}';
+    };
+    apiCallApi.request = async () => {
+      requests += 1;
+      throw new Error('unexpected dispatch');
+    };
+    await expect(KIMI_CONFIG.fetchQuota({ ...file, runtimeOnly: true }, t)).rejects.toThrow(
+      'kimi_quota.domain_unavailable'
+    );
+    expect(downloads).toBe(0);
+    expect(requests).toBe(0);
+  });
+
+  test('usage HTTP failures preserve their status', async () => {
+    authFilesApi.downloadText = async () => '{"domain":"ai"}';
+    apiCallApi.request = async () => ({
+      statusCode: 429,
+      header: {},
+      bodyText: '{"error":"rate limited"}',
+      body: { error: 'rate limited' },
+    });
     try {
-      await KIMI_CONFIG.fetchQuota(file, i18n.t);
-      await KIMI_CONFIG.fetchQuota(file, i18n.t);
-      expect(download).toHaveBeenCalledTimes(2);
-      expect(request.mock.calls.map(([payload]) => payload.url)).toEqual([
-        KIMI_USAGE_URL,
-        KIMI_USAGE_URL.replace('/usages', '/me'),
-        KIMI_AI_USAGE_URL,
-        KIMI_AI_USAGE_URL.replace('/usages', '/me'),
-      ]);
-    } finally {
-      download.mockRestore();
-      request.mockRestore();
+      await KIMI_CONFIG.fetchQuota(file, t);
+      throw new Error('Expected usage failure');
+    } catch (error) {
+      expect(error).toMatchObject({ status: 429 });
     }
   });
 
-  test('rejects a quota response after session invalidation', async () => {
-    const download = spyOn(authFilesApi, 'downloadText').mockResolvedValue('{"type":"kimi-ai"}');
-    const request = spyOn(apiCallApi, 'request').mockImplementation(async () => {
-      useQuotaStore.getState().clearQuotaCache();
-      return response;
+  test('connection change during usage fetch rejects the old response', async () => {
+    authFilesApi.downloadText = async () => '{"domain":"ai"}';
+    let finish!: () => void;
+    let dispatched!: () => void;
+    const started = new Promise<void>((resolve) => {
+      dispatched = resolve;
     });
-    try {
-      await expect(KIMI_CONFIG.fetchQuota(file, i18n.t)).rejects.toThrow(
-        i18n.t('kimi_quota.stale_request')
-      );
-    } finally {
-      download.mockRestore();
-      request.mockRestore();
-    }
+    apiCallApi.request = () => {
+      dispatched();
+      return new Promise((resolve) => {
+        finish = () => resolve({ statusCode: 200, header: {}, bodyText: '', body: {} });
+      });
+    };
+    const pending = KIMI_CONFIG.fetchQuota(file, t);
+    await started;
+    useQuotaStore.getState().clearQuotaCache();
+    finish();
+    await expect(pending).rejects.toThrow('kimi_quota.stale_request');
   });
+
+  for (const invalidate of ['connection', 'credential']) {
+    test(`${invalidate} change during credential download prevents quota dispatch`, async () => {
+      let complete!: (text: string) => void;
+      authFilesApi.downloadText = () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        });
+      let dispatched = false;
+      apiCallApi.request = async () => {
+        dispatched = true;
+        throw new Error('unexpected dispatch');
+      };
+      const pending = KIMI_CONFIG.fetchQuota(file, t);
+      useQuotaStore
+        .getState()
+        .clearQuotaCache(invalidate === 'credential' ? [file.name] : undefined);
+      complete('{"domain":"ai"}');
+      await expect(pending).rejects.toThrow('kimi_quota.stale_request');
+      expect(dispatched).toBe(false);
+    });
+  }
 });

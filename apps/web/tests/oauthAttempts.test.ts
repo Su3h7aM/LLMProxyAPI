@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createOAuthAttempts } from '@/features/oauth/oauthAttempts';
+import { createOAuthAttempts } from '../src/pages/oauthAttempts';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -44,7 +44,8 @@ describe('OAuth attempt lifecycle', () => {
     const response = deferred<string>();
     let requests = 0;
     const results: string[] = [];
-    attempts.begin('codex').poll(
+    const attempt = attempts.begin('codex');
+    attempt.poll(
       () => {
         requests++;
         return response.promise;
@@ -57,15 +58,18 @@ describe('OAuth attempt lifecycle', () => {
       3000
     );
     expect([...tasks.values()][0].delay).toBe(3000);
+    expect(attempt.isPolling()).toBe(true);
     tick();
     tick();
     tick();
     expect(requests).toBe(1);
     expect(tasks.size).toBe(0);
+    expect(attempt.isPolling()).toBe(true);
     response.resolve('wait');
     await flush();
     expect(results).toEqual(['wait']);
     expect(tasks.size).toBe(1);
+    expect(attempt.isPolling()).toBe(true);
     tick();
     expect(requests).toBe(2);
   });
@@ -241,7 +245,6 @@ describe('OAuth attempt lifecycle', () => {
     expect(attempt.isPolling()).toBe(false);
     expect(tasks.size).toBe(0);
 
-    // An accepted callback resumes polling on the attempt that still owns the login.
     poll();
     expect(attempt.isPolling()).toBe(true);
     tick();
@@ -274,7 +277,8 @@ describe('OAuth attempt lifecycle', () => {
       const { attempts, tasks, tick } = setup();
       let results = 0;
       let errors = 0;
-      attempts.begin('codex').poll(
+      const attempt = attempts.begin('codex');
+      attempt.poll(
         async () => {
           if (fail) throw new Error('timeout');
           return 'ok';
@@ -290,6 +294,7 @@ describe('OAuth attempt lifecycle', () => {
       await flush();
       expect(results).toBe(fail ? 0 : 1);
       expect(errors).toBe(fail ? 1 : 0);
+      expect(attempt.isPolling()).toBe(false);
       expect(tasks.size).toBe(0);
     }
   });

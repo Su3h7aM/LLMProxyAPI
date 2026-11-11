@@ -21,8 +21,7 @@ import { hasDisableAllModelsRule } from '@/components/providers/utils';
 import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import { PROVIDER_DESCRIPTORS } from '../../descriptors';
-import { removeModelAt } from '../../modelEntries';
-import { syncDiscoveredModels } from '../../discoverySelection';
+import { readThinkingLevels } from '../../thinkingLevels';
 import type {
   ApiKeyEntryInput,
   ModelEntryInput,
@@ -38,11 +37,7 @@ import { ApiKeyEntriesEditor } from './ApiKeyEntriesEditor';
 import { ModelEntriesEditor } from './ModelEntriesEditor';
 import styles from './sharedForm.module.scss';
 import { MAX_CREDENTIAL_WEIGHT } from '@/utils/credentialWeight';
-import { readRuntimePolicy, validateRuntimePolicy } from '../../runtimePolicy';
-import { readModelOptions, validateModelOptions } from '../../modelOptions';
-import { RuntimePolicyEditor } from './RuntimePolicyEditor';
-import { ProviderBehaviorEditor } from './ProviderBehaviorEditor';
-import { pickProviderBehavior } from '../../providerBehavior';
+import { iconSize, space } from '@/design-system';
 
 /** 模块级常量，免得每次渲染都给 picker 一个新数组引用。 */
 const DISABLE_ALL_RULES = [DISABLE_ALL_RULE];
@@ -90,8 +85,7 @@ function buildInitialForm(
       proxyUrl: '',
       prefix: '',
       disabled: false,
-      disableCooling: undefined,
-      runtimePolicy: readRuntimePolicy(),
+      disableCooling: false,
       priority: undefined,
       weight: undefined,
       models: [emptyModel()],
@@ -126,31 +120,28 @@ function buildInitialForm(
       proxyUrl: '',
       prefix: cfg.prefix ?? '',
       disabled: cfg.disabled === true,
-      disableCooling: cfg.disableCooling,
-      runtimePolicy: readRuntimePolicy(cfg),
-      ...pickProviderBehavior(cfg, brand),
+      disableCooling: cfg.disableCooling === true,
       priority: cfg.priority,
       models: cfg.models?.length
         ? cfg.models.map((m) => ({
-            sourceIndex: m.sourceIndex,
             name: m.name,
             alias: m.alias ?? '',
             priority: m.priority,
+            testModel: m.testModel,
             image: m.image === true,
             thinkingJson: formatJsonObject(m.thinking),
-            ...readModelOptions(m),
+            thinkingLevels: readThinkingLevels(m.thinking),
           }))
         : [emptyModel()],
       headers: cfg.headers
         ? Object.entries(cfg.headers).map(([k, v]) => ({ key: k, value: String(v) }))
         : [emptyHeader()],
       excludedModelsText: '',
-      testModel: '',
+      testModel: cfg.testModel ?? '',
       apiKeyEntries: cfg.apiKeyEntries?.length
         ? cfg.apiKeyEntries.map((entry) => ({
             apiKey: '',
             existingApiKey: entry.apiKey,
-            sourceIndex: entry.sourceIndex,
             proxyUrl: entry.proxyUrl ?? '',
             weight: entry.weight,
             authIndex: entry.authIndex,
@@ -173,19 +164,17 @@ function buildInitialForm(
     proxyUrl: cfg.proxyUrl ?? '',
     prefix: cfg.prefix ?? '',
     disabled,
-    disableCooling: cfg.disableCooling,
-    runtimePolicy: readRuntimePolicy(cfg),
-    ...pickProviderBehavior(cfg, brand),
+    disableCooling: cfg.disableCooling === true,
     priority: cfg.priority,
     weight: cfg.weight,
     models: cfg.models?.length
       ? cfg.models.map((m) => ({
-          sourceIndex: m.sourceIndex,
           name: m.name,
           alias: m.alias ?? '',
           priority: m.priority,
+          testModel: m.testModel,
           thinkingJson: formatJsonObject(m.thinking),
-          ...readModelOptions(m),
+          thinkingLevels: readThinkingLevels(m.thinking),
         }))
       : [emptyModel()],
     headers: cfg.headers
@@ -276,7 +265,6 @@ export function BaseProviderForm({
     {
       brand,
       baseUrl: form.baseUrl,
-      proxyUrl: form.proxyUrl,
       testModel: form.testModel,
       models: form.models,
       formHeaders: form.headers,
@@ -291,7 +279,6 @@ export function BaseProviderForm({
   const discovery = useModelDiscovery({
     brand,
     baseUrl: form.baseUrl,
-    proxyUrl: form.proxyUrl,
     formHeaders: form.headers,
     apiKeyEntries: form.apiKeyEntries,
     apiKey: form.apiKey,
@@ -345,8 +332,37 @@ export function BaseProviderForm({
     setDiscoveryOpen(false);
   };
 
-  const applyDiscoveredModels = (picked: ModelInfo[], catalog: ModelInfo[]) => {
-    setForm((prev) => ({ ...prev, models: syncDiscoveredModels(prev.models, picked, catalog) }));
+  const applyDiscoveredModels = (incoming: ModelInfo[]) => {
+    if (!incoming.length) return;
+    setForm((prev) => {
+      const seen = new Set<string>();
+      const next: ModelEntryInput[] = [];
+      prev.models.forEach((entry) => {
+        const trimmed = (entry.name ?? '').trim();
+        if (trimmed) {
+          if (seen.has(trimmed)) return;
+          seen.add(trimmed);
+        }
+        next.push(entry);
+      });
+      // If the existing list is just an empty placeholder row, drop it.
+      const placeholderIdx = next.findIndex(
+        (it) => !(it.name ?? '').trim() && !(it.alias ?? '').trim()
+      );
+      if (placeholderIdx !== -1) {
+        next.splice(placeholderIdx, 1);
+      }
+      incoming.forEach((info) => {
+        const trimmed = info.name.trim();
+        if (!trimmed || seen.has(trimmed)) return;
+        seen.add(trimmed);
+        next.push({
+          name: trimmed,
+          alias: (info.alias ?? '').trim(),
+        });
+      });
+      return { ...prev, models: next };
+    });
   };
 
   const updateField = <K extends keyof ProviderEntryFormInput>(
@@ -375,15 +391,6 @@ export function BaseProviderForm({
   };
 
   const validate = (): string | null => {
-    const modelError = validateModelOptions(form.models);
-    if (modelError) return t(modelError);
-    if (form.runtimePolicy) {
-      const policyError = validateRuntimePolicy(
-        form.runtimePolicy,
-        descriptor.supportsRequestScopedErrors
-      );
-      if (policyError) return t(policyError);
-    }
     if (descriptor.supportsName && !form.name.trim()) {
       return t('providersPage.form.validation.nameRequired');
     }
@@ -472,6 +479,14 @@ export function BaseProviderForm({
         ? 'unavailable'
         : 'ready';
   const actualApiKeyEntries = form.apiKeyEntries ?? [];
+  const supportsDisableCooling =
+    brand === 'gemini' ||
+    brand === 'interactions' ||
+    brand === 'codex' ||
+    brand === 'meta' ||
+    brand === 'xai' ||
+    isClaudeLikeBrand(brand) ||
+    brand === 'openaiCompatibility';
   const supportsModelImage = brand === 'openaiCompatibility';
   const singleConnectivity =
     brand === 'codex' || brand === 'meta' || brand === 'xai'
@@ -490,7 +505,10 @@ export function BaseProviderForm({
   };
 
   const removeModelEntry = (idx: number) => {
-    updateField('models', removeModelAt(modelsList, idx));
+    updateField(
+      'models',
+      modelsList.filter((_, i) => i !== idx)
+    );
   };
 
   return (
@@ -551,7 +569,11 @@ export function BaseProviderForm({
                     : t('providersPage.form.showApiKey')
                 }
               >
-                {showSingleApiKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                {showSingleApiKey ? (
+                  <IconEyeOff size={iconSize['16']} />
+                ) : (
+                  <IconEye size={iconSize['16']} />
+                )}
               </button>
             </div>
           </div>
@@ -658,7 +680,17 @@ export function BaseProviderForm({
           <div className={styles.field}>
             <label className={styles.label} htmlFor={`${fid}-testModel`}>
               {t('providersPage.form.testModel')}
-              <span className={styles.labelHint}> · {t('providersPage.form.testModelHint')}</span>
+              {brand === 'codex' ||
+              brand === 'meta' ||
+              brand === 'xai' ||
+              isClaudeLikeBrand(brand) ||
+              brand === 'gemini' ||
+              brand === 'interactions' ? (
+                <span className={styles.labelHint}>
+                  {' '}
+                  · {t('providersPage.form.testModelClaudeHint')}
+                </span>
+              ) : null}
             </label>
             <Select
               id={`${fid}-testModel`}
@@ -678,7 +710,7 @@ export function BaseProviderForm({
                 >
                   {singleConnectivity.status.state === 'loading' ? (
                     <span className={`${styles.statusIcon} ${styles.statusIconLoading}`}>
-                      <IconLoader2 size={14} />
+                      <IconLoader2 size={iconSize['14']} />
                     </span>
                   ) : null}
                   <span>{t('providersPage.connectivity.test')}</span>
@@ -727,20 +759,23 @@ export function BaseProviderForm({
             </span>
           </label>
         ) : null}
-      </div>
 
-      <ProviderBehaviorEditor
-        brand={brand}
-        value={form}
-        onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
-        disabled={mutating}
-      />
-      <RuntimePolicyEditor
-        value={form.runtimePolicy ?? readRuntimePolicy()}
-        onChange={(value) => updateField('runtimePolicy', value)}
-        disabled={mutating}
-        supportsErrors={descriptor.supportsRequestScopedErrors}
-      />
+        {supportsDisableCooling ? (
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              className={styles.checkboxBox}
+              checked={form.disableCooling ?? false}
+              disabled={mutating}
+              onChange={(e) => updateField('disableCooling', e.target.checked)}
+            />
+            <span className={styles.checkboxText}>
+              <span>{t('providersPage.form.disableCooling')}</span>
+              <small>{t('providersPage.form.disableCoolingHint')}</small>
+            </span>
+          </label>
+        ) : null}
+      </div>
 
       {/* 高级折叠区 */}
       {descriptor.supportsApiKeyEntries && form.apiKeyEntries ? (
@@ -786,7 +821,7 @@ export function BaseProviderForm({
             {headersList.map((entry, idx) => (
               <div
                 key={idx}
-                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8 }}
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: space['8'] }}
               >
                 <input
                   className={styles.input}
@@ -825,7 +860,7 @@ export function BaseProviderForm({
                     )
                   }
                 >
-                  <IconX size={12} />
+                  <IconX size={iconSize['12']} />
                 </button>
               </div>
             ))}
@@ -835,7 +870,7 @@ export function BaseProviderForm({
               disabled={mutating}
               onClick={() => updateField('headers', [...headersList, emptyHeader()])}
             >
-              <IconPlus size={12} />
+              <IconPlus size={iconSize['12']} />
               <span>{t('providersPage.form.addHeader')}</span>
             </button>
           </div>
@@ -856,7 +891,7 @@ export function BaseProviderForm({
                   onClick={openDiscovery}
                   disabled={mutating}
                 >
-                  <IconDownload size={14} />
+                  <IconDownload size={iconSize['14']} />
                   <span>{t('providersPage.discovery.openButton')}</span>
                 </button>
               </div>
@@ -869,18 +904,19 @@ export function BaseProviderForm({
                 hasFetched={discovery.hasFetched}
                 existingNames={existingModelNames}
                 mutating={mutating}
-                onApply={applyDiscoveredModels}
+                onApply={(names) => {
+                  applyDiscoveredModels(names);
+                }}
                 onReload={() => void discovery.fetch()}
                 onClose={closeDiscovery}
               />
             ) : null}
             <ModelEntriesEditor
-              providerBrand={brand}
               models={modelsList}
               supportsImage={supportsModelImage}
               supportsThinking
               mutating={mutating}
-              removeDisabled={false}
+              removeDisabled={modelsList.length <= 1}
               onUpdate={updateModelEntry}
               onAdd={() => updateField('models', [...modelsList, emptyModel()])}
               onRemove={removeModelEntry}

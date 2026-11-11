@@ -1,0 +1,10 @@
+.editorBody {
+  padding: $space-16;
+}
+.countBadge {
+  padding: $space-3 $space-8;
+  border-radius: $radius-6;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font: $font-size-12 $font-family-mono;
+}

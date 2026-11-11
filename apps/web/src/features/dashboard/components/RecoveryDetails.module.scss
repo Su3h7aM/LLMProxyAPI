@@ -1,0 +1,25 @@
+/* Inline disclosure for the rest of a model list. Sits above a row's stretched link. */
+.more {
+  position: relative;
+  z-index: 1;
+  padding: 0 $space-2;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: $space-3;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-2;
+    border-radius: $radius-3;
+  }
+
+  /* Touch: a 44px-tall hit area without shifting the line. */
+  @media (pointer: coarse) {
+    padding: $space-12 $space-6;
+    margin: (-$space-12) (-$space-4);
+  }
+}

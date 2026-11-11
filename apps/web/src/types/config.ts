@@ -6,11 +6,12 @@
 import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from './provider';
 
 export interface QuotaExceededConfig {
+  switchProject?: boolean;
+  switchPreviewModel?: boolean;
   antigravityCredits?: boolean;
 }
 
 export interface Config {
-  providerGroups?: Record<string, unknown>;
   debug?: boolean;
   proxyUrl?: string;
   requestRetry?: number;
@@ -27,7 +28,6 @@ export interface Config {
   codexApiKeys?: ProviderKeyConfig[];
   metaApiKeys?: ProviderKeyConfig[];
   xaiApiKeys?: ProviderKeyConfig[];
-  openCodeGoApiKeys?: ProviderKeyConfig[];
   claudeApiKeys?: ProviderKeyConfig[];
   vertexApiKeys?: ProviderKeyConfig[];
   openaiCompatibility?: OpenAIProviderConfig[];
@@ -52,7 +52,6 @@ export type RawConfigSection =
   | 'codex-api-key'
   | 'meta-api-key'
   | 'xai-api-key'
-  | 'opencode-go-api-key'
   | 'claude-api-key'
   | 'vertex-api-key'
   | 'openai-compatibility'

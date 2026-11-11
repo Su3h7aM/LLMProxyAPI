@@ -6,11 +6,12 @@ interface ToggleSwitchProps {
   onChange: (value: boolean) => void;
   label?: ReactNode;
   ariaLabel?: string;
-  /** 外部 <label htmlFor> 关联用；不传则仅靠 label / ariaLabel 命名。 */
-  id?: string;
-  ariaDescribedBy?: string;
   disabled?: boolean;
   labelPosition?: 'left' | 'right';
+  /** `field` matches neighbouring form-field labels (13px, medium, secondary) inside forms. */
+  labelVariant?: 'emphasis' | 'field';
+  /** Visible tooltip, e.g. naming the item the switch enables. */
+  title?: string;
 }
 
 export function ToggleSwitch({
@@ -18,10 +19,10 @@ export function ToggleSwitch({
   onChange,
   label,
   ariaLabel,
-  id,
-  ariaDescribedBy,
   disabled = false,
   labelPosition = 'right',
+  labelVariant = 'emphasis',
+  title,
 }: ToggleSwitchProps) {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.checked);
@@ -30,21 +31,21 @@ export function ToggleSwitch({
   const className = [
     styles.root,
     labelPosition === 'left' ? styles.labelLeft : '',
+    labelVariant === 'field' ? styles.fieldLabel : '',
     disabled ? styles.disabled : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <label className={className}>
+    <label className={className} title={title}>
       <input
-        id={id}
         type="checkbox"
+        role="switch"
         checked={checked}
         onChange={handleChange}
         disabled={disabled}
         aria-label={ariaLabel}
-        aria-describedby={ariaDescribedBy}
       />
       <span className={styles.track}>
         <span className={styles.thumb} />

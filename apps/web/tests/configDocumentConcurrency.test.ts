@@ -2,73 +2,70 @@ import { describe, expect, test } from 'bun:test';
 import { parse as parseYaml, parseDocument } from 'yaml';
 import {
   buildConfigSaveDraft,
+  selectVisualMergeBase,
   shouldReloadVisualDraft,
 } from '../src/features/config/hooks/useConfigDocument';
-import { buildConfigPatch } from '../src/services/api/configPatch';
 
 function applyProxyEdit(yaml: string): string {
   const document = parseDocument(yaml);
-  document.setIn(['requests', 'proxy-url'], 'http://local-proxy.example');
+  document.set('proxy-url', 'http://local-proxy.example');
   return document.toString();
 }
 
 describe('config document concurrency policy', () => {
-  test('a visual/source round trip preserves field dirty state and patches only local edits', () => {
+  test('a visual/source mode round trip keeps merging visual edits onto the latest server YAML', () => {
     const synchronizedSource =
-      'requests:\n  proxy-url: http://local-proxy.example\nobservability:\n  logs:\n    debug: false\n';
-    const latestServer =
-      'requests:\n  proxy-url: http://old-proxy.example\nobservability:\n  logs:\n    debug: true\n';
+      'debug: false\nproxy-url: http://local-proxy.example\nsource-only: draft\n';
+    const latestServer = 'debug: true\nproxy-url: http://old-proxy.example\nsource-only: server\n';
 
     expect(shouldReloadVisualDraft(false, null)).toBe(false);
-    const merged = buildConfigSaveDraft(
-      latestServer,
-      synchronizedSource,
-      false,
-      'visual',
-      applyProxyEdit
-    );
+
+    const merged = applyProxyEdit(selectVisualMergeBase(latestServer, synchronizedSource, false));
     expect(parseYaml(merged)).toEqual({
-      observability: { logs: { debug: true } },
-      requests: { 'proxy-url': 'http://local-proxy.example' },
-    });
-    expect(buildConfigPatch(latestServer, merged)).toEqual({
-      patch: { requests: { 'proxy-url': 'http://local-proxy.example' } },
-      deletions: [],
+      debug: true,
+      'proxy-url': 'http://local-proxy.example',
+      'source-only': 'server',
     });
   });
 
-  test('real source edits cannot be submitted from visual mode (decision A)', () => {
-    expect(() =>
-      buildConfigSaveDraft(
-        'server: {port: 8317}',
-        'server: {port: 9000}',
-        true,
-        'visual',
-        applyProxyEdit
-      )
-    ).toThrow('Unsaved source edits');
+  test('a real source edit keeps the local draft as the visual merge base', () => {
+    const sourceDraft =
+      'debug: false\nproxy-url: http://old-proxy.example\nsource-only: local-draft\n';
+    const latestServer = 'debug: true\nproxy-url: http://old-proxy.example\nsource-only: server\n';
+
+    expect(shouldReloadVisualDraft(true, null)).toBe(true);
+
+    const merged = applyProxyEdit(selectVisualMergeBase(latestServer, sourceDraft, true));
+    expect(parseYaml(merged)).toEqual({
+      debug: false,
+      'proxy-url': 'http://local-proxy.example',
+      'source-only': 'local-draft',
+    });
   });
 
-  test('source saves preserve the complete draft, including comments, without rebuilding it', () => {
-    const source = '# intentional source formatting\nserver: {port: 9000}\n';
-    expect(
-      buildConfigSaveDraft('server: {port: 8317}', source, true, 'source', () => {
-        throw new Error('Do not apply visual values to a source draft');
-      })
-    ).toBe(source);
+  test('visual edits after a real source edit are applied on top of the source draft', () => {
+    const source = 'debug: false\nsource-only: local\n';
+    const server = 'debug: true\nsource-only: server\n';
+    const result = buildConfigSaveDraft(server, source, true, 'visual', applyProxyEdit);
+    expect(parseYaml(result)).toEqual({
+      debug: false,
+      'source-only': 'local',
+      'proxy-url': 'http://local-proxy.example',
+    });
+    expect(buildConfigSaveDraft(server, source, true, 'source', applyProxyEdit)).toBe(source);
   });
 
-  test('viewing generated source still builds on latest server values before a full source save', () => {
+  test('viewing generated source retains the visual-origin save strategy', () => {
     const result = buildConfigSaveDraft(
-      'observability:\n  logs:\n    debug: true\n',
-      'observability:\n  logs:\n    debug: false\n',
+      'debug: true\n',
+      'debug: false\n',
       false,
       'source',
       applyProxyEdit
     );
     expect(parseYaml(result)).toEqual({
-      observability: { logs: { debug: true } },
-      requests: { 'proxy-url': 'http://local-proxy.example' },
+      debug: true,
+      'proxy-url': 'http://local-proxy.example',
     });
   });
 

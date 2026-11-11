@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useInterval } from '@/hooks/useInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useRevealOnScroll } from '@/hooks/motion';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { copyToClipboard } from '@/utils/clipboard';
 import { getQuotaCacheKey } from '@/utils/quota/identity';
 import {
   QUOTA_PROVIDER_TYPES,
   clampCardPageSize,
-  getTypeLabel,
+  authFileProviderId,
   isProblemAuthFile,
   isRuntimeOnlyAuthFile,
   normalizeProviderKey,
@@ -23,21 +24,22 @@ import {
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { AuthFileDetailsSheet } from '@/features/authFiles/components/AuthFileDetailsSheet';
-import { getAuthFileRefreshKey } from '@/features/authFiles/manualRefresh';
-import { AuthFileRefreshResults } from '@/features/authFiles/components/AuthFileRefreshResults';
 import { AuthFileModelsModal } from '@/features/authFiles/components/AuthFileModelsModal';
+import { AuthFilesSectionNav } from '@/features/authFiles/components/AuthFilesSectionNav';
 import { AuthFilesToolbar } from '@/features/authFiles/components/AuthFilesToolbar';
 import { BatchActionBar } from '@/features/authFiles/components/BatchActionBar';
 import { OAuthExcludedCard } from '@/features/authFiles/components/OAuthExcludedCard';
 import { OAuthModelAliasCard } from '@/features/authFiles/components/OAuthModelAliasCard';
+import { OAuthRulesSummary } from '@/features/authFiles/components/OAuthRulesSummary';
 import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { VaultHeader } from '@/features/authFiles/components/VaultHeader';
-import { VaultPulse } from '@/features/authFiles/components/VaultPulse';
 import { invalidateAuthFileDerivedCaches } from '@/features/authFiles/cacheInvalidation';
+import { AUTH_FILES_DEEP_LINK_KEYS, parseAuthFilesDeepLink } from '@/features/authFiles/deepLink';
 import {
   buildWildcardSearch,
   matchesAuthFileSearch,
   sortAuthFiles,
+  summarizeViewOptions,
 } from '@/features/authFiles/logic';
 import { useAuthFilesData } from '@/features/authFiles/hooks/useAuthFilesData';
 import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
@@ -56,13 +58,11 @@ import {
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useThemeStore } from '@/stores';
 import styles from './AuthFilesPage.module.scss';
+import { size } from '@/design-system';
 
 const DEFAULT_REGULAR_PAGE_SIZE = 9;
 const DEFAULT_COMPACT_PAGE_SIZE = 12;
 const SKELETON_CARD_COUNT = 6;
-/** 首屏卡片级联入场总预算，与 useRevealGroup 同一 360ms 语汇。 */
-const CARD_ENTRANCE_BUDGET_MS = 360;
-
 const resolveStatusFilterMode = (
   problemOnly: boolean,
   disabledOnly: boolean
@@ -85,6 +85,9 @@ export function AuthFilesPage() {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
   const navigate = useNavigate();
+  // A link such as `?provider=meta&status=problem&search=file.json` (from the dashboard)
+  // overrides the persisted filters, then its parameters are removed from the URL.
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [filter, setFilter] = useState<'all' | string>('all');
   const [statusFilterMode, setStatusFilterMode] = useState<AuthFilesStatusFilterMode>('all');
@@ -98,6 +101,7 @@ export function AuthFilesPage() {
   const [pageSizeInput, setPageSizeInput] = useState('9');
   const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
+  const [oauthRulesExpanded, setOauthRulesExpanded] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
 
   const {
@@ -126,24 +130,16 @@ export function AuthFilesPage() {
     error,
     uploading,
     deleting,
-    deletingAll,
     statusUpdating,
     manualRefreshing,
-    refreshingAllCredentials,
-    refreshResults,
-    closeRefreshResults,
-    handleRefreshAllCredentials,
-    cooldownResetting,
     batchStatusUpdating,
     fileInputRef,
     loadFiles,
     handleUploadClick,
     handleFileChange,
     handleDelete,
-    handleDeleteAll,
     handleDownload,
     handleManualRefresh,
-    handleCooldownReset,
     handleStatusToggle,
     toggleSelect,
     selectAllVisible,
@@ -182,12 +178,11 @@ export function AuthFilesPage() {
     handlePrefixProxyChange,
     handlePrefixProxySave,
   } = useAuthFilesPrefixProxyEditor({
-    disableControls: connectionStatus !== 'connected' || refreshingAllCredentials,
+    disableControls: connectionStatus !== 'connected',
     loadFiles,
-    onFilesMutated: invalidateDerivedCaches,
   });
 
-  const disableControls = connectionStatus !== 'connected' || refreshingAllCredentials;
+  const disableControls = connectionStatus !== 'connected';
   const normalizedFilter = normalizeProviderKey(String(filter));
   const quotaFilterType: QuotaProviderType | null = QUOTA_PROVIDER_TYPES.has(
     normalizedFilter as QuotaProviderType
@@ -195,8 +190,13 @@ export function AuthFilesPage() {
     ? (normalizedFilter as QuotaProviderType)
     : null;
   const activeQuotaFilter: AuthFileQuotaFilter =
-    normalizedFilter === 'all' ? 'all' : (quotaFilterType ?? normalizedFilter) || null;
+    normalizedFilter === 'all' ? 'all' : quotaFilterType || normalizedFilter || null;
   const pageSize = compactMode ? pageSizeByMode.compact : pageSizeByMode.regular;
+  const viewOptions = summarizeViewOptions({
+    sortMode,
+    pageSize,
+    defaultPageSize: compactMode ? DEFAULT_COMPACT_PAGE_SIZE : DEFAULT_REGULAR_PAGE_SIZE,
+  });
   const problemOnly = statusFilterMode === 'problem';
   const disabledOnly = statusFilterMode === 'disabled';
   const enabledOnly = statusFilterMode === 'enabled';
@@ -259,6 +259,21 @@ export function AuthFilesPage() {
 
     setUiStateHydrated(true);
   }, []);
+
+  // Runs after hydration so the link wins over persisted filters, and again for every new
+  // link that arrives while the page is open.
+  useEffect(() => {
+    if (!uiStateHydrated) return;
+    const deepLink = parseAuthFilesDeepLink(searchParams);
+    if (!deepLink) return;
+    setFilter(deepLink.provider ?? 'all');
+    setStatusFilterMode(deepLink.status ?? 'all');
+    setSearch(deepLink.search ?? '');
+    setPage(1);
+    const next = new URLSearchParams(searchParams);
+    AUTH_FILES_DEEP_LINK_KEYS.forEach((key) => next.delete(key));
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, uiStateHydrated]);
 
   useEffect(() => {
     if (!uiStateHydrated) return;
@@ -391,8 +406,7 @@ export function AuthFilesPage() {
   const existingTypes = useMemo(() => {
     const types = new Set<string>(['all']);
     files.forEach((file) => {
-      const type = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
-      if (type) types.add(type);
+      types.add(authFileProviderId(file));
     });
     return Array.from(types);
   }, [files]);
@@ -431,8 +445,7 @@ export function AuthFilesPage() {
   const typeCounts = useMemo(() => {
     const counts: Record<string, number> = { all: filesMatchingStatusFilters.length };
     filesMatchingStatusFilters.forEach((file) => {
-      const type = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
-      if (!type) return;
+      const type = authFileProviderId(file);
       counts[type] = (counts[type] || 0) + 1;
     });
     return counts;
@@ -444,7 +457,7 @@ export function AuthFilesPage() {
   const filtered = useMemo(
     () =>
       filesMatchingStatusFilters.filter((item) => {
-        const type = normalizeProviderKey(String(item.type ?? item.provider ?? ''));
+        const type = authFileProviderId(item);
         const matchType = normalizedFilter === 'all' || type === normalizedFilter;
         return matchType && matchesAuthFileSearch(item, normalizedSearch, wildcardSearch);
       }),
@@ -467,12 +480,8 @@ export function AuthFilesPage() {
   );
   const selectedNames = useMemo(() => Array.from(selectedFiles), [selectedFiles]);
   const selectedHasStatusUpdating = useMemo(
-    () =>
-      files.some(
-        (file) =>
-          selectedFiles.has(file.name) && statusUpdating[getAuthFileRefreshKey(file)] === true
-      ),
-    [files, selectedFiles, statusUpdating]
+    () => selectedNames.some((name) => statusUpdating[name] === true),
+    [selectedNames, statusUpdating]
   );
   const batchStatusButtonsDisabled =
     disableControls ||
@@ -484,24 +493,6 @@ export function AuthFilesPage() {
 
   const activeCount = useMemo(() => files.filter((file) => file.disabled !== true).length, [files]);
   const problemCount = useMemo(() => files.filter(isProblemAuthFile).length, [files]);
-
-  /* ---------- 首屏卡片一次性级联入场 ----------
-   * 首批数据渲染后立即翻转 cardsAnimated；已挂载的卡片在挂载时捕获过
-   * 自己的延迟（AuthFileCard 内 useState 初始化），不受后续 null 影响，
-   * 而过滤/翻页/轮询新挂载的卡片拿到 null——不重播。 */
-
-  const [cardsAnimated, setCardsAnimated] = useState(false);
-  const enableCardEntrance = !cardsAnimated && isCurrentLayer && !loading && pageItems.length > 0;
-  useEffect(() => {
-    if (enableCardEntrance) {
-      setCardsAnimated(true);
-    }
-  }, [enableCardEntrance]);
-  const cardEntranceDelay = (index: number): number | null => {
-    if (!enableCardEntrance) return null;
-    if (pageItems.length <= 1) return 0;
-    return Math.round((index / (pageItems.length - 1)) * CARD_ENTRANCE_BUDGET_MS);
-  };
 
   /* ---------- 杂项 ---------- */
 
@@ -555,34 +546,10 @@ export function AuthFilesPage() {
     setPage(1);
   }, []);
 
-  const deleteAllButtonLabel = (() => {
-    if (enabledOnly || disabledOnly) {
-      return t('auth_files.delete_filtered_result_button');
-    }
-    if (problemOnly) {
-      return normalizedFilter === 'all'
-        ? t('auth_files.delete_problem_button')
-        : t('auth_files.delete_problem_button_with_type', {
-            type: getTypeLabel(t, normalizedFilter),
-          });
-    }
-    return normalizedFilter === 'all'
-      ? t('auth_files.delete_all_button')
-      : `${t('common.delete')} ${getTypeLabel(t, normalizedFilter)}`;
-  })();
-
   const oauthSectionRef = useRevealOnScroll<HTMLDivElement>();
 
   const isFirstRunEmpty = !loading && files.length === 0 && !error;
   const isNoResults = !loading && files.length > 0 && pageItems.length === 0;
-
-  const gridClasses = [
-    styles.grid,
-    compactMode ? styles.gridCompact : '',
-    activeQuotaFilter ? styles.gridQuota : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
 
   return (
     <div className={styles.page}>
@@ -596,11 +563,7 @@ export function AuthFilesPage() {
         disableControls={disableControls}
         onUpload={handleUploadClick}
         onRefresh={() => void handleHeaderRefresh()}
-        refreshingCredentials={refreshingAllCredentials}
-        credentialRefreshDisabled={Object.keys(manualRefreshing).length > 0}
-        onRefreshCredentials={handleRefreshAllCredentials}
       />
-      <AuthFileRefreshResults results={refreshResults} onClose={closeRefreshResults} />
       <input
         ref={fileInputRef}
         type="file"
@@ -610,53 +573,43 @@ export function AuthFilesPage() {
         onChange={handleFileChange}
       />
 
-      <VaultPulse files={files} statusBarCache={statusBarCache} />
-
       <section className={styles.workbench} aria-label={t('auth_files.title_section')}>
-        <ProviderTabs
-          types={existingTypes}
-          counts={typeCounts}
-          active={normalizedFilter}
-          resolvedTheme={resolvedTheme}
-          onChange={(type) => {
-            setFilter(type);
-            setPage(1);
-          }}
-        />
+        <div className={styles.filters}>
+          {/* Phones put the section and provider selects on one row; desktop keeps two strips. */}
+          <div className={styles.pickers}>
+            <AuthFilesSectionNav />
+            <ProviderTabs
+              types={existingTypes}
+              counts={typeCounts}
+              active={normalizedFilter}
+              resolvedTheme={resolvedTheme}
+              onChange={(type) => {
+                setFilter(type);
+                setPage(1);
+              }}
+            />
+          </div>
 
-        <AuthFilesToolbar
-          search={search}
-          onSearchChange={(value) => {
-            setSearch(value);
-            setPage(1);
-          }}
-          statusFilterMode={statusFilterMode}
-          statusFilterOptions={statusFilterOptions}
-          onStatusFilterChange={handleStatusFilterModeChange}
-          sortMode={sortMode}
-          sortOptions={sortOptions}
-          onSortModeChange={handleSortModeChange}
-          pageSizeInput={pageSizeInput}
-          onPageSizeInputChange={handlePageSizeChange}
-          onPageSizeCommit={commitPageSizeInput}
-          compactMode={compactMode}
-          onCompactModeChange={setCompactMode}
-          deleteLabel={deleteAllButtonLabel}
-          deleteDisabled={disableControls || loading || deletingAll || files.length === 0}
-          deleteLoading={deletingAll}
-          onDelete={() =>
-            handleDeleteAll({
-              filter,
-              problemOnly,
-              disabledOnly,
-              enabledOnly,
-              onResetFilterToAll: () => setFilter('all'),
-              onResetProblemOnly: () => setStatusFilterMode('all'),
-              onResetDisabledOnly: () => setStatusFilterMode('all'),
-              onResetEnabledOnly: () => setStatusFilterMode('all'),
-            })
-          }
-        />
+          <AuthFilesToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            statusFilterMode={statusFilterMode}
+            statusFilterOptions={statusFilterOptions}
+            onStatusFilterChange={handleStatusFilterModeChange}
+            sortMode={sortMode}
+            sortOptions={sortOptions}
+            onSortModeChange={handleSortModeChange}
+            pageSizeInput={pageSizeInput}
+            onPageSizeInputChange={handlePageSizeChange}
+            onPageSizeCommit={commitPageSizeInput}
+            compactMode={compactMode}
+            onCompactModeChange={setCompactMode}
+            viewOptions={viewOptions}
+          />
+        </div>
 
         {error && (
           <div className={styles.errorBanner} role="alert">
@@ -665,9 +618,9 @@ export function AuthFilesPage() {
         )}
 
         {loading ? (
-          <div className={gridClasses} aria-hidden="true">
+          <div className={styles.loadingRows} aria-label={t('common.loading')} role="status">
             {Array.from({ length: SKELETON_CARD_COUNT }, (_, index) => (
-              <Skeleton key={index} height={206} rounded={14} />
+              <Skeleton key={index} height={size['72']} rounded={0} />
             ))}
           </div>
         ) : isFirstRunEmpty ? (
@@ -700,32 +653,65 @@ export function AuthFilesPage() {
             }
           />
         ) : (
-          <div className={gridClasses}>
-            {pageItems.map((file, index) => (
-              <AuthFileCard
-                key={getQuotaCacheKey(file)}
-                file={file}
-                compact={compactMode}
-                selected={selectedFiles.has(file.name)}
-                resolvedTheme={resolvedTheme}
-                disableControls={disableControls}
-                deleting={deleting}
-                statusUpdating={statusUpdating}
-                manualRefreshing={manualRefreshing}
-                cooldownResetting={cooldownResetting}
-                quotaFilterType={activeQuotaFilter}
-                statusBarCache={statusBarCache}
-                entranceDelayMs={cardEntranceDelay(index)}
-                onShowModels={showModels}
-                onDownload={handleDownload}
-                onManualRefresh={handleManualRefresh}
-                onCooldownReset={handleCooldownReset}
-                onOpenPrefixProxyEditor={openPrefixProxyEditor}
-                onDelete={handleDelete}
-                onToggleStatus={handleStatusToggle}
-                onToggleSelect={toggleSelect}
-              />
-            ))}
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <caption className={styles.srOnly}>{t('redesign.authFiles.credentials')}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <SelectionCheckbox
+                      checked={
+                        selectablePageItems.length > 0 &&
+                        selectablePageItems.every((file) => selectedFiles.has(file.name))
+                      }
+                      disabled={selectablePageItems.length === 0}
+                      ariaLabel={t('auth_files.batch_select_page')}
+                      onChange={(checked) => {
+                        if (checked) selectAllVisible(pageItems);
+                        else
+                          selectablePageItems.forEach((file) => {
+                            if (selectedFiles.has(file.name)) toggleSelect(file.name);
+                          });
+                      }}
+                    />
+                  </th>
+                  <th scope="col">{t('redesign.authFiles.credential')}</th>
+                  <th scope="col">{t('common.status')}</th>
+                  <th scope="col">{t('auth_files.card_requests')}</th>
+                  <th scope="col">{t('redesign.authFiles.quota')}</th>
+                  <th scope="col">{t('redesign.authFiles.updated')}</th>
+                  <th scope="col">{t('auth_files.status_toggle_label')}</th>
+                  <th scope="col">{t('redesign.authFiles.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageItems.map((file) => (
+                  <AuthFileCard
+                    key={getQuotaCacheKey(file)}
+                    file={file}
+                    compact={compactMode}
+                    selected={selectedFiles.has(file.name)}
+                    resolvedTheme={resolvedTheme}
+                    disableControls={disableControls}
+                    deleting={deleting}
+                    statusUpdating={statusUpdating}
+                    manualRefreshing={manualRefreshing}
+                    quotaFilterType={activeQuotaFilter}
+                    statusBarCache={statusBarCache}
+                    onShowModels={showModels}
+                    onDownload={handleDownload}
+                    onManualRefresh={handleManualRefresh}
+                    onOpenPrefixProxyEditor={openPrefixProxyEditor}
+                    onDelete={handleDelete}
+                    onToggleStatus={handleStatusToggle}
+                    onToggleSelect={toggleSelect}
+                  />
+                ))}
+              </tbody>
+            </table>
+            <div className={styles.tableFoot}>
+              {t('redesign.authFiles.shown', { count: pageItems.length, total: sorted.length })}
+            </div>
           </div>
         )}
 
@@ -758,34 +744,41 @@ export function AuthFilesPage() {
         )}
       </section>
 
-      <div className={styles.configGrid} ref={oauthSectionRef}>
-        <OAuthExcludedCard
-          disableControls={disableControls}
-          excludedError={excludedError}
-          excluded={excluded}
-          onRetry={loadExcluded}
-          onAdd={() => openExcludedEditor()}
-          onEdit={openExcludedEditor}
-          onDelete={deleteExcluded}
-        />
+      <div className={styles.oauthRules} ref={oauthSectionRef}>
+        <OAuthRulesSummary
+          excluded={{ error: excludedError, rules: excluded }}
+          aliases={{ error: modelAliasError, rules: modelAlias }}
+          expanded={oauthRulesExpanded}
+          onExpandedChange={setOauthRulesExpanded}
+        >
+          <OAuthExcludedCard
+            disableControls={disableControls}
+            excludedError={excludedError}
+            excluded={excluded}
+            onRetry={loadExcluded}
+            onAdd={() => openExcludedEditor()}
+            onEdit={openExcludedEditor}
+            onDelete={deleteExcluded}
+          />
 
-        <OAuthModelAliasCard
-          disableControls={disableControls}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          onRetry={loadModelAlias}
-          onAdd={() => openModelAliasEditor()}
-          onEditProvider={openModelAliasEditor}
-          onDeleteProvider={deleteModelAlias}
-          modelAliasError={modelAliasError}
-          modelAlias={modelAlias}
-          allProviderModels={allProviderModels}
-          onUpdate={handleMappingUpdate}
-          onDeleteLink={handleDeleteLink}
-          onToggleFork={handleToggleFork}
-          onRenameAlias={handleRenameAlias}
-          onDeleteAlias={handleDeleteAlias}
-        />
+          <OAuthModelAliasCard
+            disableControls={disableControls}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onRetry={loadModelAlias}
+            onAdd={() => openModelAliasEditor()}
+            onEditProvider={openModelAliasEditor}
+            onDeleteProvider={deleteModelAlias}
+            modelAliasError={modelAliasError}
+            modelAlias={modelAlias}
+            allProviderModels={allProviderModels}
+            onUpdate={handleMappingUpdate}
+            onDeleteLink={handleDeleteLink}
+            onToggleFork={handleToggleFork}
+            onRenameAlias={handleRenameAlias}
+            onDeleteAlias={handleDeleteAlias}
+          />
+        </OAuthRulesSummary>
       </div>
 
       <AuthFileModelsModal

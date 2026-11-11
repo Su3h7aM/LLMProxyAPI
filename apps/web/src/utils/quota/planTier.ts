@@ -1,32 +1,34 @@
 import { normalizePlanType } from './parsers';
 
 /**
- * Codex 套餐档位的纯映射（卡面档位见 features/quota/cardTier.ts）。
+ * Codex 套餐档位 → 徽章样式的纯映射。
  *
- * - elite   → Pro 500（plan=promax）
- * - premium → Pro 200（plan=pro）、Pro 100（plan=prolite）
- * - plain   → Plus / Team / Business（含 Business Premium）/ Free / 未知
+ * - elite   → 液态铂金徽章（Pro 20x，plan=pro）
+ * - premium → 金卡徽章（Pro Lite；Antigravity ultra / xAI paid 亦复用金卡类名）
+ * - plain   → 普通文字徽章（plus/team/free/未知）
  */
 export type CodexPlanTier = 'elite' | 'premium' | 'plain';
 
-/** Pro 500 的各种写法。 */
-export const PRO_MAX_CODEX_PLAN_TYPES = new Set(['promax', 'pro-max', 'pro_max']);
+export const PREMIUM_CODEX_PLAN_TYPES = new Set([
+  'pro',
+  'prolite',
+  'pro-lite',
+  'pro_lite',
+  'self_serve_business_prolite',
+]);
 
-/** Pro 100 的各种写法。 */
-export const PRO_LITE_CODEX_PLAN_TYPES = new Set(['prolite', 'pro-lite', 'pro_lite']);
+// Pro 20x（plan=pro）在金色 premium 之上再进一档：液态铂金徽章，
+// 见 QuotaPage.module.scss 的 .elitePlanValue。
+export const ELITE_CODEX_PLAN_TYPE = 'pro';
 
-/** Pro 200。 */
-export const PRO_CODEX_PLAN_TYPE = 'pro';
-
-/** Business Premium：名字带 Premium，但档位与 Plus 相同。 */
-export const BUSINESS_PREMIUM_CODEX_PLAN_TYPE = 'self_serve_business_prolite';
-
+/**
+ * 顺序敏感：'pro' 同时命中 PREMIUM_CODEX_PLAN_TYPES，elite 判断必须在最前，
+ * 否则 Pro 20x 会静默退回金卡。契约由 tests/quotaPlanTier.test.ts 守护。
+ */
 export function resolvePlanTier(planType: string | null | undefined): CodexPlanTier {
   const normalized = normalizePlanType(planType);
   if (!normalized) return 'plain';
-  if (PRO_MAX_CODEX_PLAN_TYPES.has(normalized)) return 'elite';
-  if (normalized === PRO_CODEX_PLAN_TYPE || PRO_LITE_CODEX_PLAN_TYPES.has(normalized)) {
-    return 'premium';
-  }
+  if (normalized === ELITE_CODEX_PLAN_TYPE) return 'elite';
+  if (PREMIUM_CODEX_PLAN_TYPES.has(normalized)) return 'premium';
   return 'plain';
 }

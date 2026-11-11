@@ -1,0 +1,146 @@
+@use '@/styles/mixins' as *;
+
+.card {
+  min-width: 0;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-12;
+  padding: $space-16 $space-16 $space-12;
+
+  h2 {
+    margin: 0;
+    font-size: $font-size-14;
+    font-weight: $font-weight-600;
+    line-height: $line-height-1-4;
+  }
+
+  p {
+    margin: $space-4 0 0;
+    color: var(--text-secondary);
+    font-size: $font-size-12;
+    line-height: $line-height-1-5;
+  }
+
+  button {
+    flex-shrink: 0;
+  }
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4 $space-12;
+  margin: 0;
+  padding: 0 $space-16 $space-12;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.warning {
+  color: var(--warning-color);
+}
+
+.accounts {
+  padding: $space-4 $space-16 $space-16;
+}
+
+.more {
+  margin: $space-12 0 0;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+}
+
+/* The forecast is secondary to the per-account bars: closed until asked for. */
+.projection {
+  padding: $space-4 $space-16 $space-8;
+  border-top: $border-width-1 solid var(--border-color);
+
+  summary {
+    @include disclosure-summary;
+  }
+}
+
+.chart {
+  padding-top: $space-8;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-12;
+  padding: $space-12 $space-16;
+  border-top: $border-width-1 solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  overflow-wrap: anywhere;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: $size-36;
+    color: var(--accent-color);
+    text-decoration: none;
+
+    @media (max-width: #{$breakpoint-mobile}), (pointer: coarse) {
+      min-height: $size-touch-target;
+    }
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+.card :is(button, a):focus-visible {
+  outline: $border-width-2 solid var(--focus-ring);
+  outline-offset: $space-2;
+}
+
+@media (max-width: #{$breakpoint-600}) {
+  .header {
+    padding: $space-12;
+  }
+
+  .status {
+    padding: 0 $space-12 $space-12;
+  }
+
+  .accounts {
+    padding: $space-4 $space-12 $space-12;
+  }
+
+  .projection {
+    padding: $space-4 $space-12 $space-8;
+  }
+
+  .footer {
+    align-items: flex-start;
+    padding: $space-12;
+  }
+}

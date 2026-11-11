@@ -2,10 +2,8 @@
  * AI 提供商 Workbench 视图模型(归一化各 brand 的异构 config)
  */
 
+import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import type { ThinkingLevel } from './thinkingLevels';
-import type { RuntimePolicyDraft } from './runtimePolicy';
-import type { ModelOptionsInput } from './modelOptions';
-import type { ProviderBehaviorOptions } from '@/types/provider';
 
 export type ProviderBrand =
   | 'gemini'
@@ -16,7 +14,12 @@ export type ProviderBrand =
   | 'claude'
   | 'vertex'
   | 'openaiCompatibility'
-  | 'opencodeGo';
+  | 'apikeyFun'
+  | 'fennoAI'
+  | 'qiniuCloud'
+  | 'kimi';
+
+export type SponsorProviderBrand = 'apikeyFun' | 'fennoAI' | 'qiniuCloud' | 'kimi';
 
 export const PROVIDER_SORT_BY_VALUES = ['name', 'priority', 'recent-success'] as const;
 export type ProviderSortBy = (typeof PROVIDER_SORT_BY_VALUES)[number];
@@ -30,10 +33,37 @@ export type ProviderResourceSelector =
   | { brand: 'codex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'meta'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'xai'; apiKey: string; baseUrl?: string; index: number }
-  | { brand: 'opencodeGo'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'claude'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'vertex'; apiKey: string; baseUrl?: string; index: number }
-  | { brand: 'openaiCompatibility'; name: string; index: number };
+  | { brand: 'openaiCompatibility'; name: string; index: number }
+  | {
+      brand: 'apikeyFun';
+      openaiIndices: number[];
+      claudeIndices: number[];
+      codexIndices: number[];
+      geminiIndices: number[];
+    }
+  | {
+      brand: 'fennoAI';
+      openaiIndices: number[];
+      claudeIndices: number[];
+      codexIndices: number[];
+      geminiIndices: number[];
+    }
+  | {
+      brand: 'qiniuCloud';
+      openaiIndices: number[];
+      claudeIndices: number[];
+      codexIndices: number[];
+      geminiIndices: number[];
+    }
+  | {
+      brand: 'kimi';
+      openaiIndices: number[];
+      claudeIndices: number[];
+      codexIndices: number[];
+      geminiIndices: number[];
+    };
 
 export interface ProviderResourceFlags {
   cloakEnabled?: boolean;
@@ -89,17 +119,22 @@ export interface ProviderSnapshot {
   groups: ProviderGroup[];
 }
 
+export interface SponsorProviderRaw {
+  openai: Array<{ config: OpenAIProviderConfig; index: number }>;
+  claude: Array<{ config: ProviderKeyConfig; index: number }>;
+  codex: Array<{ config: ProviderKeyConfig; index: number }>;
+  gemini: Array<{ config: GeminiKeyConfig; index: number }>;
+}
+
 /**
  * 通用 Sheet 表单值。
  * Gemini/Codex/Claude/Vertex/OpenAI 共用基础字段,各自启用 advanced 区。
  */
-export interface ModelEntryInput extends ModelOptionsInput {
-  /** Only used by the OAuth alias editor. */
-  fork?: boolean;
-  sourceIndex?: number | null;
+export interface ModelEntryInput {
   name: string;
   alias?: string;
   priority?: number;
+  testModel?: string;
   image?: boolean;
   /** Original backend value, preserved until the standard-level selector is changed. */
   thinkingJson?: string;
@@ -107,8 +142,23 @@ export interface ModelEntryInput extends ModelOptionsInput {
   thinkingLevelsTouched?: boolean;
 }
 
+export type SponsorProtocol = 'openai' | 'codex' | 'claude' | 'gemini';
+
+export interface SponsorKeyEntryInput {
+  protocol: SponsorProtocol;
+  apiKey: string;
+  existingApiKey?: string;
+  baseUrl: string;
+  proxyUrl: string;
+  prefix: string;
+  disabled: boolean;
+  disableCooling?: boolean;
+  priority?: number;
+  weight?: number;
+  models: ModelEntryInput[];
+}
+
 export interface ApiKeyEntryInput {
-  sourceIndex?: number;
   apiKey: string;
   existingApiKey?: string;
   proxyUrl: string;
@@ -123,7 +173,7 @@ export interface CloakInput {
   cacheUserId: boolean;
 }
 
-export interface ProviderEntryFormInput extends ProviderBehaviorOptions {
+export interface ProviderEntryFormInput {
   /** OpenAI 创建时只在 apiKeyEntries 中传 */
   apiKey: string;
   /** OpenAI 必填,其余 brand 不展示 */
@@ -133,7 +183,6 @@ export interface ProviderEntryFormInput extends ProviderBehaviorOptions {
   prefix: string;
   disabled: boolean;
   disableCooling?: boolean;
-  runtimePolicy?: RuntimePolicyDraft;
   priority?: number;
   weight?: number;
 
@@ -147,7 +196,9 @@ export interface ProviderEntryFormInput extends ProviderBehaviorOptions {
   /** Claude 专属 */
   cloak?: CloakInput;
   fingerprintProfile?: string;
-  /** Temporary selection for connectivity tests only; never persisted in backend config. */
+  /** OpenAI persists this; Gemini/Claude use it for one-off connectivity tests. */
   testModel?: string;
   apiKeyEntries?: ApiKeyEntryInput[];
+  /** APIKEY.FUN stores one grouped key per platform protocol. */
+  sponsorKeyEntries?: SponsorKeyEntryInput[];
 }

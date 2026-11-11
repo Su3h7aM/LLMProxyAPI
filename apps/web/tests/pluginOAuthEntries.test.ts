@@ -1,274 +1,221 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
-import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { apiClient } from '@/services/api/client';
 import { pluginsApi } from '@/services/api/plugins';
-import { buildPluginOAuthProviderCards } from '@/features/oauth/providers';
-import { resolveQuotaPluginId } from '@/features/quota/providers/plugin/data';
-import type { PluginListEntry } from '@/types';
+import { oauthApi } from '@/services/api/oauth';
+import { buildPluginOAuthProviderCards } from '@/pages/pluginOAuthEntries';
+import { createOAuthAttempts } from '@/pages/oauthAttempts';
 
 const spies: Array<{ mockRestore(): void }> = [];
-const mockGet = (value: unknown) => {
-  const spy = spyOn(apiClient, 'get').mockResolvedValue(value as never);
-  spies.push(spy);
-  return spy;
-};
 afterEach(() => spies.splice(0).forEach((spy) => spy.mockRestore()));
 
-const plugin = (overrides: Partial<PluginListEntry> = {}): PluginListEntry => ({
-  id: 'example',
-  path: '/plugins/example',
-  configured: true,
+const apiBase = 'https://proxy.example';
+const builtIns = new Set(['codex', 'anthropic', 'meta']);
+const rawPlugin = (overrides: Record<string, unknown> = {}) => ({
+  id: 'multi-login',
+  supports_oauth: true,
   registered: true,
   enabled: true,
-  effectiveEnabled: true,
-  supportsOAuth: true,
-  logo: '',
-  configFields: [],
-  menus: [],
-  metadata: null,
+  effective_enabled: true,
+  oauth_provider: 'portal-a',
+  logo: '/plugins/multi-login/logo.svg',
+  metadata: { name: 'Multi login' },
   ...overrides,
 });
+const loadPlugins = async (entries: Array<Record<string, unknown>>) => {
+  const spy = spyOn(apiClient, 'get').mockResolvedValue({
+    plugins_enabled: true,
+    plugins: entries,
+  });
+  spies.push(spy);
+  return (await pluginsApi.list()).plugins;
+};
 
-const listResponse = (entries: Array<Record<string, unknown>>) => ({
-  plugins_enabled: true,
-  plugins_dir: 'plugins',
-  plugins: entries,
-});
+const multiPlugin = () =>
+  rawPlugin({
+    oauth_providers: ['portal-a', 'portal-b'],
+    oauth_provider_entries: [
+      { identifier: 'portal-a', name: 'Portal A', logo: '/plugins/multi-login/a.svg' },
+      { identifier: 'portal-b', name: 'Portal B', logo: 'https://portal.example/b.svg' },
+    ],
+  });
 
 describe('plugin OAuth entry normalization', () => {
-  test('reads every declared entry with its own name and logo', async () => {
-    mockGet(
-      listResponse([
-        {
-          id: 'omc-zcode-oauth',
-          supports_oauth: true,
-          oauth_provider: 'zcode-zai',
-          oauth_providers: ['zcode-zai', 'zcode-bigmodel'],
-          oauth_provider_entries: [
-            { identifier: 'zcode-zai', name: 'Z.ai', logo: 'https://chat.z.ai/zai.png' },
-            {
-              identifier: 'zcode-bigmodel',
-              name: 'BigModel',
-              logo: 'https://bigmodel.cn/bigmodel.png',
-            },
-          ],
-          logo: 'https://cdn.example/logo.png',
-        },
-      ])
-    );
-    const [entry] = (await pluginsApi.list()).plugins;
-    expect(entry?.oauthProvider).toBe('zcode-zai');
-    expect(entry?.oauthProviders).toEqual(['zcode-zai', 'zcode-bigmodel']);
-    expect(entry?.oauthProviderEntries).toEqual([
-      { identifier: 'zcode-zai', name: 'Z.ai', logo: 'https://chat.z.ai/zai.png' },
-      { identifier: 'zcode-bigmodel', name: 'BigModel', logo: 'https://bigmodel.cn/bigmodel.png' },
-    ]);
-  });
-
-  test('decodes backend-escaped entry metadata before building cards', async () => {
-    // GET /plugins uses Go html.EscapeString for entry names and logo URLs.
-    mockGet(
-      listResponse([
-        {
-          id: 'multi',
-          supports_oauth: true,
-          effective_enabled: true,
-          oauth_providers: ['portal'],
-          logo: 'https://example.test/default.svg',
-          oauth_provider_entries: [
-            {
-              identifier: 'portal',
-              name: ' Z.ai &lt;International&gt; &amp; &#34;Team&#34; &#39;云端&#39; ',
-              logo: ' https://example.test/logo.svg?a=1&amp;b=2&amp;sig=x%2By%3D ',
-            },
-          ],
-        },
-      ])
-    );
-    const cards = buildPluginOAuthProviderCards(
-      (await pluginsApi.list()).plugins,
-      'https://proxy.test'
-    );
-    expect(cards[0].title).toBe('Z.ai <International> & "Team" \'云端\'');
-    expect(cards[0].icon).toBe('https://example.test/logo.svg?a=1&b=2&sig=x%2By%3D');
-    expect(new URL(cards[0].icon).searchParams.get('b')).toBe('2');
-    // Decoding restores text, not trusted HTML; React still escapes it at render time.
-    const markup = renderToStaticMarkup(createElement('span', null, cards[0].title));
-    expect(markup).toContain('&lt;International&gt;');
-    expect(markup).not.toContain('<International>');
-  });
-
-  test('decodes exactly once and preserves literal entities and URL encoding', async () => {
-    mockGet(
-      listResponse([
-        {
-          id: 'multi',
-          oauth_providers: ['portal'],
-          oauth_provider_entries: [
-            {
-              identifier: 'portal',
-              name: 'Literal &amp;lt;tag&amp;gt; &amp;#39; &amp;amp;',
-              logo: '/logo.svg?literal=&amp;amp;&amp;encoded=%26amp%3B',
-            },
-          ],
-        },
-      ])
-    );
-    const [entry] = (await pluginsApi.list()).plugins;
-    expect(entry.oauthProviderEntries).toEqual([
+  test('keeps current single-provider and legacy plugin-id login working', async () => {
+    const legacy = rawPlugin({ id: 'legacy-login' });
+    delete (legacy as Record<string, unknown>).oauth_provider;
+    const plugins = await loadPlugins([rawPlugin(), legacy]);
+    expect(plugins[0].oauthProvider).toBe('portal-a');
+    expect(plugins[0].oauthProviders).toBeUndefined();
+    expect(plugins[0].oauthProviderEntries).toBeUndefined();
+    expect(plugins[1].oauthProvider).toBe('legacy-login');
+    expect(buildPluginOAuthProviderCards(plugins, apiBase, builtIns)).toEqual([
       {
-        identifier: 'portal',
-        name: 'Literal &lt;tag&gt; &#39; &amp;',
-        logo: '/logo.svg?literal=&amp;&encoded=%26amp%3B',
+        kind: 'plugin',
+        id: 'portal-a',
+        title: 'Multi login',
+        icon: 'https://proxy.example/plugins/multi-login/logo.svg',
+      },
+      {
+        kind: 'plugin',
+        id: 'legacy-login',
+        title: 'Multi login',
+        icon: 'https://proxy.example/plugins/multi-login/logo.svg',
       },
     ]);
   });
 
-  test('normalizes identifiers per element and drops undeclared entries', async () => {
-    mockGet(
-      listResponse([
-        {
-          id: 'multi',
-          supports_oauth: true,
-          oauth_providers: ['Portal-A', ' portal-a ', 'muse', 'bad/id', '', 'portal-b'],
-          oauth_provider_entries: [
-            { identifier: 'Portal-A', name: ' A ' },
-            { identifier: 'portal-a', name: 'duplicate' },
-            { identifier: 'portal-c', name: 'not declared' },
-            { identifier: 'bad/id', name: 'invalid' },
-            { identifier: 'portal-b' },
-            'not-an-entry',
-          ],
-        },
-      ])
-    );
-    const [entry] = (await pluginsApi.list()).plugins;
-    expect(entry?.oauthProviders).toEqual(['portal-a', 'meta', 'portal-b']);
-    expect(entry?.oauthProviderEntries).toEqual([
+  test('does not manufacture a login when the backend explicitly publishes an empty provider', async () => {
+    const plugins = await loadPlugins([rawPlugin({ oauth_provider: '' })]);
+    expect(plugins[0].oauthProvider).toBeUndefined();
+    expect(buildPluginOAuthProviderCards(plugins, apiBase, builtIns)).toEqual([]);
+  });
+
+  test('renders every declared portal using its entry-specific name and logo', async () => {
+    const plugins = await loadPlugins([multiPlugin()]);
+    expect(plugins[0].oauthProvider).toBe('portal-a');
+    expect(plugins[0].oauthProviders).toEqual(['portal-a', 'portal-b']);
+    expect(buildPluginOAuthProviderCards(plugins, apiBase, builtIns)).toEqual([
+      {
+        kind: 'plugin',
+        id: 'portal-a',
+        title: 'Portal A',
+        icon: 'https://proxy.example/plugins/multi-login/a.svg',
+      },
+      {
+        kind: 'plugin',
+        id: 'portal-b',
+        title: 'Portal B',
+        icon: 'https://portal.example/b.svg',
+      },
+    ]);
+  });
+
+  test('normalizes and deduplicates declared identifiers and drops undeclared metadata', async () => {
+    const plugins = await loadPlugins([
+      rawPlugin({
+        oauth_providers: [' Portal-A ', 'portal-a', 'muse', 'bad/path', '', null, 'portal-b'],
+        oauth_provider_entries: [
+          { identifier: 'PORTAL-A', name: ' A ' },
+          { identifier: 'portal-a', name: 'duplicate' },
+          { identifier: 'portal-c', name: 'undeclared' },
+          { identifier: 'bad/path', name: 'invalid' },
+          { identifier: 'portal-b' },
+          'invalid-entry',
+        ],
+      }),
+    ]);
+    expect(plugins[0].oauthProviders).toEqual(['portal-a', 'meta', 'portal-b']);
+    expect(plugins[0].oauthProviderEntries).toEqual([
       { identifier: 'portal-a', name: 'A' },
       { identifier: 'portal-b' },
     ]);
   });
 
-  test('omits the plural fields when the backend only publishes oauth_provider', async () => {
-    mockGet(listResponse([{ id: 'single', supports_oauth: true, oauth_provider: 'example' }]));
-    const [entry] = (await pluginsApi.list()).plugins;
-    expect(entry?.oauthProvider).toBe('example');
-    expect(entry?.oauthProviders).toBeUndefined();
-    expect(entry?.oauthProviderEntries).toBeUndefined();
+  test('ignores entry metadata when plural capability is not advertised', async () => {
+    const plugins = await loadPlugins([
+      rawPlugin({ oauth_provider_entries: [{ identifier: 'portal-b', name: 'Not declared' }] }),
+    ]);
+    expect(plugins[0].oauthProviderEntries).toBeUndefined();
+    expect(
+      buildPluginOAuthProviderCards(plugins, apiBase, builtIns).map((card) => card.id)
+    ).toEqual(['portal-a']);
+  });
+
+  test('falls back to plugin title and logo when entry display metadata is missing', async () => {
+    const plugins = await loadPlugins([
+      rawPlugin({
+        oauth_providers: ['portal-a', 'portal-b'],
+        oauth_provider_entries: [{ identifier: 'portal-b', name: '  ', logo: '  ' }],
+      }),
+    ]);
+    expect(
+      buildPluginOAuthProviderCards(plugins, apiBase, builtIns).map(({ title, icon }) => ({
+        title,
+        icon,
+      }))
+    ).toEqual([
+      { title: 'Multi login', icon: 'https://proxy.example/plugins/multi-login/logo.svg' },
+      { title: 'Multi login', icon: 'https://proxy.example/plugins/multi-login/logo.svg' },
+    ]);
+  });
+
+  test('decodes Go escaped names and logos exactly once without parsing HTML', async () => {
+    const plugins = await loadPlugins([
+      rawPlugin({
+        oauth_providers: ['portal-a', 'portal-b'],
+        oauth_provider_entries: [
+          {
+            identifier: 'portal-a',
+            name: '  A &amp; B &lt;portal&gt; &#34;quoted&#34; &#39;single&#39;  ',
+            logo: 'https://portal.example/logo.svg?a=1&amp;b=2',
+          },
+          {
+            identifier: 'portal-b',
+            name: '&amp;lt;literal&amp;gt; &quot;unchanged&quot;',
+            logo: '/logo.svg?q=&amp;amp;',
+          },
+        ],
+      }),
+    ]);
+    const cards = buildPluginOAuthProviderCards(plugins, apiBase, builtIns);
+    expect(cards[0].title).toBe('A & B <portal> "quoted" \'single\'');
+    expect(cards[0].icon).toBe('https://portal.example/logo.svg?a=1&b=2');
+    expect(cards[1].title).toBe('&lt;literal&gt; &quot;unchanged&quot;');
+    expect(cards[1].icon).toBe('https://proxy.example/logo.svg?q=&amp;');
+  });
+
+  test('hides unsupported and disabled plugins and protects built-in and duplicate entries', async () => {
+    const plugins = await loadPlugins([
+      rawPlugin({ supports_oauth: false, oauth_providers: ['unsupported'] }),
+      rawPlugin({ effective_enabled: false, oauth_providers: ['disabled'] }),
+      rawPlugin({ oauth_providers: ['codex', 'portal-a', 'portal-b'] }),
+      rawPlugin({ id: 'duplicate', oauth_providers: ['portal-b', 'portal-c'] }),
+    ]);
+    expect(
+      buildPluginOAuthProviderCards(plugins, apiBase, builtIns).map((card) => card.id)
+    ).toEqual(['portal-a', 'portal-b', 'portal-c']);
   });
 });
 
-describe('plugin OAuth tiles per declared entry', () => {
-  const apiBase = 'http://127.0.0.1:8317';
-
-  test('renders one card per entry with its own title and mark', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [
-        plugin({
-          id: 'omc-zcode-oauth',
-          oauthProvider: 'zcode-zai',
-          oauthProviders: ['zcode-zai', 'zcode-bigmodel'],
-          oauthProviderEntries: [
-            { identifier: 'zcode-zai', name: 'Z.ai', logo: 'https://chat.z.ai/zai.png' },
-            { identifier: 'zcode-bigmodel', name: 'BigModel', logo: '/static/bigmodel.png' },
-          ],
-          logo: 'https://cdn.example/logo.png',
-        }),
-      ],
-      apiBase
-    );
-    expect(cards.map((card) => [card.id, card.title, card.icon])).toEqual([
-      ['zcode-zai', 'Z.ai', 'https://chat.z.ai/zai.png'],
-      ['zcode-bigmodel', 'BigModel', `${apiBase}/static/bigmodel.png`],
+describe('plugin OAuth entry dispatch and attempt identity', () => {
+  test('starts each portal with its own management endpoint', async () => {
+    const plugins = await loadPlugins([multiPlugin()]);
+    spies.splice(0).forEach((spy) => spy.mockRestore());
+    const start = spyOn(apiClient, 'get').mockResolvedValue({ state: 'login-state' });
+    spies.push(start);
+    const cards = buildPluginOAuthProviderCards(plugins, apiBase, builtIns);
+    for (const card of cards) await oauthApi.startAuth(card.id);
+    expect(start.mock.calls.map(([path]) => path)).toEqual([
+      '/portal-a-auth-url',
+      '/portal-b-auth-url',
     ]);
   });
 
-  test('titles entries without metadata with the plugin name and plugin logo', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [
-        plugin({
-          id: 'legacy-multi',
-          oauthProviders: ['portal-a', 'portal-b'],
-          logo: 'https://cdn.example/logo.png',
-        }),
-      ],
-      apiBase
-    );
-    expect(cards.map((card) => [card.id, card.title, card.icon])).toEqual([
-      ['portal-a', 'legacy-multi', 'https://cdn.example/logo.png'],
-      ['portal-b', 'legacy-multi', 'https://cdn.example/logo.png'],
-    ]);
-  });
-
-  test('keeps one card for a single-entry plugin', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [plugin({ id: 'single', oauthProvider: 'example', logo: '/logo.png' })],
-      apiBase
-    );
-    expect(cards).toEqual([
-      { kind: 'plugin', id: 'example', title: 'single', icon: `${apiBase}/logo.png` },
-    ]);
-  });
-
-  test('keeps the plugin-id fallback when only supports_oauth is set', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [plugin({ id: 'plugin-id-only', oauthProvider: 'plugin-id-only' })],
-      apiBase
-    );
-    expect(cards.map((card) => [card.id, card.icon])).toEqual([['plugin-id-only', '']]);
-  });
-
-  test('never lets a second plugin claim a declared identifier twice', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [
-        plugin({ id: 'first', oauthProviders: ['shared', 'first-only'] }),
-        plugin({ id: 'second', oauthProviders: ['shared', 'second-only'] }),
-      ],
-      apiBase
-    );
-    expect(cards.map((card) => card.id)).toEqual(['shared', 'first-only', 'second-only']);
-  });
-
-  test('keeps an entry without metadata on the plugin title', () => {
-    const cards = buildPluginOAuthProviderCards(
-      [
-        plugin({
-          id: 'omc-zcode-oauth',
-          oauthProviders: ['zcode-zai', 'zcode-bigmodel'],
-          oauthProviderEntries: [{ identifier: 'zcode-bigmodel', name: 'BigModel' }],
-        }),
-      ],
-      apiBase
-    );
-    // 每个磁贴只带自己那一条：id 就是登录路由的 provider 参数
-    expect(cards.map((card) => [card.id, card.title])).toEqual([
-      ['zcode-zai', 'omc-zcode-oauth'],
-      ['zcode-bigmodel', 'BigModel'],
-    ]);
-  });
-});
-
-describe('plugin quota resolution for secondary portals', () => {
-  test('matches any declared OAuth identifier before the sole-plugin guess', () => {
-    const plugins = [
-      plugin({
-        id: 'zcode',
-        supportsOAuth: false,
-        supportsQuota: true,
-        quotaProvider: 'other',
-        oauthProviders: ['zcode-zai', 'zcode-bigmodel'],
-      }),
-      plugin({
-        id: 'unrelated',
-        supportsOAuth: false,
-        supportsQuota: true,
-        quotaProvider: 'other-2',
-      }),
-    ];
-    expect(resolveQuotaPluginId(plugins, 'zcode-bigmodel')).toBe('zcode');
-    expect(resolveQuotaPluginId(plugins, ' ZCode-BigModel ')).toBe('zcode');
-    expect(resolveQuotaPluginId(plugins, 'unknown')).toBeNull();
+  test('a new attempt for one portal preserves the other portal login and timer', async () => {
+    const plugins = await loadPlugins([multiPlugin()]);
+    const cards = buildPluginOAuthProviderCards(plugins, apiBase, builtIns);
+    let timer = 0;
+    const tasks = new Map<number, () => void>();
+    const attempts = createOAuthAttempts({
+      setTimeout: (callback) => {
+        tasks.set(++timer, callback);
+        return timer;
+      },
+      clearTimeout: (id) => tasks.delete(id),
+    });
+    const first = attempts.begin(cards[0].id);
+    first.schedule(() => {}, 3000);
+    const second = attempts.begin(cards[1].id);
+    second.schedule(() => {}, 3000);
+    expect(tasks.size).toBe(2);
+    const next = attempts.begin(cards[0].id);
+    expect(first.isCurrent()).toBe(false);
+    expect(first.signal.aborted).toBe(true);
+    expect(second.isCurrent()).toBe(true);
+    expect(second.signal.aborted).toBe(false);
+    expect(next.isCurrent()).toBe(true);
+    expect(tasks.size).toBe(1);
+    attempts.invalidateAll();
+    expect(tasks.size).toBe(0);
   });
 });

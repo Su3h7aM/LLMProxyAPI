@@ -1,6 +1,6 @@
 /**
- * Axios API client
- * Replaces the original src/core/api-client.js
+ * Axios API 客户端
+ * 替代原项目 src/core/api-client.js
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -20,9 +20,8 @@ class ApiClient {
   private instance: AxiosInstance;
   private apiBase: string = '';
   private managementKey: string = '';
-  private connectionRevision = 0;
 
-  constructor(private readonly emitEvents: () => boolean = () => true) {
+  constructor() {
     this.instance = axios.create({
       timeout: REQUEST_TIMEOUT_MS,
       headers: {
@@ -34,14 +33,10 @@ class ApiClient {
   }
 
   /**
-   * Set API configuration
+   * 设置 API 配置
    */
   setConfig(config: ApiClientConfig): void {
-    const apiBase = computeApiUrl(config.apiBase);
-    if (apiBase !== this.apiBase || config.managementKey !== this.managementKey) {
-      this.connectionRevision += 1;
-    }
-    this.apiBase = apiBase;
+    this.apiBase = computeApiUrl(config.apiBase);
     this.managementKey = config.managementKey;
 
     if (config.timeout) {
@@ -49,20 +44,6 @@ class ApiClient {
     } else {
       this.instance.defaults.timeout = REQUEST_TIMEOUT_MS;
     }
-  }
-
-  /** Guards read/modify/write operations across connection changes, including ABA switches. */
-  getConnectionRevision(): number {
-    return this.connectionRevision;
-  }
-
-  /** Pin credentials and suppress response side effects after the owning connection changes. */
-  captureConnection(): ApiClient {
-    const revision = this.connectionRevision;
-    const client = new ApiClient(() => this.connectionRevision === revision);
-    client.apiBase = this.apiBase;
-    client.managementKey = this.managementKey;
-    return client;
   }
 
   private readHeader(headers: Record<string, unknown> | undefined, keys: string[]): string | null {
@@ -117,16 +98,16 @@ class ApiClient {
   }
 
   /**
-   * Set request/response interceptors
+   * 设置请求/响应拦截器
    */
   private setupInterceptors(): void {
-    // Request interceptor
+    // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        // Set baseURL
+        // 设置 baseURL
         config.baseURL = this.apiBase;
 
-        // Add authorization header
+        // 添加认证头
         if (this.managementKey) {
           config.headers.Authorization = `Bearer ${this.managementKey}`;
         }
@@ -136,7 +117,7 @@ class ApiClient {
       (error) => Promise.reject(this.handleError(error))
     );
 
-    // Response interceptor
+    // 响应拦截器
     this.instance.interceptors.response.use(
       (response) => {
         const headers = response.headers as Record<string, string | undefined>;
@@ -146,15 +127,15 @@ class ApiClient {
         const buildDate = cpaBuildDate || this.readHeader(headers, BUILD_DATE_HEADER_KEYS);
         const supportsPlugin = this.readBooleanHeader(headers, CPA_SUPPORT_PLUGIN_HEADER_KEYS);
 
-        // Dispatch version updates for store consumers
-        if (this.emitEvents() && (version || buildDate)) {
+        // 触发版本更新事件（后续通过 store 处理）
+        if (version || buildDate) {
           window.dispatchEvent(
             new CustomEvent('server-version-update', {
               detail: { version: version || null, buildDate: buildDate || null },
             })
           );
         }
-        if (this.emitEvents() && supportsPlugin !== null) {
+        if (supportsPlugin !== null) {
           window.dispatchEvent(
             new CustomEvent('server-plugin-support-update', {
               detail: { supportsPlugin },
@@ -169,7 +150,7 @@ class ApiClient {
   }
 
   /**
-   * Error handling
+   * 错误处理
    */
   private handleError(error: unknown): ApiError {
     if (axios.isAxiosError(error)) {
@@ -183,8 +164,8 @@ class ApiClient {
       apiError.details = responseData;
       apiError.data = responseData;
 
-      // Dispatch logout for unauthorized responses
-      if (this.emitEvents() && error.response?.status === 401) {
+      // 401 未授权 - 触发登出事件
+      if (error.response?.status === 401) {
         window.dispatchEvent(new Event('unauthorized'));
       }
 
@@ -203,7 +184,7 @@ class ApiClient {
   }
 
   /**
-   * GET request
+   * GET 请求
    */
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.get<T>(url, config);
@@ -211,7 +192,7 @@ class ApiClient {
   }
 
   /**
-   * POST request
+   * POST 请求
    */
   async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.post<T>(url, data, config);
@@ -219,7 +200,7 @@ class ApiClient {
   }
 
   /**
-   * PUT request
+   * PUT 请求
    */
   async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.put<T>(url, data, config);
@@ -227,7 +208,7 @@ class ApiClient {
   }
 
   /**
-   * PATCH request
+   * PATCH 请求
    */
   async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.patch<T>(url, data, config);
@@ -235,7 +216,7 @@ class ApiClient {
   }
 
   /**
-   * DELETE request
+   * DELETE 请求
    */
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.delete<T>(url, config);
@@ -243,14 +224,14 @@ class ApiClient {
   }
 
   /**
-   * Get the raw response (for downloads, etc.)
+   * 获取原始响应（用于下载等场景）
    */
   async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
     return this.instance.get(url, config);
   }
 
   /**
-   * Send FormData
+   * 发送 FormData
    */
   async postForm<T = unknown>(
     url: string,
@@ -268,5 +249,5 @@ class ApiClient {
   }
 }
 
-// Export singleton
+// 导出单例
 export const apiClient = new ApiClient();

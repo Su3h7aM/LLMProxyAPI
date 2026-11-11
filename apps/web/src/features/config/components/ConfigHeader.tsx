@@ -1,30 +1,22 @@
-import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconRefreshCw } from '@/components/ui/icons';
 import type { HeaderMetaSegment } from '../uiState';
 import styles from './ConfigHeader.module.scss';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 
 export type ConfigHeaderProps = {
-  /** ▍mono meta 行的段落序列（uiState.buildHeaderMeta 的产物）。 */
+  /** Status segments from uiState.buildHeaderMeta. */
   meta: HeaderMetaSegment[];
   reloadDisabled: boolean;
   reloading: boolean;
   onReload: () => void;
-  /** 移动端上移到头部动作行的 ModeSwitch 槽位（桌面端为 null，ModeSwitch 在 tabs 行右端）。 */
-  extraActions?: ReactNode;
 };
 
 /**
- * 配置面板头部：标题领衔 + ▍mono 遥测 meta 行 + 重载 ghost。
- * 保存动作不在头部常驻 —— 由 FloatingSaveBar 在 dirty 时承载。
+ * Config header: title, status meta line and a scoped reload action.
+ * Save is not a header action; FloatingSaveBar carries it while the draft is dirty.
  */
-export function ConfigHeader({
-  meta,
-  reloadDisabled,
-  reloading,
-  onReload,
-  extraActions,
-}: ConfigHeaderProps) {
+export function ConfigHeader({ meta, reloadDisabled, reloading, onReload }: ConfigHeaderProps) {
   const { t } = useTranslation();
   const toneClass: Record<HeaderMetaSegment['tone'], string> = {
     muted: styles.metaMuted,
@@ -34,14 +26,16 @@ export function ConfigHeader({
   };
 
   return (
-    <header className={styles.header}>
-      <div className={styles.copy}>
-        <h1 className={styles.title} data-reveal>
-          {t('config_management.title')}
-        </h1>
-        <p className={styles.meta} data-reveal>
+    <PageHeader
+      title={t('config_management.title')}
+      meta={
+        <span className={styles.meta}>
           {meta.map((segment, index) => (
-            <Fragment key={segment.key}>
+            // Each dot travels with the segment it introduces, so a wrapped line never ends on one.
+            <span
+              key={segment.key}
+              className={`${styles.segment} ${segment.key === 'save_hint' ? styles.segmentHint : ''}`}
+            >
               {index > 0 ? (
                 <span className={styles.metaDot} aria-hidden="true">
                   ·
@@ -52,22 +46,19 @@ export function ConfigHeader({
                   ? t(segment.labelKey, { count: segment.count })
                   : t(segment.labelKey)}
               </span>
-            </Fragment>
+            </span>
           ))}
-        </p>
-      </div>
-      <div className={styles.actions} data-reveal>
-        {extraActions}
-        <button
-          type="button"
-          className={styles.ghostAction}
+        </span>
+      }
+      actions={
+        <RefreshButton
           onClick={onReload}
+          label={t('config_management.reload_config')}
+          refreshingLabel={t('config_management.reloading_config')}
+          refreshing={reloading}
           disabled={reloadDisabled}
-        >
-          <IconRefreshCw size={14} className={reloading ? styles.spinning : undefined} />
-          {t('config_management.reload')}
-        </button>
-      </div>
-    </header>
+        />
+      }
+    />
   );
 }

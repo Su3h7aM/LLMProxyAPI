@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
@@ -16,10 +17,19 @@ import { ProviderHeaderCard } from './components/ProviderHeaderCard';
 import { ProviderCategoryList } from './components/ProviderCategoryList';
 import { ProviderResourcePanel } from './components/ProviderResourcePanel';
 import type { ProviderPanelControls } from './components/ProviderResourcePanel';
+import { SponsorQuickStartPanel } from './components/SponsorQuickStartPanel';
+import { QuickStartSteps } from './components/QuickStartSteps';
+import { getProviderCreateLabel } from './createLabel';
 import { ProviderSheet, type ProviderSheetHandle } from './sheets/ProviderSheet';
+import { APIKEY_FUN_DISPLAY_NAME } from './sponsor';
+import { isMultiProtocolSponsorBrand } from './sponsorDefinitions';
+import { isSponsorPartialMutationError } from './sponsorMutationRecovery';
 import { useProviderWorkbench } from './useProviderWorkbench';
+import { PROVIDER_BRAND_ORDER } from './descriptors';
 import {
   getProviderFilterState,
+  resolveProviderBrand,
+  applyProviderBrandDeepLink,
   readProvidersWorkbenchUiState,
   writeProvidersWorkbenchUiState,
   type ProviderFilterState,
@@ -27,6 +37,7 @@ import {
 } from './uiState';
 import type { ProviderBrand, ProviderResource, ProviderSortBy, SortDir } from './types';
 import styles from './ProvidersWorkbenchPage.module.scss';
+import { size } from '@/design-system';
 
 type SheetMode = 'detail' | 'create' | 'edit';
 
@@ -37,18 +48,9 @@ interface SheetState {
   resource: ProviderResource | null;
 }
 
-const formatDateTime = (iso: string, locale?: string) => {
-  try {
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return iso;
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(date);
-  } catch {
-    return iso;
-  }
-};
+interface ProvidersWorkbenchPageProps {
+  fixedBrand?: ProviderBrand;
+}
 
 const matchesFilter = (r: ProviderResource, normalized: string): boolean => {
   if (!normalized) return true;
@@ -74,6 +76,9 @@ const getResourceRecentSuccess = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
 ): number => {
+  if (isMultiProtocolSponsorBrand(resource.brand)) {
+    return 0;
+  }
   if (resource.brand === 'openaiCompatibility') {
     return getOpenAIProviderRecentWindowStats(resource.raw as OpenAIProviderConfig, usageByProvider)
       .success;
@@ -86,8 +91,8 @@ const getResourceRecentSuccess = (
   ).success;
 };
 
-export function ProvidersWorkbenchPage() {
-  const { t, i18n } = useTranslation();
+export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPageProps = {}) {
+  const { t } = useTranslation();
   const connectionStatus = useAuthStore((s) => s.connectionStatus);
   const { showNotification, showConfirmation } = useNotificationStore();
 
@@ -141,12 +146,33 @@ export function ProvidersWorkbenchPage() {
     [persistUiState]
   );
 
+  // `?brand=claude` (from a dashboard alert) opens that brand, brings its settings into
+  // view once they render, then leaves the URL clean.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const resourcePanelRef = useRef<HTMLElement>(null);
+  const [revealBrand, setRevealBrand] = useState<ProviderBrand | null>(null);
+  useEffect(() => {
+    const requested = searchParams.get('brand');
+    if (!requested) return;
+    if (!fixedBrand && (PROVIDER_BRAND_ORDER as string[]).includes(requested)) {
+      const brand = requested as ProviderBrand;
+      persistUiState((prev) => applyProviderBrandDeepLink(prev, brand));
+      setRevealBrand(brand);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('brand');
+    setSearchParams(next, { replace: true });
+  }, [fixedBrand, searchParams, persistUiState, setSearchParams]);
+
   const allGroups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
-  const groups = allGroups;
-  const firstVisibleBrand = groups[0]?.id ?? 'gemini';
-  const activeBrand = groups.some((group) => group.id === uiState.activeBrand)
-    ? uiState.activeBrand
-    : firstVisibleBrand;
+  const groups = useMemo(
+    () =>
+      fixedBrand
+        ? allGroups.filter((group) => group.id === fixedBrand)
+        : allGroups.filter((group) => group.id !== 'apikeyFun'),
+    [allGroups, fixedBrand]
+  );
+  const activeBrand = resolveProviderBrand(groups, uiState.activeBrand, fixedBrand);
   const activeFilterState = getProviderFilterState(uiState, activeBrand);
   const filter = activeFilterState.filter;
   const providerSortBy = activeFilterState.sortBy;
@@ -171,6 +197,19 @@ export function ProvidersWorkbenchPage() {
     },
     [activeBrand, persistUiState]
   );
+
+  useEffect(() => {
+    if (!revealBrand || !activeGroup || activeGroup.id !== revealBrand) return;
+    const panel = resourcePanelRef.current;
+    if (!panel) return;
+    panel.scrollIntoView({ block: 'start', behavior: 'auto' });
+    panel.focus({ preventScroll: true });
+    // A brand with a single key opens straight into that key's details, which also reads
+    // better than the wide table on small screens.
+    const only = activeGroup.resources.length === 1 ? activeGroup.resources[0] : null;
+    if (only) setSheetState({ open: true, brand: only.brand, mode: 'detail', resource: only });
+    setRevealBrand(null);
+  }, [activeGroup, revealBrand]);
 
   const filteredResources = useMemo(() => {
     if (!activeGroup) return [];
@@ -251,9 +290,19 @@ export function ProvidersWorkbenchPage() {
     () => groups.filter((g) => g.resources.length > 0).length,
     [groups]
   );
-  const updatedAtLabel = workbench.snapshot
-    ? formatDateTime(workbench.snapshot.fetchedAt, i18n.language)
-    : t('providersPage.modelCatalog.notLoaded');
+  const quickStartResource = useMemo(
+    () => (fixedBrand === 'apikeyFun' && activeGroup ? (activeGroup.resources[0] ?? null) : null),
+    [activeGroup, fixedBrand]
+  );
+
+  const updatedAt = workbench.snapshot?.fetchedAt ?? null;
+  // Matches the sidebar: once a key exists the route is that provider's page.
+  const headerTitle =
+    fixedBrand === 'apikeyFun'
+      ? quickStartResource
+        ? APIKEY_FUN_DISPLAY_NAME
+        : t('nav.quick_start')
+      : undefined;
   const errorBanner = workbench.errorMessage ? (
     <div className="error-box">{workbench.errorMessage}</div>
   ) : null;
@@ -298,6 +347,10 @@ export function ProvidersWorkbenchPage() {
             await workbench.deleteProvider(resource);
             showNotification(t('providersPage.toast.deleted'), 'success');
           } catch (err) {
+            if (isSponsorPartialMutationError(err)) {
+              showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
+              return;
+            }
             const msg = err instanceof Error ? err.message : String(err);
             showNotification(`${t('notification.delete_failed')}: ${msg}`, 'error');
           }
@@ -316,6 +369,10 @@ export function ProvidersWorkbenchPage() {
           'success'
         );
       } catch (err) {
+        if (isSponsorPartialMutationError(err)) {
+          showNotification(t('providersPage.sponsor.partialMutationWarning'), 'warning');
+          return;
+        }
         const msg = err instanceof Error ? err.message : String(err);
         showNotification(`${t('providersPage.toast.toggleFailed')}: ${msg}`, 'error');
       }
@@ -337,10 +394,10 @@ export function ProvidersWorkbenchPage() {
   if (!workbench.snapshot && workbench.isPending) {
     return (
       <div className={styles.page}>
-        <Skeleton height={120} />
+        <Skeleton height={size['120']} />
         <div className={styles.layout}>
-          <Skeleton height={420} />
-          <Skeleton height={420} />
+          <Skeleton height={size['420']} />
+          <Skeleton height={size['420']} />
         </div>
       </div>
     );
@@ -350,37 +407,74 @@ export function ProvidersWorkbenchPage() {
     return (
       <div className={styles.page}>
         <ProviderHeaderCard
+          title={headerTitle}
           totalActive={0}
           totalResources={0}
           providerFamilies={0}
-          updatedAtLabel={updatedAtLabel}
+          updatedAt={updatedAt}
           isFetching={workbench.isFetching}
           onRefresh={() => void handleRefresh()}
           onNew={() => {}}
           isNewDisabled
+          showNewAction={false}
+          showSummary={fixedBrand !== 'apikeyFun'}
         />
         {errorBanner}
+        {fixedBrand === 'apikeyFun' ? <QuickStartSteps /> : null}
       </div>
     );
   }
 
+  const resourcePanel = (
+    <ProviderResourcePanel
+      panelRef={resourcePanelRef}
+      group={activeGroup}
+      filter={filter}
+      onFilterChange={(value) => updateActiveFilterState({ filter: value })}
+      filteredResources={visibleResources}
+      selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
+      disableMutations={disableMutations}
+      usageByProvider={usageByProvider}
+      toolbarControls={toolbarControls}
+      onView={openView}
+      onEdit={openEdit}
+      onDelete={handleDelete}
+      onToggleDisabled={handleToggleDisabled}
+      onCreate={openCreate}
+    />
+  );
+
   return (
     <div className={styles.page}>
       <ProviderHeaderCard
+        title={headerTitle}
         totalActive={totalActive}
         totalResources={totalResources}
         providerFamilies={providerFamilies}
-        updatedAtLabel={updatedAtLabel}
+        updatedAt={updatedAt}
         isFetching={workbench.isFetching}
         isNewDisabled={disableMutations}
-        newLabel={t('providersPage.actions.new')}
+        showNewAction={!fixedBrand}
+        showSummary={fixedBrand !== 'apikeyFun'}
+        newLabel={getProviderCreateLabel(t, activeGroup.id)}
+        variant={fixedBrand === 'apikeyFun' ? 'quickStart' : undefined}
         onRefresh={() => void handleRefresh()}
         onNew={openCreate}
       />
 
       {errorBanner}
 
-      <div className={styles.layout}>
+      {fixedBrand === 'apikeyFun' ? <QuickStartSteps /> : null}
+
+      {fixedBrand === 'apikeyFun' ? (
+        <SponsorQuickStartPanel
+          resource={quickStartResource}
+          workbench={workbench}
+          mutationDisabled={disableMutations}
+        />
+      ) : fixedBrand ? (
+        resourcePanel
+      ) : (
         <ProviderCategoryList
           groups={groups}
           activeBrand={activeGroup.id}
@@ -398,37 +492,25 @@ export function ProvidersWorkbenchPage() {
               }
             });
           }}
+          detail={resourcePanel}
         />
-        <ProviderResourcePanel
-          group={activeGroup}
-          filter={filter}
-          onFilterChange={(value) => updateActiveFilterState({ filter: value })}
-          filteredResources={visibleResources}
-          selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
-          disableMutations={disableMutations}
-          usageByProvider={usageByProvider}
-          toolbarControls={toolbarControls}
-          onView={openView}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-          onToggleDisabled={handleToggleDisabled}
-          onCreate={openCreate}
-        />
-      </div>
+      )}
 
-      <ProviderSheet
-        ref={sheetRef}
-        state={sheetState}
-        onClose={closeSheet}
-        onSwitchToEdit={() => {
-          setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
-        }}
-        workbench={workbench}
-        onCreated={handleCreated}
-        onUpdated={handleUpdated}
-        mutationDisabled={disableMutations}
-        usageByProvider={usageByProvider}
-      />
+      {!fixedBrand ? (
+        <ProviderSheet
+          ref={sheetRef}
+          state={sheetState}
+          onClose={closeSheet}
+          onSwitchToEdit={() => {
+            setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
+          }}
+          workbench={workbench}
+          onCreated={handleCreated}
+          onUpdated={handleUpdated}
+          mutationDisabled={disableMutations}
+          usageByProvider={usageByProvider}
+        />
+      ) : null}
     </div>
   );
 }

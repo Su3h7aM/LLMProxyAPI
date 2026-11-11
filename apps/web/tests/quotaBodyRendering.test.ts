@@ -14,10 +14,11 @@ import i18n from '@/i18n';
 import { CodexQuotaBody } from '@/features/quota/providers/codex/CodexQuotaBody';
 import { ClaudeQuotaBody } from '@/features/quota/providers/claude/ClaudeQuotaBody';
 import { KimiQuotaBody } from '@/features/quota/providers/kimi/KimiQuotaBody';
+import { QoderQuotaBody } from '@/features/quota/providers/qoder/QoderQuotaBody';
 import { QUOTA_CLASS_KEYS, bindQuotaClasses } from '@/features/quota/types';
 import { formatInstantShort } from '@/utils/quota';
 import { DAY_MS, HOUR_MS } from '@/utils/time/durations';
-import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
+import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState, QoderQuotaState } from '@/types';
 
 const classes = bindQuotaClasses(
   Object.fromEntries(QUOTA_CLASS_KEYS.map((key) => [key, key])),
@@ -61,7 +62,7 @@ describe('CodexQuotaBody', () => {
   };
 
   test.each(['en', 'zh-CN', 'zh-TW', 'ru'])(
-    'renders Business Premium as a plain plan in %s',
+    'renders Business Premium with its premium badge in %s',
     async (language) => {
       await i18n.changeLanguage(language);
       try {
@@ -69,7 +70,7 @@ describe('CodexQuotaBody', () => {
           const markup = renderToStaticMarkup(
             createElement(CodexQuotaBody, { quota: { ...quota, planType }, classes })
           );
-          expect(markup).toContain('<span class="codexPlanValue">Business Premium</span>');
+          expect(markup).toContain('<span class="premiumPlanValue">Business Premium</span>');
           expect(markup).not.toContain('self_serve_business_prolite');
         }
       } finally {
@@ -79,9 +80,8 @@ describe('CodexQuotaBody', () => {
   );
 
   test.each([
-    ['promax', 'Pro 500', 'elitePlanValue'],
-    ['pro', 'Pro 200', 'premiumPlanValue'],
-    ['prolite', 'Pro 100', 'premiumPlanValue'],
+    ['pro', 'Pro 20x', 'elitePlanValue'],
+    ['prolite', 'Pro 5x', 'premiumPlanValue'],
     ['team', 'Team', 'codexPlanValue'],
     ['self_serve_business_usage_based', 'self_serve_business_usage_based', 'codexPlanValue'],
   ])('preserves the label and badge for %s', (planType, label, className) => {
@@ -90,37 +90,6 @@ describe('CodexQuotaBody', () => {
     );
     expect(markup).toContain(`<span class="${className}">${label}</span>`);
   });
-
-  test.each([
-    ['en', 'Credit balance', 'Unlimited'],
-    ['zh-CN', 'Credit 余额', '无限额'],
-    ['zh-TW', 'Credit 餘額', '無限額'],
-    ['ru', 'Остаток кредитов', 'Без ограничений'],
-  ])(
-    'renders account credits independently of manual resets in %s',
-    async (language, label, unlimited) => {
-      await i18n.changeLanguage(language);
-      try {
-        const balance = renderToStaticMarkup(
-          createElement(CodexQuotaBody, { quota: { ...quota, creditBalance: '0' }, classes })
-        );
-        expect(balance).toContain(label);
-        expect(balance).toContain('<span class="codexPlanValue">0</span>');
-        const infinite = renderToStaticMarkup(
-          createElement(CodexQuotaBody, {
-            quota: { ...quota, creditBalance: null, creditsUnlimited: true },
-            classes,
-          })
-        );
-        expect(infinite).toContain(label);
-        expect(infinite).toContain(unlimited);
-        const absent = renderToStaticMarkup(createElement(CodexQuotaBody, { quota, classes }));
-        expect(absent).not.toContain(label);
-      } finally {
-        await i18n.changeLanguage('en');
-      }
-    }
-  );
 
   test('renders a window reset as absolute plus countdown', () => {
     const markup = renderToStaticMarkup(createElement(CodexQuotaBody, { quota, classes }));
@@ -257,5 +226,19 @@ describe('ClaudeQuotaBody', () => {
     expect(markup).toContain('08-06 04:00');
     expect(markup).toMatch(/2 hours/);
     expect(markup).toMatch(/4 days/);
+  });
+});
+
+describe('QoderQuotaBody', () => {
+  test('renders exhausted quota with warning severity', () => {
+    const quota: QoderQuotaState = {
+      status: 'success',
+      usage: { used: 100, total: 100, is_quota_exceeded: true },
+    };
+
+    const markup = renderToStaticMarkup(createElement(QoderQuotaBody, { quota, classes }));
+
+    expect(markup).toContain('quotaWarningMessage');
+    expect(markup).toContain('role="alert"');
   });
 });

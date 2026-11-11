@@ -1,0 +1,21 @@
+.status {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-700;
+  letter-spacing: $letter-spacing-0-1;
+  line-height: $line-height-1-4;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.critical {
+  color: var(--failure-badge-text);
+}
+
+.warning {
+  color: var(--amber-text);
+}
+
+.neutral {
+  color: var(--text-secondary);
+}

@@ -1,7 +1,5 @@
 import {
   ReactNode,
-  RefObject,
-  SVGProps,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -11,7 +9,11 @@ import {
   type MouseEvent as ReactMouseEvent,
   type SyntheticEvent,
 } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { findActiveRoute, resolveRouteTrail } from './routeLabel';
+import headerStyles from './HeaderBackLink.module.scss';
+import { HeaderUtilities } from './HeaderUtilities';
+import { headerIcons } from './headerIcons';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { PageTransition } from '@/components/common/PageTransition';
@@ -27,46 +29,50 @@ import {
   IconSidebarProviders,
   IconSidebarQuickStart,
   IconSidebarQuota,
-  IconSidebarRouting,
   IconSidebarStore,
   IconSidebarSystem,
+  IconSidebarUsage,
   IconChevronDown,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import {
   useAuthStore,
-  useLoginTransitionStore,
   useConfigStore,
   useLanguageStore,
   useNotificationStore,
   useThemeStore,
 } from '@/stores';
-import { AUTH_FILES_CHANGED_EVENT } from '@/features/authFiles/authFilesEvents';
+import {
+  AUTH_FILES_CHANGED_EVENT,
+  AUTH_FILES_COUNT_EVENT,
+  type AuthFilesCountDetail,
+} from '@/features/authFiles/authFilesEvents';
 import {
   collectPluginResourceEntries,
   PLUGIN_RESOURCES_REFRESH_EVENT,
   resolvePluginAssetURL,
   type PluginResourceEntry,
 } from '@/features/plugins/pluginResources';
+import { APIKEY_FUN_DISPLAY_NAME, hasApiKeyFunConfig } from '@/features/providers/sponsor';
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
-import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
-import { isSupportedLanguage } from '@/utils/language';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { lockScroll, unlockScroll } from '@/components/ui/scrollLock';
 import { getSidebarShortcutLabel, isSidebarToggleShortcut } from '@/utils/sidebarShortcut';
-import type { Theme } from '@/types';
+import { iconSize, media, space } from '@/design-system';
 
 const sidebarIcons: Record<string, ReactNode> = {
-  dashboard: <IconSidebarDashboard size={18} />,
-  quickStart: <IconSidebarQuickStart size={18} />,
-  aiProviders: <IconSidebarProviders size={18} />,
-  authFiles: <IconSidebarAuthFiles size={18} />,
-  oauth: <IconSidebarOauth size={18} />,
-  quota: <IconSidebarQuota size={18} />,
-  routing: <IconSidebarRouting size={18} />,
-  plugins: <IconSidebarPlugins size={18} />,
-  pluginStore: <IconSidebarStore size={18} />,
-  config: <IconSidebarConfig size={18} />,
-  logs: <IconSidebarLogs size={18} />,
-  system: <IconSidebarSystem size={18} />,
+  dashboard: <IconSidebarDashboard size={iconSize['18']} />,
+  quickStart: <IconSidebarQuickStart size={iconSize['18']} />,
+  aiProviders: <IconSidebarProviders size={iconSize['18']} />,
+  authFiles: <IconSidebarAuthFiles size={iconSize['18']} />,
+  oauth: <IconSidebarOauth size={iconSize['18']} />,
+  quota: <IconSidebarQuota size={iconSize['18']} />,
+  usage: <IconSidebarUsage size={iconSize['18']} />,
+  plugins: <IconSidebarPlugins size={iconSize['18']} />,
+  pluginStore: <IconSidebarStore size={iconSize['18']} />,
+  config: <IconSidebarConfig size={iconSize['18']} />,
+  logs: <IconSidebarLogs size={iconSize['18']} />,
+  system: <IconSidebarSystem size={iconSize['18']} />,
 };
 
 interface SidebarNavLinkItem {
@@ -93,7 +99,7 @@ interface SidebarNavDrawerItem {
 type SidebarNavItem = SidebarNavLinkItem | SidebarNavDrawerItem;
 
 const NAV_TOOLTIP_ID = 'sidebar-nav-tooltip';
-const NAV_TOOLTIP_VIEWPORT_MARGIN = 8;
+const NAV_TOOLTIP_VIEWPORT_MARGIN = space['8'];
 
 interface SidebarNavGroup {
   id: string;
@@ -104,39 +110,6 @@ interface SidebarNavGroup {
 const flattenNavItems = (items: SidebarNavItem[]): SidebarNavLinkItem[] =>
   items.flatMap((item) => (item.kind === 'drawer' ? item.children : [item]));
 
-/** 点击菜单外或按下 Escape 时关闭弹出菜单 */
-function useMenuDismiss(
-  open: boolean,
-  menuRef: RefObject<HTMLDivElement | null>,
-  onClose: () => void
-) {
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [open, menuRef, onClose]);
-}
-
 function PluginSidebarIcon({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   const showImage = Boolean(src) && !failed;
@@ -144,169 +117,9 @@ function PluginSidebarIcon({ src }: { src: string }) {
   return showImage ? (
     <img src={src} alt="" onError={() => setFailed(true)} />
   ) : (
-    <IconSidebarPlugins size={18} />
+    <IconSidebarPlugins size={iconSize['18']} />
   );
 }
-
-// Header action icons - smaller size for header buttons
-const headerIconProps: SVGProps<SVGSVGElement> = {
-  width: 16,
-  height: 16,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 2,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-  'aria-hidden': 'true',
-  focusable: 'false',
-};
-
-const headerIcons = {
-  refresh: (
-    <svg {...headerIconProps}>
-      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-    </svg>
-  ),
-  menu: (
-    <svg {...headerIconProps}>
-      <path d="M4 7h16" />
-      <path d="M4 12h16" />
-      <path d="M4 17h16" />
-    </svg>
-  ),
-  close: (
-    <svg {...headerIconProps}>
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  ),
-  chevronLeft: (
-    <svg {...headerIconProps}>
-      <path d="m14 18-6-6 6-6" />
-    </svg>
-  ),
-  chevronRight: (
-    <svg {...headerIconProps}>
-      <path d="m10 6 6 6-6 6" />
-    </svg>
-  ),
-  language: (
-    <svg {...headerIconProps}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  ),
-  sun: (
-    <svg {...headerIconProps}>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2" />
-      <path d="M12 20v2" />
-      <path d="m4.93 4.93 1.41 1.41" />
-      <path d="m17.66 17.66 1.41 1.41" />
-      <path d="M2 12h2" />
-      <path d="M20 12h2" />
-      <path d="m6.34 17.66-1.41 1.41" />
-      <path d="m19.07 4.93-1.41 1.41" />
-    </svg>
-  ),
-  moon: (
-    <svg {...headerIconProps}>
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
-    </svg>
-  ),
-  whiteTheme: (
-    <svg {...headerIconProps}>
-      <circle cx="12" cy="12" r="7" />
-      <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
-    </svg>
-  ),
-  autoTheme: (
-    <svg {...headerIconProps}>
-      <defs>
-        <clipPath id="mainLayoutAutoThemeSunLeftHalf">
-          <rect x="0" y="0" width="12" height="24" />
-        </clipPath>
-      </defs>
-      <circle cx="12" cy="12" r="4" />
-      <circle
-        cx="12"
-        cy="12"
-        r="4"
-        clipPath="url(#mainLayoutAutoThemeSunLeftHalf)"
-        fill="currentColor"
-      />
-      <path d="M12 2v2" />
-      <path d="M12 20v2" />
-      <path d="M4.93 4.93l1.41 1.41" />
-      <path d="M17.66 17.66l1.41 1.41" />
-      <path d="M2 12h2" />
-      <path d="M20 12h2" />
-      <path d="M6.34 17.66l-1.41 1.41" />
-      <path d="M19.07 4.93l-1.41 1.41" />
-    </svg>
-  ),
-  logout: (
-    <svg {...headerIconProps}>
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="m16 17 5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-  ),
-};
-
-const THEME_CARDS: Array<{
-  key: Theme;
-  labelKey: string;
-  colors: { bg: string; card: string; border: string; text: string; textMuted: string };
-}> = [
-  {
-    key: 'auto',
-    labelKey: 'theme.auto',
-    colors: {
-      bg: 'linear-gradient(135deg, #ffffff 0 50%, #111111 50% 100%)',
-      card: 'linear-gradient(135deg, #ffffff 0 50%, #1a1a1a 50% 100%)',
-      border: '#bdbdbd',
-      text: '#2d2a26',
-      textMuted: 'linear-gradient(135deg, #c9c9c9 0 50%, #5a5a5a 50% 100%)',
-    },
-  },
-  {
-    key: 'white',
-    labelKey: 'theme.white',
-    colors: {
-      bg: '#ffffff',
-      card: '#ffffff',
-      border: '#e5e5e5',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
-    },
-  },
-  {
-    key: 'light',
-    labelKey: 'theme.light',
-    colors: {
-      bg: '#faf9f5',
-      card: '#f0eee8',
-      border: '#e3e1db',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
-    },
-  },
-  {
-    key: 'dark',
-    labelKey: 'theme.dark',
-    colors: {
-      bg: '#151412',
-      card: '#1d1b18',
-      border: '#3a3530',
-      text: '#f6f4f1',
-      textMuted: '#9c958d',
-    },
-  },
-];
 
 export function MainLayout() {
   const { t } = useTranslation();
@@ -320,6 +133,7 @@ export function MainLayout() {
 
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const clearCache = useConfigStore((state) => state.clearCache);
+  const config = useConfigStore((state) => state.config);
 
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -327,6 +141,10 @@ export function MainLayout() {
   const setLanguage = useLanguageStore((state) => state.setLanguage);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Below this width the sidebar is an off-canvas drawer (see layout.scss).
+  const isDrawerNav = useMediaQuery(media.mobile);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authFilesCount, setAuthFilesCount] = useState<number | null>(null);
   const [railTooltip, setRailTooltip] = useState<{
@@ -336,8 +154,6 @@ export function MainLayout() {
     anchorTop: number;
     top: number;
   } | null>(null);
-  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [pluginResources, setPluginResources] = useState<PluginResourceEntry[]>([]);
   const [expandedPluginResourceIDs, setExpandedPluginResourceIDs] = useState<Set<string>>(
     () => new Set()
@@ -346,18 +162,15 @@ export function MainLayout() {
   const authFilesCountRequestRef = useRef(0);
   const railTooltipRef = useRef<HTMLDivElement | null>(null);
   const focusedRailItemRef = useRef<HTMLElement | null>(null);
-  const languageMenuRef = useRef<HTMLDivElement | null>(null);
-  const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
-  const fullBrandName = 'LLM Proxy API Management Center';
+  const fullBrandName = t('title.login');
   const abbrBrandName = t('title.abbr');
-  const arrivingFromLogin = useLoginTransitionStore((state) => state.phase === 'revealing');
   const isLogsPage = location.pathname.startsWith('/logs');
   const isPluginResourcePage = location.pathname.startsWith('/plugin-pages');
   const showSidebarLabels = !sidebarCollapsed || sidebarOpen;
 
-  // Keep floating header height available to sticky mobile elements and overlays.
+  // Keep header height available to sticky mobile elements and overlays.
   useLayoutEffect(() => {
     const updateHeaderHeight = () => {
       const height = headerRef.current?.offsetHeight;
@@ -446,40 +259,6 @@ export function MainLayout() {
     };
   }, []);
 
-  const closeLanguageMenu = useCallback(() => setLanguageMenuOpen(false), []);
-  const closeThemeMenu = useCallback(() => setThemeMenuOpen(false), []);
-  useMenuDismiss(languageMenuOpen, languageMenuRef, closeLanguageMenu);
-  useMenuDismiss(themeMenuOpen, themeMenuRef, closeThemeMenu);
-
-  const toggleLanguageMenu = useCallback(() => {
-    setLanguageMenuOpen((prev) => !prev);
-    setThemeMenuOpen(false);
-  }, []);
-
-  const toggleThemeMenu = useCallback(() => {
-    setThemeMenuOpen((prev) => !prev);
-    setLanguageMenuOpen(false);
-  }, []);
-
-  const handleThemeSelect = useCallback(
-    (nextTheme: Theme) => {
-      setTheme(nextTheme);
-      setThemeMenuOpen(false);
-    },
-    [setTheme]
-  );
-
-  const handleLanguageSelect = useCallback(
-    (nextLanguage: string) => {
-      if (!isSupportedLanguage(nextLanguage)) {
-        return;
-      }
-      setLanguage(nextLanguage);
-      setLanguageMenuOpen(false);
-    },
-    [setLanguage]
-  );
-
   useEffect(() => {
     fetchConfig().catch(() => {
       // Ignore the initial failure; the login flow shows the user-facing prompt.
@@ -523,14 +302,24 @@ export function MainLayout() {
       void loadAuthFilesCount();
     }, 0);
 
+    // A page that already polls credentials publishes its count; adopt it and drop any
+    // older request still in flight.
+    const adoptAuthFilesCount = (event: Event) => {
+      const { count } = (event as CustomEvent<AuthFilesCountDetail>).detail ?? { count: null };
+      authFilesCountRequestRef.current += 1;
+      setAuthFilesCount(count);
+    };
+
     window.addEventListener(PLUGIN_RESOURCES_REFRESH_EVENT, loadPluginResources);
     window.addEventListener(AUTH_FILES_CHANGED_EVENT, loadAuthFilesCount);
+    window.addEventListener(AUTH_FILES_COUNT_EVENT, adoptAuthFilesCount);
 
     return () => {
       authFilesCountRequestRef.current += 1;
       window.clearTimeout(timer);
       window.removeEventListener(PLUGIN_RESOURCES_REFRESH_EVENT, loadPluginResources);
       window.removeEventListener(AUTH_FILES_CHANGED_EVENT, loadAuthFilesCount);
+      window.removeEventListener(AUTH_FILES_COUNT_EVENT, adoptAuthFilesCount);
     };
   }, [apiBase, loadPluginResources, loadAuthFilesCount]);
 
@@ -585,6 +374,15 @@ export function MainLayout() {
       })
     : [];
 
+  const isApiKeyFunConfigured = hasApiKeyFunConfig(config);
+  const quickStartNavItem: SidebarNavLinkItem = {
+    path: '/quick-start',
+    label: isApiKeyFunConfigured ? APIKEY_FUN_DISPLAY_NAME : undefined,
+    labelKey: isApiKeyFunConfigured ? undefined : 'nav.quick_start',
+    metaKey: 'nav_meta.quick_start',
+    icon: sidebarIcons.quickStart,
+  };
+
   const navGroups: SidebarNavGroup[] = [
     {
       id: 'operate',
@@ -596,6 +394,7 @@ export function MainLayout() {
           metaKey: 'nav_meta.dashboard',
           icon: sidebarIcons.dashboard,
         },
+        ...(!isApiKeyFunConfigured ? [quickStartNavItem] : []),
       ],
     },
     {
@@ -625,12 +424,7 @@ export function MainLayout() {
           metaKey: 'nav_meta.oauth',
           icon: sidebarIcons.oauth,
         },
-        {
-          path: '/routing',
-          labelKey: 'nav.routing',
-          metaKey: 'nav_meta.routing',
-          icon: sidebarIcons.routing,
-        },
+        ...(isApiKeyFunConfigured ? [quickStartNavItem] : []),
       ],
     },
     {
@@ -642,6 +436,12 @@ export function MainLayout() {
           labelKey: 'nav.quota_management',
           metaKey: 'nav_meta.quota_management',
           icon: sidebarIcons.quota,
+        },
+        {
+          path: '/usage',
+          labelKey: 'nav.usage_statistics',
+          metaKey: 'nav_meta.usage_statistics',
+          icon: sidebarIcons.usage,
         },
         {
           path: '/logs',
@@ -696,6 +496,16 @@ export function MainLayout() {
       : []),
   ];
   const navItems = navGroups.flatMap((group) => flattenNavItems(group.items));
+  const activeNavItem = findActiveRoute(navItems, location.pathname);
+  const currentRouteLabel =
+    activeNavItem?.label ?? (activeNavItem?.labelKey ? t(activeNavItem.labelKey) : fullBrandName);
+  // Nested pages (OAuth model editors under Auth Files) end the trail with their h1 title.
+  const routeTrail = resolveRouteTrail(
+    activeNavItem ? { path: activeNavItem.path, label: currentRouteLabel } : undefined,
+    location.pathname,
+    t,
+    fullBrandName
+  );
   const navOrder = navItems.map((item) => item.path);
   const getRouteOrder = (pathname: string) => {
     const trimmedPath =
@@ -947,7 +757,7 @@ export function MainLayout() {
                 <span className="nav-label">{item.label}</span>
               </span>
               <span className="nav-drawer-caret" aria-hidden="true">
-                <IconChevronDown size={14} />
+                <IconChevronDown size={iconSize['14']} />
               </span>
             </>
           )}
@@ -961,21 +771,83 @@ export function MainLayout() {
     );
   };
 
+  // The open drawer is a modal dialog: focus moves into it and stays there, the page
+  // behind it (header included) is inert and does not scroll, and Escape or the
+  // drawer's close button dismisses it. Focus left in the drawer returns to the menu button.
+  const drawerOpen = isDrawerNav && sidebarOpen;
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const sidebar = sidebarRef.current;
+    const header = headerRef.current;
+    const drawerItems = () =>
+      Array.from(
+        sidebar?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? []
+      ).filter((el) => el.getClientRects().length > 0);
+    lockScroll();
+    sidebar?.querySelector<HTMLElement>('.nav-section a[href]')?.focus({ preventScroll: true });
+    const handleKey = (event: KeyboardEvent) => {
+      // A sheet or modal above the shell owns the keyboard.
+      if (document.querySelector('[data-app-shell]')?.hasAttribute('inert')) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSidebarOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = drawerItems();
+      if (items.length === 0) return;
+      const index = items.indexOf(document.activeElement as HTMLElement);
+      const next = event.shiftKey
+        ? items[index <= 0 ? items.length - 1 : index - 1]
+        : items[index === -1 || index === items.length - 1 ? 0 : index + 1];
+      event.preventDefault();
+      next.focus();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      unlockScroll();
+      const active = document.activeElement;
+      const lostFocus =
+        !active ||
+        active === document.body ||
+        sidebar?.contains(active) ||
+        active.classList.contains('sidebar-backdrop');
+      if (lostFocus) {
+        header?.querySelector<HTMLElement>('.mobile-menu-btn')?.focus({ preventScroll: true });
+      }
+    };
+  }, [drawerOpen]);
+
   const mobileSidebarToggleLabel = sidebarOpen
     ? t('sidebar.toggle_collapse', { defaultValue: 'Close navigation' })
     : t('sidebar.toggle_expand', { defaultValue: 'Open navigation' });
 
-  const sidebarToggleLabel = sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse');
+  const sidebarToggleLabel = sidebarCollapsed
+    ? t('sidebar.toggle_expand')
+    : t('sidebar.toggle_collapse');
 
   return (
     <div
-      className={`app-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''} ${
-        isPluginResourcePage ? 'plugin-resource-shell' : ''
-      } ${arrivingFromLogin ? 'app-shell--arriving' : ''}`}
+      data-app-shell=""
+      className={`app-shell ${drawerOpen ? 'drawer-open' : ''} ${
+        sidebarCollapsed ? 'sidebar-is-collapsed' : ''
+      } ${isPluginResourcePage ? 'plugin-resource-shell' : ''}`}
     >
       <div className="top-gradient-blur" aria-hidden="true" />
 
-      <header className="main-header" ref={headerRef}>
+      <header className="main-header" ref={headerRef} inert={drawerOpen}>
+        <a
+          className="skip-link"
+          href="#main-content"
+          onClick={(event) => {
+            // The hash router owns the URL fragment: move focus without navigating.
+            event.preventDefault();
+            mainRef.current?.focus();
+          }}
+        >
+          {t('common.skip_to_content')}
+        </a>
         <button
           type="button"
           className="sidebar-toggle-floating"
@@ -996,7 +868,7 @@ export function MainLayout() {
           aria-label={`${sidebarToggleLabel} (${shortcutText})`}
           aria-describedby={railTooltip?.targetID === 'sidebar-toggle' ? NAV_TOOLTIP_ID : undefined}
         >
-          {sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
+          {sidebarCollapsed ? headerIcons.sidebarOpen : headerIcons.sidebarClose}
         </button>
 
         <div className="mobile-sidebar-actions">
@@ -1007,130 +879,59 @@ export function MainLayout() {
             onClick={() => setSidebarOpen((prev) => !prev)}
             title={mobileSidebarToggleLabel}
             aria-label={mobileSidebarToggleLabel}
+            aria-expanded={sidebarOpen}
+            aria-controls="app-sidebar"
           >
             {sidebarOpen ? headerIcons.close : headerIcons.menu}
           </Button>
         </div>
 
-        <div className="header-actions floating-actions">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefreshAll}
-            title={t('header.refresh_all')}
-          >
-            {headerIcons.refresh}
-          </Button>
-          <div className={`language-menu ${languageMenuOpen ? 'open' : ''}`} ref={languageMenuRef}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleLanguageMenu}
-              title={t('language.switch')}
-              aria-label={t('language.switch')}
-              aria-haspopup="menu"
-              aria-expanded={languageMenuOpen}
-            >
-              {headerIcons.language}
-            </Button>
-            {languageMenuOpen && (
-              <div
-                className="notification entering language-menu-popover"
-                role="menu"
-                aria-label={t('language.switch')}
+        <div className="header-context">
+          <span className="header-brand">{abbrBrandName}</span>
+          <span className="header-separator" aria-hidden="true">
+            /
+          </span>
+          {routeTrail.parent ? (
+            <>
+              <Link
+                to={routeTrail.parent.path}
+                className={`header-route-parent ${headerStyles.parentLink}`}
               >
-                {LANGUAGE_ORDER.map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    className={`language-menu-option ${language === lang ? 'active' : ''}`}
-                    onClick={() => handleLanguageSelect(lang)}
-                    role="menuitemradio"
-                    aria-checked={language === lang}
-                  >
-                    <span>{t(LANGUAGE_LABEL_KEYS[lang])}</span>
-                    {language === lang ? <span className="language-menu-check">✓</span> : null}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className={`theme-menu ${themeMenuOpen ? 'open' : ''}`} ref={themeMenuRef}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleThemeMenu}
-              title={t('theme.switch')}
-              aria-label={t('theme.switch')}
-              aria-haspopup="menu"
-              aria-expanded={themeMenuOpen}
-            >
-              {theme === 'auto'
-                ? headerIcons.autoTheme
-                : theme === 'dark'
-                  ? headerIcons.moon
-                  : theme === 'white'
-                    ? headerIcons.whiteTheme
-                    : headerIcons.sun}
-            </Button>
-            {themeMenuOpen && (
-              <div
-                className="notification entering theme-menu-popover"
-                role="menu"
-                aria-label={t('theme.switch')}
-              >
-                {THEME_CARDS.map((tc) => (
-                  <button
-                    key={tc.key}
-                    type="button"
-                    className={`theme-card ${theme === tc.key ? 'active' : ''}`}
-                    onClick={() => handleThemeSelect(tc.key)}
-                    role="menuitemradio"
-                    aria-checked={theme === tc.key}
-                  >
-                    <div
-                      className="theme-card-preview"
-                      style={{
-                        background: tc.colors.bg,
-                        border: `1px solid ${tc.colors.border}`,
-                      }}
-                    >
-                      <div
-                        className="theme-card-header"
-                        style={{
-                          background: tc.colors.card,
-                          borderBottom: `1px solid ${tc.colors.border}`,
-                        }}
-                      />
-                      <div className="theme-card-body">
-                        <div
-                          className="theme-card-sidebar"
-                          style={{
-                            background: tc.colors.card,
-                            borderRight: `1px solid ${tc.colors.border}`,
-                          }}
-                        />
-                        <div className="theme-card-content" style={{ background: tc.colors.bg }}>
-                          <div
-                            className="theme-card-line"
-                            style={{ background: tc.colors.textMuted }}
-                          />
-                          <div
-                            className="theme-card-line short"
-                            style={{ background: tc.colors.textMuted }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <span className="theme-card-label">{t(tc.labelKey)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <Button variant="ghost" size="sm" onClick={logout} title={t('header.logout')}>
-            {headerIcons.logout}
-          </Button>
+                {routeTrail.parent.label}
+              </Link>
+              <span className="header-separator" aria-hidden="true">
+                /
+              </span>
+              <span className="header-route header-route-full" aria-current="page">
+                {routeTrail.current}
+              </span>
+              {/* Phones: the h1 names the page, so the bar offers the way back instead. */}
+              <span className="header-route-short">
+                <Link
+                  to={routeTrail.parent.path}
+                  className={headerStyles.backLink}
+                  aria-label={t('header.back_to', { page: routeTrail.parent.label })}
+                >
+                  {headerIcons.chevronLeft}
+                  <span>{routeTrail.parent.label}</span>
+                </Link>
+              </span>
+            </>
+          ) : (
+            <span className="header-route">{routeTrail.current}</span>
+          )}
+        </div>
+
+        <div className="header-actions">
+          <HeaderUtilities
+            compact={isDrawerNav}
+            language={language}
+            theme={theme}
+            onLanguageChange={setLanguage}
+            onThemeChange={setTheme}
+            onRefresh={() => void handleRefreshAll()}
+            onSignOut={logout}
+          />
         </div>
       </header>
 
@@ -1140,23 +941,42 @@ export function MainLayout() {
           className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`}
           onClick={() => setSidebarOpen(false)}
           aria-label={t('common.close')}
-          aria-hidden={!sidebarOpen}
-          tabIndex={sidebarOpen ? 0 : -1}
+          // Pointer-only dismissal; keyboard users close with the menu button or Escape.
+          aria-hidden="true"
+          tabIndex={-1}
         />
 
         <aside
+          id="app-sidebar"
+          ref={sidebarRef}
+          // A closed off-canvas drawer is off-screen: keep it out of the tab order and AT.
+          inert={isDrawerNav && !sidebarOpen}
+          role={drawerOpen ? 'dialog' : undefined}
+          aria-modal={drawerOpen ? true : undefined}
+          aria-label={drawerOpen ? t('sidebar.navigation') : undefined}
           className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
         >
           <div className="sidebar-header">
             <div className="sidebar-brand" title={fullBrandName}>
-              <img src={INLINE_LOGO_JPEG} alt="LPAMC logo" className="sidebar-brand-logo" />
+              <img src={INLINE_LOGO_JPEG} alt="CPAMC logo" className="sidebar-brand-logo" />
               {showSidebarLabels && (
                 <span className="sidebar-brand-text">
                   <span className="sidebar-brand-title">{abbrBrandName}</span>
-                  <span className="sidebar-brand-subtitle">{t('sidebar.subtitle')}</span>
+                  <span className="sidebar-brand-subtitle">{fullBrandName}</span>
                 </span>
               )}
             </div>
+            {isDrawerNav && (
+              <button
+                type="button"
+                className="sidebar-drawer-close"
+                onClick={() => setSidebarOpen(false)}
+                aria-label={t('sidebar.close_navigation')}
+                title={t('sidebar.close_navigation')}
+              >
+                {headerIcons.close}
+              </button>
+            )}
           </div>
 
           <div className="nav-section">
@@ -1193,8 +1013,13 @@ export function MainLayout() {
             isPluginResourcePage ? ' content-plugin-resource' : ''
           }`}
           ref={contentRef}
+          // Obscured by the open drawer's backdrop.
+          inert={drawerOpen}
         >
           <main
+            id="main-content"
+            ref={mainRef}
+            tabIndex={-1}
             className={`main-content${isLogsPage ? ' main-content-logs' : ''}${
               isPluginResourcePage ? ' main-content-plugin-resource' : ''
             }`}

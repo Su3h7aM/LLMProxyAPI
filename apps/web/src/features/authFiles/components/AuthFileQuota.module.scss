@@ -1,7 +1,5 @@
 @use '../../../styles/mixins' as *;
 
-$quota-font-size: 11.5px;
-
 /* ============================================================
  * 认证文件卡片的配额区外衣。
  *
@@ -11,27 +9,108 @@ $quota-font-size: 11.5px;
  * 漏名会静默渲染 class="undefined" —— 增删前先对照 quotaConfigs.ts。
  * ============================================================ */
 
+.quotaDisclosure {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+
+  > summary {
+    min-height: $size-36;
+    padding: $space-4 0;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  > summary:focus-visible {
+    outline: $border-width-2 solid var(--focus-ring);
+    outline-offset: $space-2;
+    border-radius: $radius-4;
+  }
+
+  > summary small {
+    display: block;
+    margin-top: $space-4;
+    font-size: $font-size-12;
+    line-height: $line-height-1-5;
+  }
+
+  &[open] > .quotaSection {
+    margin-top: $space-12;
+  }
+}
+
+.summaryLine {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.summaryValue {
+  color: var(--text-primary);
+  font-weight: $font-weight-600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Same type as the card's plain "Not reported" cell; only the chevron marks extra detail. */
+.summaryMuted {
+  color: var(--text-secondary);
+}
+
+.summaryChevron {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform var(--dur-hover) var(--ease-out-strong);
+
+  .quotaDisclosure[open] > summary & {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.snapshotTime {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
 /* ---------- 宿主 ---------- */
 
 .quotaSection {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 10px 11px;
-  font-size: $quota-font-size;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 55%, transparent);
+  gap: $space-9;
+  padding: 0;
+  font-size: $font-size-12;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .quotaMessage {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 400;
-  line-height: 1.5;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-400;
+  line-height: $line-height-1-5;
   color: var(--text-tertiary);
   text-align: center;
-  padding: 5px 4px;
+  padding: $space-5 $space-4;
+}
+
+.quotaWarningMessage {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  color: var(--warning-text);
+  text-align: center;
+  padding: $space-5 $space-7;
+  border-left: $border-width-2 solid var(--warning-border);
+  border-radius: $radius-4;
+  background: var(--warning-bg);
 }
 
 button.quotaMessageAction {
@@ -52,9 +131,9 @@ button.quotaMessageAction {
 }
 
 .quotaError {
-  font-size: $quota-font-size;
-  font-weight: 500;
-  line-height: 1.5;
+  font-size: $font-size-12;
+  font-weight: $font-weight-500;
+  line-height: $line-height-1-5;
   color: var(--danger-color);
   overflow-wrap: anywhere;
 }
@@ -62,19 +141,19 @@ button.quotaMessageAction {
 .quotaCardActions {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: $space-6;
 }
 
 .quotaResetCreditButton {
-  font-size: $quota-font-size;
-  font-weight: 600;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
   white-space: nowrap;
 
   // Button wraps its icon and label in the final content span.
   > span:last-child {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: $space-6;
   }
 }
 
@@ -83,20 +162,21 @@ button.quotaMessageAction {
 .quotaRow {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: $space-4;
 }
 
 .quotaRowHeader {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: $space-4 $space-8;
 }
 
 .quotaModel {
   min-width: 0;
-  font-size: $quota-font-size;
-  font-weight: 600;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
   color: var(--text-secondary);
   @include text-ellipsis;
 }
@@ -104,16 +184,16 @@ button.quotaMessageAction {
 .quotaMeta {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
-  flex-shrink: 0;
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 400;
+  gap: $space-6;
+  flex-wrap: wrap;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-400;
   font-variant-numeric: tabular-nums;
 }
 
 .quotaPercent {
-  font-weight: 650;
+  font-weight: $font-weight-650;
   color: var(--text-primary);
 }
 
@@ -127,20 +207,20 @@ button.quotaMessageAction {
 
   &::before {
     content: '·';
-    margin: 0 3px;
+    margin: 0 $space-3;
     color: var(--text-quaternary);
   }
 }
 
 .quotaResetRelativeSoon {
   color: var(--warning-text);
-  font-weight: 600;
+  font-weight: $font-weight-600;
 }
 
 .quotaAmount {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 500;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-500;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
@@ -148,24 +228,23 @@ button.quotaMessageAction {
 /* ---------- 进度条（QuotaProgressBar 注入，Meter 风 6px 轨道） ---------- */
 
 .quotaBar {
-  height: 6px;
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  height: $size-6;
+  border-radius: $radius-9999;
+  background: color-mix(in srgb, var(--text-primary) $tint-0-08, transparent);
   overflow: hidden;
 }
 
 .quotaBarFill {
   height: 100%;
-  border-radius: $radius-full;
-  transition: width 360ms var(--ease-out-strong, ease);
+  border-radius: $radius-9999;
+  transition: width $duration-360 var(--ease-out-strong);
 }
 
-.quotaBarFillHigh {
-  background: var(--viz-success);
-}
-
+/* Healthy and medium remaining share one neutral fill; only low remaining takes a colour, so
+   the bars never signal caution without a stated threshold. The percentage carries the value. */
+.quotaBarFillHigh,
 .quotaBarFillMedium {
-  background: var(--quota-medium-color);
+  background: var(--text-secondary);
 }
 
 .quotaBarFillLow {
@@ -177,54 +256,58 @@ button.quotaMessageAction {
 .codexPlan {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: $space-6;
 }
 
 .codexPlanItem {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: $radius-full;
-  border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
+  gap: $space-5;
+  padding: $space-3 $space-8;
+  border-radius: $radius-9999;
+  border: $border-width-1 solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-primary) $tint-0-7, transparent);
 }
 
 .codexPlanLabel {
-  font-size: $quota-font-size;
-  font-weight: 400;
+  font-size: $font-size-12;
+  font-weight: $font-weight-400;
   color: var(--text-tertiary);
 }
 
 .codexPlanValue {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 600;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
   color: var(--text-secondary);
 }
 
 .premiumPlanValue {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 650;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-650;
   color: var(--amber-text);
 }
 
-/* 旗舰档（紧凑版）：与金卡档 premiumPlanValue 同构，只换颜色 —— 这一行的兄弟 chip
- * 全是朴素 mono 文本，镶一枚发光徽章在 11px 行里只是吵，不是贵。
+/* Codex Pro 20x 铂金（紧凑版）：与 5x 金色值完全同构，只换色相为铂金钢蓝灰。
  *
- * 色值与额度页同族（和田玉金镶玉，2026-11-01 起替代液态铂金）：
- * 浅色取青玉墨 #4f5a3c（对白底约 7:1）；深色取羊脂白 #e6dec4，
- * 两者都是玉的颜色，与 amber 的金色明确区分。 */
+ * 这一行里 5x 就是一枚变了色的 mono 文本（premiumPlanValue = amber 文字），
+ * 所以 20x 也只是一枚变了色的 mono 文本。之前这里镶了整块切面宝石：
+ * 15px 宽的切面在 11px 行里糊成噪点，还得吃掉 18px 左内边距把文字挤偏，
+ * 而兄弟 chip 全是朴素文字 —— 一枚发光石头在其中只是吵，不是贵。
+ *
+ * 色值与配额页同族（液态铂金，2026-07-31 起替代 MC 钻石青）：
+ * 浅色 #526379 对白底 6.1:1；深色提亮成银蓝。钢灰在 mono 文本里偏安静，
+ * 但这正是该档的性格 —— 铂金的贵是冷的，吵的留给 amber。 */
 .elitePlanValue {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 650;
-  color: #4f5a3c;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-650;
+  color: $color-plan-platinum-18;
 }
 
 :global([data-theme='dark']) .elitePlanValue {
-  color: #e6dec4;
+  color: $color-plan-platinum-8;
 }
 
 /* ---------- Antigravity 分组 ---------- */
@@ -232,12 +315,12 @@ button.quotaMessageAction {
 .antigravityQuotaGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: $space-6;
 
   & + & {
-    margin-top: 3px;
-    padding-top: 8px;
-    border-top: 1px dashed color-mix(in srgb, var(--border-color) 80%, transparent);
+    margin-top: $space-3;
+    padding-top: $space-8;
+    border-top: $border-width-1 dashed color-mix(in srgb, var(--border-color) $tint-0-8, transparent);
   }
 }
 
@@ -245,21 +328,22 @@ button.quotaMessageAction {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: $space-4 $space-8;
 }
 
 .antigravityQuotaGroupTitle {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  letter-spacing: $letter-spacing-0-1;
   text-transform: uppercase;
   color: var(--text-tertiary);
 }
 
 .antigravityQuotaGroupDescription {
-  font-size: $quota-font-size;
-  font-weight: 400;
+  font-size: $font-size-12;
+  font-weight: $font-weight-400;
   color: var(--text-quaternary);
 }
 
@@ -268,17 +352,17 @@ button.quotaMessageAction {
 .codexResetCredits {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 9px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  gap: $space-4;
+  padding: $space-8 $space-9;
+  border-radius: $radius-8;
+  border: $border-width-1 solid color-mix(in srgb, var(--border-color) $tint-0-7, transparent);
 }
 
 .codexResetCreditsTitle {
-  font-family: $font-mono;
-  font-size: $quota-font-size;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  letter-spacing: $letter-spacing-0-1;
   text-transform: uppercase;
   color: var(--text-tertiary);
 }
@@ -286,20 +370,20 @@ button.quotaMessageAction {
 .codexResetCreditRow {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 2px 8px;
-  font-size: $quota-font-size;
-  font-weight: 400;
+  flex-wrap: wrap;
+  gap: $space-4 $space-8;
+  font-size: $font-size-12;
+  font-weight: $font-weight-400;
 }
 
 /* The compact host's credit rows have no border of their own, so the emphasis
    is carried by a left rule and a tint rather than a border-colour swap. */
 .codexResetCreditRowSoon {
-  padding: 2px 6px;
-  margin: 0 -6px;
-  border-left: 2px solid var(--warning-border);
-  border-radius: $radius-sm;
+  padding: $space-2 $space-6;
+  margin: 0 (-$space-6);
+  border-left: $border-width-2 solid var(--warning-border);
+  border-radius: $radius-4;
   background-color: var(--warning-bg);
 }
 
@@ -310,17 +394,15 @@ button.quotaMessageAction {
 }
 
 .codexResetCreditTime {
-  flex-shrink: 0;
-  margin-left: auto;
-  white-space: nowrap;
-  font-family: $font-mono;
+  flex-wrap: wrap;
+  font-family: $font-family-mono;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
 .codexResetCreditsError {
-  font-size: $quota-font-size;
-  font-weight: 500;
+  font-size: $font-size-12;
+  font-weight: $font-weight-500;
   color: var(--danger-color);
   overflow-wrap: anywhere;
 }

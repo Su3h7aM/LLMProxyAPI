@@ -1,77 +1,74 @@
 import { useTranslation } from 'react-i18next';
 import type { PluginQuotaMetric, PluginQuotaState } from '@/types';
+import { useNow } from '@/hooks/useNow';
+import { buildResetDisplay } from '@/utils/quota';
 import { QuotaMeter } from '../../components/QuotaMeter';
+import { QuotaResetLabel } from '../../components/QuotaResetLabel';
 import type { QuotaBodyProps } from '../../types';
 
-const formatReset = (value: string | undefined): string => {
-  if (!value) return '-';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-};
-
-const formatMetric = (metric: PluginQuotaMetric): string => {
-  const value =
+const formatMetric = (metric: PluginQuotaMetric, language: string): string => {
+  const options: Intl.NumberFormatOptions =
     metric.format === 'currency' && metric.currency
-      ? new Intl.NumberFormat(undefined, { style: 'currency', currency: metric.currency }).format(metric.value)
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(metric.value);
+      ? { style: 'currency', currency: metric.currency }
+      : { maximumFractionDigits: 2 };
+  const value = new Intl.NumberFormat(language, options).format(metric.value);
   return metric.unit ? `${value} ${metric.unit}` : value;
 };
 
 export function PluginQuotaBody({ quota, classes }: QuotaBodyProps<PluginQuotaState>) {
-  const { t } = useTranslation();
-  const plan = quota.subscription?.tierName || quota.subscription?.plan || quota.subscription?.tierId;
-
+  const { t, i18n } = useTranslation();
+  const now = useNow();
+  if (!quota.subscription && !quota.summary.length && !quota.groups.length) {
+    return <div className={classes.quotaMessage}>{t('plugin_quota.empty_data')}</div>;
+  }
   return (
     <>
-      {(plan || quota.summary.length > 0) && (
+      {(quota.subscription || quota.summary.length > 0) && (
         <div className={classes.codexPlan}>
-          {plan && (
+          {quota.subscription && (
             <span className={classes.codexPlanItem}>
               <span className={classes.codexPlanLabel}>{t('plugin_quota.plan_label')}</span>
-              <span className={classes.codexPlanValue}>{plan}</span>
+              <span className={classes.codexPlanValue}>{quota.subscription}</span>
             </span>
           )}
           {quota.summary.map((metric) => (
             <span key={metric.key} className={classes.codexPlanItem}>
               <span className={classes.codexPlanLabel}>{metric.label}</span>
-              <span className={classes.codexPlanValue}>{formatMetric(metric)}</span>
+              <span className={classes.codexPlanValue}>{formatMetric(metric, i18n.language)}</span>
             </span>
           ))}
         </div>
       )}
-      {!plan && quota.summary.length === 0 && quota.groups.length === 0 ? (
-        <div className={classes.quotaMessage}>{t('plugin_quota.empty_data')}</div>
-      ) : (
-        quota.groups.map((group) => (
-          <div key={group.id} className={classes.antigravityQuotaGroup}>
+      {quota.groups.map((group) => (
+        <div key={group.id} className={classes.antigravityQuotaGroup}>
+          {group.label && (
             <div className={classes.antigravityQuotaGroupHeader}>
               <span className={classes.antigravityQuotaGroupTitle}>{group.label}</span>
-              {group.description && (
-                <span className={classes.antigravityQuotaGroupDescription}>{group.description}</span>
-              )}
             </div>
-            {group.buckets.map((bucket, index) => {
-              const percent = Math.round(Math.max(0, Math.min(1, bucket.remainingFraction)) * 100);
-              return (
-                <div key={bucket.id} className={classes.quotaRow}>
-                  <div className={classes.quotaRowHeader}>
-                    <span className={classes.quotaModel} title={bucket.description}>
-                      {bucket.label}
+          )}
+          {group.buckets.map((bucket, index) => {
+            const reset = buildResetDisplay(null, bucket.resetAtMs, now, i18n.language);
+            return (
+              <div key={bucket.id} className={classes.quotaRow}>
+                <div className={classes.quotaRowHeader}>
+                  <span className={classes.quotaModel} title={bucket.description}>
+                    {bucket.label || t('plugin_quota.limit')}
+                  </span>
+                  <div className={classes.quotaMeta}>
+                    <span className={classes.quotaPercent}>
+                      {bucket.remainingPercent === null
+                        ? t('plugin_quota.not_reported')
+                        : t('plugin_quota.remaining_percent', { percent: bucket.remainingPercent })}
                     </span>
-                    <div className={classes.quotaMeta}>
-                      <span className={classes.quotaPercent}>
-                        {t('plugin_quota.remaining_percent', { percent })}
-                      </span>
-                      <span className={classes.quotaReset}>{formatReset(bucket.resetTime)}</span>
-                    </div>
+                    {reset && <QuotaResetLabel display={reset} classes={classes} soon={false} />}
                   </div>
-                  <QuotaMeter percent={percent} classes={classes} index={index} />
                 </div>
-              );
-            })}
-          </div>
-        ))
-      )}
+                <QuotaMeter percent={bucket.remainingPercent} classes={classes} index={index} />
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </>
   );
 }

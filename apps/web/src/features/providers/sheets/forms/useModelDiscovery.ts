@@ -21,7 +21,6 @@ export const isModelDiscoveryBrand = (brand: ProviderBrand): boolean =>
 export interface UseModelDiscoveryArgs {
   brand: ProviderBrand;
   baseUrl: string;
-  proxyUrl?: string;
   formHeaders: Array<{ key: string; value: string }>;
   apiKeyEntries?: ApiKeyEntryInput[];
   apiKey?: string;
@@ -40,16 +39,7 @@ export interface UseModelDiscoveryResult {
 }
 
 export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscoveryResult {
-  const {
-    brand,
-    baseUrl,
-    proxyUrl,
-    formHeaders,
-    apiKeyEntries,
-    apiKey,
-    fallbackApiKey,
-    authIndex,
-  } = args;
+  const { brand, baseUrl, formHeaders, apiKeyEntries, apiKey, fallbackApiKey, authIndex } = args;
 
   const available = isModelDiscoveryBrand(brand);
   const [loading, setLoading] = useState(false);
@@ -71,8 +61,7 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
           baseUrl,
           key,
           baseHeaders,
-          resolvedAuthIndex,
-          proxyUrl
+          resolvedAuthIndex
         );
       } else if (brand === 'codex' || brand === 'meta' || brand === 'xai') {
         const key = (apiKey ?? '').trim() || (fallbackApiKey ?? '').trim();
@@ -80,8 +69,7 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
           baseUrl,
           key,
           baseHeaders,
-          resolvedAuthIndex,
-          proxyUrl
+          resolvedAuthIndex
         );
       } else if (brand === 'claude') {
         const key = (apiKey ?? '').trim() || (fallbackApiKey ?? '').trim();
@@ -89,8 +77,7 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
           baseUrl,
           key,
           baseHeaders,
-          resolvedAuthIndex,
-          proxyUrl
+          resolvedAuthIndex
         );
       } else if (brand === 'openaiCompatibility') {
         const firstEntry = (apiKeyEntries ?? []).find(
@@ -105,21 +92,14 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
             baseUrl,
             entryKey,
             baseHeaders,
-            entryAuthIndex,
-            firstEntry?.proxyUrl
+            entryAuthIndex
           );
         } catch (firstErr) {
           // Some OpenAI-compatible endpoints expose /models without auth, or
           // reject the configured key for the discovery route. Retry once
           // without any auth/headers before surfacing the original error.
           try {
-            next = await modelsApi.fetchModelsViaApiCall(
-              baseUrl,
-              undefined,
-              undefined,
-              undefined,
-              firstEntry?.proxyUrl
-            );
+            next = await modelsApi.fetchModelsViaApiCall(baseUrl);
           } catch {
             throw firstErr;
           }
@@ -134,17 +114,7 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
     } finally {
       setLoading(false);
     }
-  }, [
-    available,
-    apiKey,
-    apiKeyEntries,
-    authIndex,
-    baseUrl,
-    brand,
-    fallbackApiKey,
-    formHeaders,
-    proxyUrl,
-  ]);
+  }, [available, apiKey, apiKeyEntries, authIndex, baseUrl, brand, fallbackApiKey, formHeaders]);
 
   const reset = useCallback(() => {
     setModels([]);
@@ -156,21 +126,17 @@ export function useModelDiscovery(args: UseModelDiscoveryArgs): UseModelDiscover
   const inputSignature = useMemo(() => {
     const headerSig = formHeaders.map((h) => `${h.key}:${h.value}`).join('|');
     const entriesSig = (apiKeyEntries ?? [])
-      .map(
-        (e) =>
-          `${e.apiKey ?? ''}::${e.existingApiKey ?? ''}::${e.authIndex ?? ''}::${e.proxyUrl ?? ''}`
-      )
+      .map((e) => `${e.apiKey ?? ''}::${e.existingApiKey ?? ''}::${e.authIndex ?? ''}`)
       .join('|');
     return [
       baseUrl,
-      proxyUrl ?? '',
       apiKey ?? '',
       fallbackApiKey ?? '',
       authIndex ?? '',
       headerSig,
       entriesSig,
     ].join('||');
-  }, [apiKey, apiKeyEntries, authIndex, baseUrl, fallbackApiKey, formHeaders, proxyUrl]);
+  }, [apiKey, apiKeyEntries, authIndex, baseUrl, fallbackApiKey, formHeaders]);
 
   const lastSignatureRef = useRef(inputSignature);
   useEffect(() => {

@@ -13,7 +13,6 @@ export interface ProviderDescriptor {
   supportsHeaders: boolean;
   supportsExcludedModels: boolean;
   supportsPriority: boolean;
-  supportsRequestScopedErrors: boolean;
   supportsTestModel: boolean;
   supportsWebsockets: boolean;
   supportsCloak: boolean;
@@ -25,7 +24,6 @@ export interface ProviderDescriptor {
 export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   gemini: {
     id: 'gemini',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -45,7 +43,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   interactions: {
     id: 'interactions',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -65,7 +62,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   codex: {
     id: 'codex',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -85,7 +81,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   meta: {
     id: 'meta',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -105,7 +100,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   xai: {
     id: 'xai',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -125,7 +119,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   claude: {
     id: 'claude',
-    supportsRequestScopedErrors: true,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -145,7 +138,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   vertex: {
     id: 'vertex',
-    supportsRequestScopedErrors: false,
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
@@ -165,7 +157,6 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
   openaiCompatibility: {
     id: 'openaiCompatibility',
-    supportsRequestScopedErrors: true,
     supportsName: true,
     supportsApiKey: false,
     supportsDisabled: true,
@@ -183,19 +174,75 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsApiKeyEntries: true,
     sheetSize: 'lg',
   },
-  opencodeGo: {
-    id: 'opencodeGo',
-    supportsRequestScopedErrors: false,
+  apikeyFun: {
+    id: 'apikeyFun',
     supportsName: false,
     supportsApiKey: true,
     supportsDisabled: true,
     supportsBaseUrl: false,
     baseUrlRequired: false,
-    supportsProxyUrl: false,
+    supportsProxyUrl: true,
     supportsPrefix: true,
     supportsModels: false,
     supportsHeaders: false,
-    supportsExcludedModels: true,
+    supportsExcludedModels: false,
+    supportsPriority: true,
+    supportsTestModel: false,
+    supportsWebsockets: false,
+    supportsCloak: false,
+    supportsApiKeyEntries: false,
+    sheetSize: 'md',
+  },
+  fennoAI: {
+    id: 'fennoAI',
+    supportsName: false,
+    supportsApiKey: true,
+    supportsDisabled: true,
+    supportsBaseUrl: false,
+    baseUrlRequired: false,
+    supportsProxyUrl: true,
+    supportsPrefix: true,
+    supportsModels: false,
+    supportsHeaders: false,
+    supportsExcludedModels: false,
+    supportsPriority: true,
+    supportsTestModel: false,
+    supportsWebsockets: false,
+    supportsCloak: false,
+    supportsApiKeyEntries: false,
+    sheetSize: 'md',
+  },
+  qiniuCloud: {
+    id: 'qiniuCloud',
+    supportsName: false,
+    supportsApiKey: true,
+    supportsDisabled: true,
+    supportsBaseUrl: false,
+    baseUrlRequired: false,
+    supportsProxyUrl: true,
+    supportsPrefix: true,
+    supportsModels: false,
+    supportsHeaders: false,
+    supportsExcludedModels: false,
+    supportsPriority: true,
+    supportsTestModel: false,
+    supportsWebsockets: false,
+    supportsCloak: false,
+    supportsApiKeyEntries: false,
+    sheetSize: 'md',
+  },
+  kimi: {
+    id: 'kimi',
+    supportsName: false,
+    supportsApiKey: true,
+    supportsDisabled: true,
+    supportsBaseUrl: false,
+    baseUrlRequired: false,
+    supportsProxyUrl: true,
+    supportsPrefix: true,
+    supportsModels: false,
+    supportsHeaders: false,
+    supportsExcludedModels: false,
     supportsPriority: true,
     supportsTestModel: false,
     supportsWebsockets: false,
@@ -205,36 +252,17 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
   },
 };
 
-export const getProviderBehaviorCapabilities = (brand: ProviderBrand) => ({
-  alphaSearch: brand === 'codex',
-  disableCodexCloaking: brand === 'codex',
-  rebuildMidSystemMessage: brand === 'claude',
-  supportPromptCacheKey: brand === 'openaiCompatibility',
-});
-
-export interface ProviderModelCapabilities {
-  maxContextLength: boolean;
-  isCompat: boolean;
-  configurationUpdate: boolean;
-  modalities: boolean;
-}
-
-/** API-key model capabilities; aliases of CodexModel do not imply runtime support. */
-export const getProviderModelCapabilities = (brand: ProviderBrand): ProviderModelCapabilities => ({
-  maxContextLength: brand !== 'vertex',
-  isCompat: brand !== 'vertex',
-  configurationUpdate: brand === 'codex',
-  modalities: brand === 'openaiCompatibility',
-});
-
 export const PROVIDER_BRAND_ORDER: ProviderBrand[] = [
+  'kimi',
   'gemini',
   'interactions',
   'codex',
   'meta',
   'xai',
-  'opencodeGo',
   'claude',
   'vertex',
   'openaiCompatibility',
+  'apikeyFun',
+  'fennoAI',
+  'qiniuCloud',
 ];

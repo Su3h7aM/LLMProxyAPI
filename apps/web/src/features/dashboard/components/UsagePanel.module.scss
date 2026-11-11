@@ -1,0 +1,176 @@
+@use '../../../styles/mixins' as *;
+
+.body,
+.off {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+}
+
+.off {
+  align-items: flex-start;
+  gap: $space-6;
+}
+
+.offTitle {
+  margin: 0;
+  font-size: $font-size-14;
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+}
+
+.note {
+  margin: 0;
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+  color: var(--text-secondary);
+}
+
+.moreLink {
+  align-self: flex-start;
+
+  display: inline-flex;
+  align-items: center;
+  gap: $space-0-25em;
+  min-height: $size-32;
+
+  @media (max-width: #{$breakpoint-mobile}), (pointer: coarse) {
+    min-height: $size-touch-target;
+  }
+
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  color: var(--primary-active);
+  text-decoration: none;
+  border-radius: $radius-4;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-2;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: $font-size-13;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: $space-7 0 $space-7 $space-10;
+    border-bottom: $border-width-1 solid var(--border-color);
+    text-align: right;
+    font-family: $font-family-mono;
+    font-size: $font-size-12;
+    color: var(--text-primary);
+  }
+
+  thead th {
+    font-family: inherit;
+    font-size: $font-size-12;
+    font-weight: $font-weight-700;
+    letter-spacing: $letter-spacing-0-04;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  th:first-child {
+    padding-left: 0;
+    text-align: left;
+  }
+
+  /* Fixed numeric columns keep uppercase headers from colliding in a half-width panel. */
+  thead th:nth-child(2) {
+    width: 21%;
+  }
+
+  thead th:nth-child(3) {
+    width: 16%;
+  }
+
+  thead th:nth-child(4),
+  thead th:nth-child(5) {
+    width: 15%;
+  }
+}
+
+.caption {
+  caption-side: top;
+  padding-bottom: $space-6;
+  text-align: left;
+  font-size: $font-size-12;
+  color: var(--text-secondary);
+}
+
+.model {
+  font-weight: $font-weight-600;
+  @include text-ellipsis;
+}
+
+.failed {
+  color: var(--failure-badge-text) !important;
+  font-weight: $font-weight-700;
+}
+
+.failures {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+.subTitle {
+  margin: 0;
+  font-size: $font-size-13;
+  font-weight: $font-weight-650;
+  color: var(--text-primary);
+}
+
+.failureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.failure {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: $space-2 $space-10;
+  align-items: baseline;
+  font-size: $font-size-12;
+  color: var(--text-secondary);
+}
+
+.failureTime,
+.failureLatency {
+  font-family: $font-family-mono;
+  font-variant-numeric: tabular-nums;
+}
+
+.failureModel {
+  font-family: $font-family-mono;
+  color: var(--text-primary);
+  @include text-ellipsis;
+}
+
+.failureWho {
+  grid-column: 2 / 3;
+  grid-row: 2;
+  @include text-ellipsis;
+}
+
+.failureLatency {
+  grid-column: 3;
+  grid-row: 1;
+}

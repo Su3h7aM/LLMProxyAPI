@@ -1,0 +1,18 @@
+.catalogHint {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-8;
+  padding: $space-12 $space-16;
+  background: var(--bg-secondary);
+  border-bottom: $border-width-1 solid var(--border-color);
+  svg {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+  }
+}
+.mappingsBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  padding: $space-12;
+}

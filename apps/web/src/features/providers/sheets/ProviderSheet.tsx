@@ -5,11 +5,14 @@ import { IconLoader2, IconPencil } from '@/components/ui/icons';
 import type { ProviderRecentUsageMap } from '@/components/providers/utils';
 import { useNotificationStore } from '@/stores';
 import { PROVIDER_DESCRIPTORS } from '../descriptors';
+import { isMultiProtocolSponsorBrand } from '../sponsorDefinitions';
 import type { ProviderBrand, ProviderEntryFormInput, ProviderResource } from '../types';
 import type { UseProviderWorkbenchResult } from '../useProviderWorkbench';
 import { BaseProviderForm } from './forms/BaseProviderForm';
 import { ResourceDetailView } from './ResourceDetailView';
+import { SponsorProviderForm } from './forms/SponsorProviderForm';
 import styles from './forms/sharedForm.module.scss';
+import { iconSize } from '@/design-system';
 
 type SheetMode = 'detail' | 'create' | 'edit';
 
@@ -141,6 +144,20 @@ export function ProviderSheet({
       return <ResourceDetailView resource={state.resource} usageByProvider={usageByProvider} />;
     }
     const formKey = `${state.brand}:${state.resource?.id ?? 'new'}:${state.mode}`;
+    if (isMultiProtocolSponsorBrand(state.brand)) {
+      return (
+        <SponsorProviderForm
+          key={formKey}
+          brand={state.brand}
+          resource={state.resource}
+          mode={state.mode}
+          mutating={formMutating}
+          formId={formId}
+          onSubmit={state.mode === 'create' ? handleCreate : handleUpdate}
+          onDirtyChange={handleDirtyChange}
+        />
+      );
+    }
     return (
       <BaseProviderForm
         key={formKey}
@@ -172,7 +189,7 @@ export function ProviderSheet({
             onClick={onSwitchToEdit}
             disabled={formMutating}
           >
-            <IconPencil size={14} />
+            <IconPencil size={iconSize['14']} />
             {t('providersPage.actions.edit')}
           </button>
         </>
@@ -201,7 +218,7 @@ export function ProviderSheet({
           className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
           disabled={submitDisabled}
         >
-          {submitting ? <IconLoader2 size={14} /> : null}
+          {submitting ? <IconLoader2 size={iconSize['14']} /> : null}
           {state.mode === 'create'
             ? t('providersPage.actions.create')
             : t('providersPage.actions.save')}
@@ -226,9 +243,18 @@ export function ProviderSheet({
         route:
           state.brand === 'openaiCompatibility'
             ? '/ai-providers/openai'
-            : `/ai-providers/${state.brand}`,
+            : state.brand === 'apikeyFun'
+              ? '/quick-start'
+              : state.brand === 'fennoAI'
+                ? '/ai-providers/fennoai'
+                : state.brand === 'qiniuCloud'
+                  ? '/ai-providers/qiniu'
+                  : state.brand === 'kimi'
+                    ? '/ai-providers/kimi'
+                    : `/ai-providers/${state.brand}`,
       })}
       footer={footer}
+      focusKey={state.mode}
       closeDisabled={submitting}
       confirmClose={confirmDiscardIfDirty}
     >

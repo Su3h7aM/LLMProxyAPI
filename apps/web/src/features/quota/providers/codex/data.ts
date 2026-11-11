@@ -6,7 +6,6 @@
 import type { TFunction } from 'i18next';
 import type {
   AuthFileItem,
-  CodexAccountCredits,
   CodexRateLimitInfo,
   CodexRateLimitResetCredit,
   CodexQuotaState,
@@ -14,9 +13,7 @@ import type {
   CodexQuotaWindow,
   CodexUsagePayload,
 } from '@/types';
-import { apiCallApi, authFilesApi, getApiCallErrorMessage } from '@/services/api';
-import { guardConfigConnection } from '@/services/api/configValue';
-import { isRecord } from '@/utils/helpers';
+import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
 import {
   CODEX_RATE_LIMIT_RESET_CREDITS_URL,
   CODEX_RATE_LIMIT_RESET_CREDITS_CONSUME_URL,
@@ -40,7 +37,10 @@ import {
   isDisabledAuthFile,
 } from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/authIndex';
+import { isRecord } from '@/utils/helpers';
 import type { QuotaProviderData } from '../types';
+import { observeQuota, observeWindow, resetCreditRowId } from '../observations';
+import { parseIsoToMs } from '@/utils/quota/resetInstants';
 
 const CODEX_OPTIONAL_REQUEST_TIMEOUT_MS = 8000;
 
@@ -290,9 +290,10 @@ export const buildCodexQuotaWindows = (
 };
 
 export const normalizeCodexAccountCredits = (
-  credits: CodexAccountCredits | null | undefined
+  credits: unknown
 ): { balance: string | null; unlimited: boolean } => {
-  const value = credits?.balance;
+  if (!isRecord(credits)) return { balance: null, unlimited: false };
+  const value = credits.balance;
   const balance =
     typeof value === 'number' ? String(value) : typeof value === 'string' ? value.trim() : null;
   return {
@@ -300,7 +301,7 @@ export const normalizeCodexAccountCredits = (
       balance && /^\d+(?:\.\d+)?$/.test(balance) && Number.isFinite(Number(balance))
         ? balance
         : null,
-    unlimited: credits?.unlimited === true,
+    unlimited: credits.unlimited === true,
   };
 };
 
@@ -492,7 +493,7 @@ const createCodexRedeemRequestId = (): string => {
 const consumeCodexRateLimitResetCredit = async (
   file: AuthFileItem,
   t: TFunction
-): Promise<string> => {
+): Promise<void> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
@@ -514,29 +515,16 @@ const consumeCodexRateLimitResetCredit = async (
   if (result.statusCode < 200 || result.statusCode >= 300) {
     throw createStatusError(getApiCallErrorMessage(result), result.statusCode);
   }
-  const code = isRecord(result.body) ? result.body.code : undefined;
-  if (code !== 'reset' && code !== 'already_redeemed') {
-    throw new Error(t('codex_quota.reset_not_confirmed'));
-  }
-  return authIndex;
 };
 
 const resetCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQuotaData> => {
-  const assertConnection = guardConfigConnection();
-  const authIndex = await consumeCodexRateLimitResetCredit(file, t);
-  try {
-    // Never clear a different connection's cooldown after awaiting redemption.
-    assertConnection();
-    const result = await authFilesApi.resetCooldown(authIndex);
-    assertConnection();
-    if (result.status !== 'ok' || result.auth_index !== authIndex) {
-      throw new Error('Invalid cooldown reset response');
-    }
-  } catch {
-    // Redemption already succeeded: direct the operator to the existing clear action.
-    throw new Error(t('codex_quota.reset_cooldown_failed'));
-  }
+  await consumeCodexRateLimitResetCredit(file, t);
   return fetchCodexQuota(file, t);
+};
+
+const ACCOUNT_WINDOW_PREFERENCES: Partial<Record<string, 'session' | 'weekly'>> = {
+  'five-hour': 'session',
+  weekly: 'weekly',
 };
 
 export const CODEX_CONFIG: QuotaProviderData<CodexQuotaState, CodexQuotaData> = {
@@ -546,6 +534,36 @@ export const CODEX_CONFIG: QuotaProviderData<CodexQuotaState, CodexQuotaData> = 
   fetchQuota: fetchCodexQuota,
   resetQuota: resetCodexQuota,
   canResetQuota: (quota) => (quota.rateLimitResetCreditsAvailableCount ?? 0) > 0,
+  getObservations: (state) =>
+    observeQuota(
+      (state.windows ?? [])
+        .map((window, index) =>
+          observeWindow({
+            id: window.id || `window-${index}`,
+            label: window.label ?? '',
+            remainingPercent: window.usedPercent == null ? null : 100 - window.usedPercent,
+            resetAtMs: window.resetAtMs ?? null,
+            periodHours: window.periodHours ?? null,
+            preferredFor:
+              (window.periodHours ?? 0) > 0
+                ? (ACCOUNT_WINDOW_PREFERENCES[window.id] ?? null)
+                : null,
+          })
+        )
+        .filter((window) => window.resetAtMs !== null),
+      (state.rateLimitResetCredits ?? []).flatMap((credit, index) => {
+        const expiresAtMs = parseIsoToMs(credit.expiresAt);
+        return credit.status !== 'available' || expiresAtMs === null
+          ? []
+          : [
+              {
+                id: resetCreditRowId(credit, index),
+                grantedAtMs: parseIsoToMs(credit.grantedAt),
+                expiresAtMs,
+              },
+            ];
+      })
+    ),
   storeSelector: (state) => state.codexQuota,
   storeSetter: 'setCodexQuota',
   buildLoadingState: () => ({

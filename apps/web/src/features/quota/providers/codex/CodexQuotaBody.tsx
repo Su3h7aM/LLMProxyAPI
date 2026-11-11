@@ -1,5 +1,6 @@
 /**
- * Codex 额度渲染体：套餐 chip 行（档位见 cardTier.ts）、重置积分明细、用量窗口水位条。
+ * Codex 额度渲染体：套餐 chip 行（elite=Pro 20x 液态铂金 / premium=金卡）、
+ * 重置积分明细、用量窗口水位条。
  */
 
 import { useMemo } from 'react';
@@ -7,10 +8,8 @@ import { useTranslation } from 'react-i18next';
 import type { CodexQuotaState } from '@/types';
 import {
   normalizePlanType,
-  BUSINESS_PREMIUM_CODEX_PLAN_TYPE,
-  PRO_CODEX_PLAN_TYPE,
-  PRO_LITE_CODEX_PLAN_TYPES,
-  PRO_MAX_CODEX_PLAN_TYPES,
+  resolvePlanTier,
+  PREMIUM_CODEX_PLAN_TYPES,
   buildResetDisplay,
   formatInstantShort,
   parseIsoToMs,
@@ -21,9 +20,17 @@ import { formatDateTimeValue } from '@/utils/format';
 import { useNow } from '@/hooks/useNow';
 import { QuotaMeter } from '../../components/QuotaMeter';
 import { QuotaResetLabel } from '../../components/QuotaResetLabel';
-import { collectQuotaRowInstants, pickUrgentRowId, resetCreditRowId } from '../../resetSchedule';
-import { planValueClassForTier, resolveCodexCardTier } from '../../cardTier';
-import type { QuotaBodyProps } from '../../types';
+import { collectQuotaRowInstants, pickUrgentRowId } from '../../resetSchedule';
+import { resetCreditRowId } from '../observations';
+import type { QuotaBodyProps, QuotaClassMap } from '../../types';
+
+const getPlanValueClass = (planType: string | null, classes: QuotaClassMap): string => {
+  // elite/premium 顺序契约由 resolvePlanTier 承载（tests/quotaPlanTier.test.ts 守护）。
+  const tier = resolvePlanTier(planType);
+  if (tier === 'elite') return classes.elitePlanValue;
+  if (tier === 'premium') return classes.premiumPlanValue;
+  return classes.codexPlanValue;
+};
 
 export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaState>) {
   const { t, i18n } = useTranslation();
@@ -47,12 +54,13 @@ export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaStat
   const getPlanLabel = (pt?: string | null): string | null => {
     const normalized = normalizePlanType(pt);
     if (!normalized) return null;
-    if (normalized === BUSINESS_PREMIUM_CODEX_PLAN_TYPE) {
+    if (normalized === 'self_serve_business_prolite') {
       return t('codex_quota.plan_business_premium');
     }
-    if (PRO_MAX_CODEX_PLAN_TYPES.has(normalized)) return t('codex_quota.plan_promax');
-    if (normalized === PRO_CODEX_PLAN_TYPE) return t('codex_quota.plan_pro');
-    if (PRO_LITE_CODEX_PLAN_TYPES.has(normalized)) return t('codex_quota.plan_prolite');
+    if (normalized === 'pro') return t('codex_quota.plan_pro');
+    if (PREMIUM_CODEX_PLAN_TYPES.has(normalized) && normalized !== 'pro') {
+      return t('codex_quota.plan_prolite');
+    }
     if (normalized === 'plus') return t('codex_quota.plan_plus');
     if (normalized === 'team') return t('codex_quota.plan_team');
     if (normalized === 'free') return t('codex_quota.plan_free');
@@ -60,7 +68,7 @@ export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaStat
   };
 
   const planLabel = getPlanLabel(planType);
-  const planValueClass = planValueClassForTier(resolveCodexCardTier(planType), classes);
+  const planValueClass = getPlanValueClass(planType, classes);
 
   // Renewal was the one date on this card in a different shape (a full
   // toLocaleString). Reformatted from the instant so it reads like the rest,
@@ -79,8 +87,8 @@ export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaStat
     <>
       {(planLabel ||
         expiryDisplay ||
-        creditsUnlimited ||
         creditBalance !== null ||
+        creditsUnlimited ||
         rateLimitResetCreditsAvailableCount !== null) && (
         <div className={classes.codexPlan}>
           {planLabel && (
@@ -98,7 +106,7 @@ export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaStat
               )}
             </span>
           )}
-          {(creditsUnlimited || creditBalance !== null) && (
+          {(creditBalance !== null || creditsUnlimited) && (
             <span className={classes.codexPlanItem}>
               <span className={classes.codexPlanLabel}>
                 {t('codex_quota.credit_balance_label')}

@@ -1,0 +1,333 @@
+/* Attention list: the operator's to-do list, directly under the headline. */
+
+.panel,
+.allClear {
+  position: relative;
+  z-index: 1;
+  border-radius: $radius-8;
+  border: $border-width-1 solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-10;
+  padding: $space-12 $space-16;
+  border-bottom: $border-width-1 solid var(--border-color);
+}
+
+.headerIcon {
+  display: inline-flex;
+  color: var(--amber-color);
+}
+
+.title {
+  margin: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-8;
+  font-size: $font-size-14;
+  font-weight: $font-weight-600;
+  letter-spacing: (-$letter-spacing-0-01);
+  color: var(--text-primary);
+}
+
+.headerLink {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-4;
+  min-height: $size-32;
+
+  @media (pointer: coarse) {
+    min-height: $size-touch-target;
+  }
+
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: $radius-6;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--text-primary);
+      text-decoration: underline;
+    }
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-3;
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $space-8 $space-24;
+  align-items: start;
+  padding: $space-12 $space-16 $space-12 $space-20;
+
+  & + & {
+    border-top: $border-width-1 solid var(--border-color);
+  }
+
+  /* Severity rail. The chip text carries the meaning; the rail helps scanning. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: $space-14;
+    bottom: $space-14;
+    width: $size-3;
+    border-radius: 0 $radius-3 $radius-3 0;
+    background: var(--item-accent);
+  }
+
+  @media (max-width: #{$breakpoint-640}) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.item_critical {
+  --item-accent: var(--viz-failure);
+}
+
+.item_warning {
+  --item-accent: var(--amber-color);
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-8;
+}
+
+.itemTitle {
+  font-size: $font-size-14;
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+}
+
+.asOf {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  color: var(--amber-text);
+}
+
+.itemSummary {
+  margin: 0;
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.credentials {
+  list-style: none;
+  margin: $space-2 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+.credential {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-8 $space-12;
+  border-radius: $radius-10;
+  background: color-mix(in srgb, var(--bg-tertiary) $tint-0-55, transparent);
+  min-width: 0;
+}
+
+.credentialName {
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+}
+
+.credentialReason {
+  font-size: $font-size-13;
+  line-height: $line-height-1-45;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.credentialMeta {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.credentialMore {
+  font-size: $font-size-12;
+  color: var(--text-secondary);
+  padding-left: $space-12;
+}
+
+.itemActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+  justify-content: flex-end;
+
+  @media (max-width: #{$breakpoint-640}) {
+    justify-content: flex-start;
+  }
+}
+
+.setupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-6;
+  min-height: $size-36;
+  padding: $space-6 $space-14;
+  border-radius: $radius-9999;
+  border: $border-width-1 solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease-out-strong),
+    border-color var(--dur-hover) var(--ease-out-strong),
+    transform var(--dur-press) var(--ease-out-strong);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      background: var(--bg-tertiary);
+      border-color: var(--border-hover);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale($motion-scale-0-97);
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-2;
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    cursor: progress;
+    color: var(--text-secondary);
+  }
+
+  /* Touch targets grow to 44px on coarse pointers. */
+  @media (pointer: coarse) {
+    min-height: $size-touch-target;
+    padding: $space-8 $space-16;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+.spinning {
+  animation: attentionSpin $duration-900 $ease-linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* ---------- Initial setup ---------- */
+
+.allClear {
+  display: flex;
+  align-items: center;
+  gap: $space-12;
+  padding: $space-14 $space-20;
+
+  > :last-child {
+    margin-left: auto;
+  }
+}
+
+.setupIcon {
+  display: inline-flex;
+  color: var(--amber-color);
+}
+
+.allClearCopy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $space-4 $space-12;
+  min-width: 0;
+}
+
+.allClearTitle {
+  margin: 0;
+  font-size: $font-size-15;
+  font-weight: $font-weight-650;
+  color: var(--text-primary);
+}
+
+.allClearDetail {
+  margin: 0;
+  font-size: $font-size-13;
+  color: var(--text-secondary);
+}
+
+@keyframes attentionSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus lands on the panel title after a Retry clears its item. */
+.title,
+.allClearTitle {
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-4;
+    border-radius: $radius-4;
+  }
+}

@@ -1,226 +1,371 @@
 @use '../../../styles/mixins' as *;
 
-/* ============================================================
- * 凭证卡片 — statTile 配方（14px 圆角 / 1px 边框 / 82% 透感纸面）
- * 身份优先；停用时弱化内容，操作区保持清晰以便重新启用。
- * ============================================================ */
-
-.card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
-  transition: border-color 160ms var(--ease-out-strong, ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .card:hover {
-    border-color: var(--border-hover);
+.row {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  > td {
+    padding: $space-12;
+    border-top: $border-width-1 solid var(--border-color);
+    vertical-align: top;
+  }
+  &:hover {
+    background: var(--bg-secondary);
   }
 }
-
-.cardDisabled {
-  background: color-mix(in srgb, var(--bg-primary) 55%, var(--bg-tertiary));
+.rowCompact > td {
+  padding-block: $space-8;
 }
-
-.cardDisabled > :not(.actions) {
-  opacity: 0.68;
+.rowSelected {
+  background: color-mix(in srgb, var(--accent-color) $tint-0-08, var(--bg-primary));
 }
-
-.cardCompact {
-  gap: 10px;
-  padding: 13px 14px;
+.selectCell {
+  width: $size-36;
 }
-
-.cardSelected {
-  border-color: color-mix(in srgb, var(--primary-color) 55%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 40%, transparent);
-}
-
-/* 首次数据到达时的一次性级联入场；过滤/翻页/轮询不重播 */
-.cardEnter {
-  animation: card-in 180ms var(--ease-out-strong, ease-out) both;
-  animation-delay: var(--card-delay, 0s);
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
+/* Phones and coarse pointers: the 22px checkbox gets a 44px hit region. */
+@media (max-width: #{$breakpoint-mobile}), (pointer: coarse) {
+  .selectCell > label {
+    position: relative;
+  }
+  .selectCell > label::after {
+    content: '';
+    position: absolute;
+    inset: (-$space-11);
   }
 }
-
-/* ---------- 头部：选择 + 供应商药丸 / 账号 ---------- */
-
-.head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 28px;
-}
-
-.selection {
-  flex-shrink: 0;
-}
-
 .identity {
   display: flex;
-  flex: 1;
+  margin: 0;
+  min-width: 0;
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  line-height: $line-height-20px;
+}
+.account {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.accountMono {
+  font-family: $font-family-mono;
+}
+/* Provider, runtime marker and file name share one line under the account. */
+.subline {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: $space-2 $space-8;
+  margin: $space-2 0 0;
   min-width: 0;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.6;
+  line-height: $line-height-20px;
 }
-
-/* 品牌药丸与账号按盒子中心对齐，避免不同字号的基线造成视觉偏移。 */
 .providerBadge {
   flex-shrink: 0;
-  max-width: 100%;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
+  font-size: $font-size-12;
+  line-height: $line-height-16px;
+  padding: $space-1 $space-5;
+  border-radius: $radius-4;
 }
-
-.runtimeLabel {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-/* 窄卡片保留基本阅读宽度；空间不足时换行，不截断邮箱或项目 ID。 */
-.account {
-  flex: 1 1 12ch;
-  min-width: 0;
-  letter-spacing: -0.005em;
-  color: var(--text-primary);
-  overflow-wrap: anywhere;
-}
-
-/* 无账号线索时主行回落到文件名，沿用 mono 语汇。
-   必须声明在 .account 之后——两者同为单类选择器，letter-spacing 靠源序决胜。 */
-.accountMono {
-  font-family: $font-mono;
-  letter-spacing: -0.01em;
-}
-
-/* 副行：满卡宽的文件名。email 在 codex 名字的中段，必须能换行才不丢信息，
-   overflow-wrap + -webkit-box 的组合与本文件 .warning span 同配方。 */
-.fileName {
-  margin: -4px 0 0;
-  font-family: $font-mono;
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--text-tertiary);
-  overflow-wrap: anywhere;
-  @include text-ellipsis-multiline(2);
-}
-
-.note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+.runtimeLabel,
+.unreported {
   color: var(--text-secondary);
-  @include text-ellipsis;
+  font-size: $font-size-12;
 }
+.quotaUnreported {
+  /* Aligns with the quota disclosure summary text in neighbouring rows. */
+  display: block;
+  padding: $space-4 0;
+}
+.fileName,
+.note {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  overflow-wrap: anywhere;
+}
+.fileName {
+  font-family: $font-family-mono;
+}
+.note {
+  margin: $space-2 0 0;
+}
+.srOnly {
+  position: absolute;
+  width: $size-1;
+  height: $size-1;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Exceptions are pills (icon, word, tint, edge); healthy rows stay a quiet word. */
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-1 $space-8 $space-1 $space-6;
+  border: $border-width-1 solid;
+  border-radius: $radius-999;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  line-height: $line-height-18px;
+  white-space: nowrap;
 
-/* ---------- 告警行 ---------- */
-
+  svg {
+    flex: 0 0 auto;
+  }
+}
+.stateDisabled {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-color: var(--border-primary);
+}
+.stateProblem {
+  color: var(--failure-badge-text);
+  background: var(--failure-badge-bg);
+  border-color: var(--failure-badge-border);
+}
+.stateQuiet {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-5;
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+}
+.stateQuietIcon {
+  flex: 0 0 auto;
+  color: var(--success-color);
+}
+.cardUpdated {
+  display: none;
+}
 .warning {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  font-size: 12px;
-  line-height: 1.45;
+  gap: $space-4;
+  margin-top: $space-4;
+  font-size: $font-size-12;
+  line-height: $line-height-16px;
   color: var(--warning-text);
-  background: var(--warning-bg);
-  border: 1px solid var(--warning-border);
-  border-radius: 8px;
-  padding: 7px 9px;
+  overflow-wrap: anywhere;
+  /* Desktop rows stay compact: two lines, with a toggle for the rest (see .warningToggle). */
+  > span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
 
-  span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    @include text-ellipsis-multiline(2);
+  > .warningFull {
+    display: block;
   }
 }
+.warningToggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: $size-32;
+  padding: 0 0 0 $space-18;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: $font-size-12;
+  font-weight: $font-weight-550;
+  text-decoration: underline;
+  text-underline-offset: $space-2;
+  cursor: pointer;
 
+  &:focus-visible {
+    outline: $border-width-2 solid var(--focus-ring);
+    outline-offset: $space-2;
+    border-radius: $radius-4;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .warningToggle:hover {
+    color: var(--text-primary);
+  }
+}
+@media (pointer: coarse) {
+  .warningToggle {
+    min-height: $size-touch-target;
+  }
+}
 .warningIcon {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: $space-2;
 }
-
-/* ---------- 健康区：eyebrow + 计数 + 状态条 ---------- */
-
 .health {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: $space-6;
+  min-width: 0;
 }
-
-.healthHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+/* One inline figure ("12 ok · 1 failed") or one muted "No recent requests". */
+.requestsFigure,
+.requestsIdle {
+  font-size: $font-size-13;
+  line-height: $line-height-20px;
+  color: var(--text-secondary);
 }
-
-.healthLabel {
-  font-family: $font-mono;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.requestsFigure {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 $space-6;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.requestsSep {
   color: var(--text-tertiary);
 }
+.countFailLive {
+  color: var(--danger-color);
+}
 
-.healthCounts {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  font-family: $font-mono;
-  font-size: 11.5px;
-  font-weight: 600;
+/* Request history strip renders only when the recent window has traffic. */
+.recent {
+  min-width: 0;
+  max-width: $size-180;
+}
+.metaRow {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  font-size: $font-size-12;
+  line-height: $line-height-20px;
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-
-.countOk {
-  color: var(--text-quaternary);
+.modified {
+  font-size: $font-size-13;
+  color: var(--text-secondary);
+}
+.metaMetric {
+  display: inline-flex;
+  gap: $space-4;
+  white-space: nowrap;
+}
+.metaMetricLabel {
+  color: var(--text-secondary);
 }
 
-.countFail {
-  color: var(--text-quaternary);
+/* ---------- Row actions menu ---------- */
+
+/* One labelled menu button at every width; the menu floats over the table. */
+.rowActions {
+  position: relative;
+  display: inline-flex;
+}
+.actionsTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  min-height: $size-32;
+  padding: 0 $space-8 0 $space-10;
+  border: $border-width-1 solid var(--control-outline);
+  border-radius: $radius-6;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: $font-size-13;
+  font-weight: $font-weight-500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease-out-strong),
+    border-color var(--dur-hover) var(--ease-out-strong);
+  &:focus-visible {
+    outline: $border-width-2 solid var(--focus-ring);
+    outline-offset: $space-2;
+  }
+  &[aria-expanded='true'] {
+    border-color: var(--border-hover);
+    background: var(--bg-tertiary);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .actionsTrigger:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-tertiary);
+  }
+}
+.disclosureChevron {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform var(--dur-hover) var(--ease-out-strong);
+}
+.actionsTrigger[aria-expanded='true'] .disclosureChevron,
+.detailsToggle[aria-expanded='true'] .disclosureChevron {
+  transform: rotate(180deg);
 }
 
-/* 绿色只给活的流量：有计数才点亮 */
-.countLive.countOk {
-  color: var(--viz-success);
+/* The menu floats over the table instead of stretching the narrow actions column. */
+.actions {
+  position: fixed;
+  z-index: $z-popover;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  width: max-content;
+  min-width: $size-220;
+  max-width: min($size-300, calc(100vw - $size-32));
+  padding: $space-6;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-10;
+  background: var(--floating-surface);
+  box-shadow: var(--floating-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  &[hidden] {
+    display: none;
+  }
+}
+.actions :global(.btn) {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: $size-36;
+  padding-inline: $space-10;
+  border: 0;
+  font-size: $font-size-13;
+  font-weight: $font-weight-500;
+  text-align: left;
+  white-space: normal;
+}
+.actions :global(.btn > span) {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-8;
+}
+.actions :global(.btn:focus-visible) {
+  outline: $border-width-2 solid var(--focus-ring);
+  outline-offset: (-$space-2);
+}
+.actions :global(svg) {
+  flex-shrink: 0;
+}
+.menuDanger:not(:disabled) {
+  color: var(--danger-color);
+}
+.menuSeparator {
+  height: $size-1;
+  margin: $space-4 $space-2;
+  background: var(--border-color);
 }
 
-.countLive.countFail {
-  color: var(--viz-failure);
+/* Details disclosure exists only in the compact card layout. */
+.detailsToggle {
+  display: none;
 }
-
-/* ---------- ProviderStatusBar 注入样式（18 个契约类名） ---------- */
 
 .statusBar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: $space-8;
 }
 
 .statusBlocks {
   display: flex;
-  gap: 2px;
+  gap: $space-2;
   flex: 1;
   min-width: 0;
 }
@@ -228,30 +373,30 @@
 .statusBlockWrapper {
   position: relative;
   flex: 1 1 0;
-  min-width: 3px;
+  min-width: $size-3;
 }
 
 .statusBlock {
-  height: 14px;
-  border-radius: 2px;
+  height: $size-14;
+  border-radius: $radius-2;
 }
 
 .statusBlockIdle {
-  background: color-mix(in srgb, var(--text-quaternary) 26%, transparent);
+  background: color-mix(in srgb, var(--text-quaternary) $tint-0-26, transparent);
 }
 
 .statusBlockActive .statusBlock {
-  outline: 1px solid var(--text-secondary);
-  outline-offset: 1px;
+  outline: $border-width-1 solid var(--text-secondary);
+  outline-offset: $space-1;
 }
 
 .statusRate {
-  font-family: $font-mono;
-  font-size: 11.5px;
-  font-weight: 650;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-650;
   font-variant-numeric: tabular-nums;
   color: var(--text-quaternary);
-  min-width: 40px;
+  min-width: $size-40;
   text-align: right;
 }
 
@@ -269,23 +414,23 @@
 
 .statusTooltip {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + $space-8);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 20;
+  z-index: $z-stack-20;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 150px;
-  padding: 8px 10px;
-  border-radius: 10px;
+  gap: $space-2;
+  min-width: $size-150;
+  padding: $space-8 $space-10;
+  border-radius: $radius-10;
   background: var(--floating-surface);
-  border: 1px solid var(--border-color);
+  border: $border-width-1 solid var(--border-color);
   box-shadow: var(--floating-shadow);
   pointer-events: none;
-  font-family: $font-mono;
-  font-size: 11px;
-  line-height: 1.5;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
 }
 
 .statusTooltipLeft {
@@ -301,12 +446,12 @@
 
 .tooltipTime {
   color: var(--text-tertiary);
-  letter-spacing: 0.03em;
+  letter-spacing: $letter-spacing-0-03;
 }
 
 .tooltipStats {
   display: flex;
-  gap: 6px;
+  gap: $space-6;
   flex-wrap: wrap;
   color: var(--text-secondary);
 }
@@ -323,205 +468,189 @@
   color: var(--text-secondary);
 }
 
-/* ---------- 元数据行：size · modified · priority · WRR weight ---------- */
-
-.metaRow {
+/* The desktop table's "Enabled" header names the column; the state word is for cards only. */
+.toggleWithState {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 7px;
-  font-family: $font-mono;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
+  gap: $space-8;
 }
-
-.metaDivider {
-  color: var(--text-quaternary);
-  user-select: none;
-}
-
-.metaPriority,
-.metaWeight {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  padding: 2px 6px;
-  border: 1px solid transparent;
-  border-radius: $radius-full;
-  font-weight: 650;
-  line-height: 1.35;
+.toggleState {
+  display: none;
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+  font-weight: $font-weight-500;
   white-space: nowrap;
 }
 
-.metaPriority {
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--text-quaternary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--text-quaternary) 24%, transparent);
+@media (max-width: #{$breakpoint-1100}) {
+  /* The state word sits under the switch so the credential name keeps the row's width. */
+  .toggleWithState {
+    flex-direction: column-reverse;
+    gap: 0;
+  }
+  .toggleState {
+    display: block;
+    font-size: $font-size-12;
+    line-height: $line-height-16px;
+  }
+
+  .row {
+    display: grid;
+    /* Requests sizes to its short value so "No recent requests" stays on one line. */
+    grid-template-columns: $size-36 fit-content(60%) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'select credential credential toggle'
+      '.      status     status     status'
+      '.      requests   quota      quota'
+      '.      actions    actions    actions'
+      '.      updated    updated    updated';
+    column-gap: $space-20;
+    padding: $space-12;
+    border-top: $border-width-1 solid var(--border-color);
+    > td {
+      display: block;
+      border: 0;
+      padding: $space-4 0;
+      min-width: 0;
+    }
+    > td::before {
+      content: attr(data-label);
+      display: block;
+      color: var(--text-secondary);
+      font-size: $font-size-12;
+      line-height: $line-height-1-4;
+      margin-bottom: $space-2;
+    }
+    > td:nth-child(1) {
+      grid-area: select;
+    }
+    > td:nth-child(2) {
+      grid-area: credential;
+    }
+    > td:nth-child(3) {
+      grid-area: status;
+    }
+    > td:nth-child(4) {
+      grid-area: requests;
+    }
+    > td:nth-child(5) {
+      grid-area: quota;
+    }
+    > td:nth-child(6) {
+      grid-area: updated;
+    }
+    > td:nth-child(7) {
+      grid-area: toggle;
+    }
+    > td:nth-child(8) {
+      grid-area: actions;
+    }
+    > td:nth-child(-n + 2)::before,
+    > td:nth-child(7)::before,
+    > .actionsCell::before {
+      display: none;
+    }
+    /* Healthy cards, and disabled ones the switch state already names, keep one unlabelled
+       line: the quiet status word (healthy only) and the update time. */
+    > .statusQuiet,
+    > .statusRepeatsSwitch {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0 $space-12;
+    }
+    > .statusQuiet::before,
+    > .statusRepeatsSwitch::before,
+    > .statusRepeatsSwitch .state {
+      display: none;
+    }
+  }
+  .cardUpdated {
+    display: block;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: $font-size-12;
+    line-height: $line-height-18px;
+  }
+  .state + .cardUpdated,
+  .warning ~ .cardUpdated {
+    margin-top: $space-4;
+  }
+  /* Details opens the full Updated cell, so the card line does not repeat it. */
+  .rowExpanded .cardUpdated {
+    display: none;
+  }
+  .rowCompact > td {
+    padding-block: $space-2;
+  }
+
+  .warning > span {
+    display: block;
+  }
+
+  /* Collapsed card: file metadata waits behind Details. */
+  .row:not(.rowExpanded) > .detailCell {
+    display: none;
+  }
+  .metaRow {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: $space-4 $space-16;
+  }
+
+  .row > .actionsCell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: $space-8;
+    padding-top: $space-8;
+  }
+  .actionsTrigger,
+  .detailsToggle {
+    min-height: $size-touch-target;
+    padding: 0 $space-14;
+  }
+  .actions :global(.btn) {
+    min-height: $size-touch-target;
+  }
+  .detailsToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-6;
+    border: $border-width-1 solid transparent;
+    border-radius: $radius-6;
+    background: none;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: $font-size-13;
+    font-weight: $font-weight-500;
+    cursor: pointer;
+    &:focus-visible {
+      outline: $border-width-2 solid var(--focus-ring);
+      outline-offset: $space-2;
+    }
+  }
 }
 
-.metaWeight {
-  color: var(--primary-active);
-  background: var(--primary-10);
-  border-color: var(--primary-30);
-}
-
-.metaMetricLabel {
-  font-size: 10px;
-  font-weight: 600;
-  color: currentColor;
-  opacity: 0.78;
-}
-
-/* ---------- SIWC：状态药丸 + 到期时间，与元数据行同为 mono 小字 ---------- */
-
-.siwcRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  min-width: 0;
-}
-
-.siwcExpires {
-  font-family: $font-mono;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
-}
-
-/* ---------- 页脚动作区 ---------- */
-
-.actions {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-}
-
-.actionsMain {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.utilityActions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Button 会用 span 包裹 children；将包裹层也设为 flex，避免 SVG 按文本基线偏移。 */
-.actions :global(.btn > span) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  line-height: 1;
-}
-
-.actions :global(.btn svg) {
-  display: block;
-  flex-shrink: 0;
-}
-
-/* 图标按钮：方形紧凑的安静描边风——危险动作静默存在，hover 才显色块 */
-.card .actions .iconButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-.card .actions .iconButton:global(.btn-danger) {
-  color: var(--danger-color);
-  border-color: color-mix(in srgb, var(--danger-color) 28%, transparent);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .card .actions .iconButton:hover:not(:disabled) {
+@media (max-width: #{$breakpoint-1100}) and (hover: hover) and (pointer: fine) {
+  .detailsToggle:hover {
     color: var(--text-primary);
-    border-color: var(--border-hover);
     background: var(--bg-tertiary);
   }
+}
 
-  .card .actions .iconButton:global(.btn-danger):hover:not(:disabled) {
-    color: var(--danger-color);
-    border-color: color-mix(in srgb, var(--danger-color) 45%, transparent);
-    background: var(--destructive-10);
+@media (pointer: coarse) {
+  .actions :global(.btn),
+  .actionsTrigger {
+    min-width: $size-touch-target;
+    min-height: $size-touch-target;
   }
 }
-
-/* 按压反馈：所有可点元素 scale 0.96（reduced-motion 下豁免） */
-.actions :global(.btn) {
-  transition:
-    transform var(--dur-press, 160ms) var(--ease-out-strong, ease-out),
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
-}
-
-.actions :global(.btn:active:not(:disabled)) {
-  transform: scale(0.96);
-}
-
-.toggleWrap {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.toggleLabel {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-}
-
-@include mobile {
-  .toggleWrap {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .actionsMain {
-    width: 100%;
-  }
-
-  .actionsMain > :global(.btn) {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-}
-
-/* ---------- 降级 ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .disclosureChevron,
+  .actionsTrigger {
     transition: none;
-  }
-
-  .cardEnter {
-    animation: none;
-  }
-
-  .actions :global(.btn) {
-    transition: none;
-  }
-
-  .actions :global(.btn:active:not(:disabled)) {
-    transform: none;
   }
 }

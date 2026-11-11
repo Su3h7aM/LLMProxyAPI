@@ -3,9 +3,9 @@
  */
 
 import type { TFunction } from 'i18next';
-import type { AuthFileItem, KimiQuotaState } from '@/types';
+import type { AuthFileItem, KimiQuotaRow, KimiQuotaState } from '@/types';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
-import { fetchKimiPlanName, resolveKimiQuotaUrl } from '@/services/api/kimiQuota';
+import { resolveKimiQuotaUrl } from '@/services/api/kimiQuota';
 import { captureQuotaCacheGeneration, commitIfQuotaCacheCurrent } from '@/stores/useQuotaStore';
 import {
   KIMI_REQUEST_HEADERS,
@@ -17,10 +17,9 @@ import {
 } from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/authIndex';
 import type { QuotaProviderData } from '../types';
+import { observeQuota, observeWindow } from '../observations';
 
-type KimiQuotaData = Pick<KimiQuotaState, 'rows' | 'planName'>;
-
-const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuotaData> => {
+const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuotaRow[]> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
@@ -48,6 +47,7 @@ const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuo
     url,
     header: { ...KIMI_REQUEST_HEADERS },
   });
+
   assertCurrent();
 
   if (result.statusCode < 200 || result.statusCode >= 300) {
@@ -59,21 +59,34 @@ const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuo
     throw new Error(t('kimi_quota.empty_data'));
   }
 
-  const planName = await fetchKimiPlanName(authIndex, url);
-  // Profile failures are optional, but session/file invalidation must still reject the result.
-  assertCurrent();
-  return { rows: buildKimiQuotaRows(payload), planName };
+  return buildKimiQuotaRows(payload);
 };
 
-export const KIMI_CONFIG: QuotaProviderData<KimiQuotaState, KimiQuotaData> = {
+export const KIMI_CONFIG: QuotaProviderData<KimiQuotaState, KimiQuotaRow[]> = {
   type: 'kimi',
   i18nPrefix: 'kimi_quota',
   filterFn: (file) => isKimiFile(file) && !isDisabledAuthFile(file),
   fetchQuota: fetchKimiQuota,
+  getObservations: (state) =>
+    observeQuota(
+      (state.rows ?? [])
+        .map((row, index) =>
+          observeWindow({
+            id: row.id || `row-${index}`,
+            label: row.id === 'monthly' ? 'kimi_quota.monthly_limit' : (row.label ?? ''),
+            remainingPercent:
+              row.limit > 0 ? Math.round(((row.limit - row.used) / row.limit) * 100) : null,
+            resetAtMs: row.resetAtMs ?? null,
+            periodHours: row.periodHours ?? null,
+            preferredFor: row.id === 'monthly' ? 'weekly' : null,
+          })
+        )
+        .filter((window) => window.resetAtMs !== null || window.id === 'monthly')
+    ),
   storeSelector: (state) => state.kimiQuota,
   storeSetter: 'setKimiQuota',
   buildLoadingState: () => ({ status: 'loading', rows: [] }),
-  buildSuccessState: (data) => ({ status: 'success', ...data }),
+  buildSuccessState: (rows) => ({ status: 'success', rows }),
   buildErrorState: (message, status) => ({
     status: 'error',
     rows: [],

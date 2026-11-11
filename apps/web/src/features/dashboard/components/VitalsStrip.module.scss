@@ -1,0 +1,106 @@
+.strip {
+  position: relative;
+  z-index: 1;
+  border-radius: $radius-8;
+  border: $border-width-1 solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  @media (max-width: #{$breakpoint-900}) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.vital {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+  padding: $space-16;
+
+  & + & {
+    border-left: $border-width-1 solid var(--border-color);
+  }
+
+  @media (max-width: #{$breakpoint-900}) {
+    &:nth-child(odd) {
+      border-left: none;
+    }
+
+    &:nth-child(n + 3) {
+      border-top: $border-width-1 solid var(--border-color);
+    }
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.label {
+  font-size: $font-size-12;
+  font-weight: $font-weight-500;
+  color: var(--text-secondary);
+}
+
+.value {
+  font-size: $font-size-26;
+  line-height: $line-height-1-15;
+  font-weight: $font-weight-600;
+  letter-spacing: (-$letter-spacing-0-01);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.unavailable {
+  color: var(--text-tertiary);
+  font-weight: $font-weight-400;
+}
+
+.srOnly {
+  position: absolute;
+  width: $size-1;
+  height: $size-1;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.unit {
+  /* A real space separates value and unit for assistive tech; margin tops it up. */
+  margin-left: $space-5;
+  font-family: $font-family-sans;
+  font-size: $font-size-13;
+  font-weight: $font-weight-500;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+}
+
+.meterRow {
+  padding: $space-4 0 $space-2;
+}
+
+.meter {
+  height: $size-5;
+}
+
+.detail {
+  font-size: $font-size-12;
+  line-height: $line-height-1-45;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.warning .value {
+  color: var(--amber-text);
+}
+
+.critical .value {
+  color: var(--failure-badge-text);
+}
