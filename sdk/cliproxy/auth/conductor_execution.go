@@ -100,8 +100,35 @@ func unwrapUpstreamExecutionAttempt(err error) error {
 }
 
 func unwrapExecutionBoundaryError(err error) error {
-	err = unwrapRequestStopError(err)
-	return unwrapUpstreamExecutionAttempt(err)
+	for err != nil {
+		switch wrapped := err.(type) {
+		case requestStopError:
+			err = wrapped.error
+		case schedulerRejectError:
+			err = wrapped.error
+		case *roundEndedBySchedulerRejectError:
+			if wrapped == nil || wrapped.cause == nil {
+				return err
+			}
+			err = wrapped.cause
+		case *upstreamExecutionAttemptError:
+			if wrapped == nil || wrapped.cause == nil {
+				return err
+			}
+			err = wrapped.cause
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+func roundPickFailureError(lastErr, upstreamErr, errPick error) error {
+	preferred := preferredExecutionAttemptError(lastErr, upstreamErr)
+	if isSchedulerRejectError(errPick) {
+		return markRoundEndedBySchedulerReject(preferred)
+	}
+	return preferred
 }
 
 func preferredExecutionAttemptError(fallback, upstream error) error {
@@ -150,6 +177,7 @@ func (m *Manager) Execute(ctx context.Context, providers []string, req cliproxye
 
 	var lastErr error
 	var preferredUpstreamErr error
+	var terminalRoundRejectedByScheduler bool
 	retryModel := authSelectionModelFromOptions(opts, req.Model)
 	for attempt := 0; ; attempt++ {
 		roundAttempted := make(map[string]struct{})
@@ -161,6 +189,14 @@ func (m *Manager) Execute(ctx context.Context, providers []string, req cliproxye
 		if isRequestTerminatedError(errExec) || isRequestStopError(errExec) {
 			return cliproxyexecutor.Response{}, unwrapExecutionBoundaryError(errExec)
 		}
+		if isSchedulerRejectError(errExec) {
+			if lastErr == nil && preferredUpstreamErr == nil {
+				return cliproxyexecutor.Response{}, unwrapExecutionBoundaryError(errExec)
+			}
+			terminalRoundRejectedByScheduler = true
+			break
+		}
+		terminalRoundRejectedByScheduler = hasRoundEndedBySchedulerReject(errExec)
 		if hasUpstreamExecutionAttempt(errExec) {
 			preferredUpstreamErr = errExec
 		}
@@ -181,7 +217,7 @@ func (m *Manager) Execute(ctx context.Context, providers []string, req cliproxye
 		}
 		lastErr = preferredExecutionAttemptError(lastErr, preferredUpstreamErr)
 		lastErr = unwrapExecutionBoundaryError(lastErr)
-		if hasAntigravityProvider(normalized) && shouldAttemptAntigravityCreditsFallback(m, lastErr, normalized) {
+		if !terminalRoundRejectedByScheduler && hasAntigravityProvider(normalized) && shouldAttemptAntigravityCreditsFallback(m, lastErr, normalized) {
 			if resp, ok, errCredits := m.tryAntigravityCreditsExecute(ctx, req, opts); errCredits != nil {
 				return cliproxyexecutor.Response{}, errCredits
 			} else if ok {
@@ -222,6 +258,12 @@ func (m *Manager) ExecuteCount(ctx context.Context, providers []string, req clip
 		}
 		if isRequestTerminatedError(errExec) || isRequestStopError(errExec) {
 			return cliproxyexecutor.Response{}, unwrapExecutionBoundaryError(errExec)
+		}
+		if isSchedulerRejectError(errExec) {
+			if lastErr == nil && preferredUpstreamErr == nil {
+				return cliproxyexecutor.Response{}, unwrapExecutionBoundaryError(errExec)
+			}
+			break
 		}
 		if hasUpstreamExecutionAttempt(errExec) {
 			preferredUpstreamErr = errExec
@@ -268,6 +310,7 @@ func (m *Manager) ExecuteStream(ctx context.Context, providers []string, req cli
 
 	var lastErr error
 	var preferredUpstreamErr error
+	var terminalRoundRejectedByScheduler bool
 	homeRetryLimit := -1
 	retryModel := authSelectionModelFromOptions(opts, req.Model)
 	attempt := 0
@@ -300,6 +343,14 @@ func (m *Manager) ExecuteStream(ctx context.Context, providers []string, req cli
 		if isRequestTerminatedError(errStream) || isRequestStopError(errStream) {
 			return nil, unwrapExecutionBoundaryError(errStream)
 		}
+		if isSchedulerRejectError(errStream) {
+			if lastErr == nil && preferredUpstreamErr == nil {
+				return nil, unwrapExecutionBoundaryError(errStream)
+			}
+			terminalRoundRejectedByScheduler = true
+			break
+		}
+		terminalRoundRejectedByScheduler = hasRoundEndedBySchedulerReject(errStream)
 		lastErr = errStream
 		wait, shouldRetry := m.shouldRetryAfterErrorWithAttempted(ctx, opts, errStream, attempt, normalized, retryModel, maxWait, homeRetryLimit, defaultRequestRetry, roundAttempted)
 		if !shouldRetry {
@@ -322,7 +373,7 @@ func (m *Manager) ExecuteStream(ctx context.Context, providers []string, req cli
 			lastErr = preferredExecutionAttemptError(lastErr, preferredUpstreamErr)
 		}
 		lastErr = unwrapExecutionBoundaryError(lastErr)
-		if hasAntigravityProvider(normalized) && shouldAttemptAntigravityCreditsFallback(m, lastErr, normalized) {
+		if !terminalRoundRejectedByScheduler && hasAntigravityProvider(normalized) && shouldAttemptAntigravityCreditsFallback(m, lastErr, normalized) {
 			if result, ok, errCredits := m.tryAntigravityCreditsExecuteStream(ctx, req, opts); errCredits != nil {
 				return nil, errCredits
 			} else if ok {
@@ -557,7 +608,7 @@ func (m *Manager) executeMixedOnce(ctx context.Context, providers []string, req 
 		auth, executor, provider, errPick := m.pickNextMixed(ctx, providers, routeModel, pickOpts, tried)
 		if errPick != nil {
 			if shouldReturnLastErrorOnPickFailure(homeMode, lastErr, errPick) {
-				return cliproxyexecutor.Response{}, preferredExecutionAttemptError(lastErr, upstreamErr)
+				return cliproxyexecutor.Response{}, roundPickFailureError(lastErr, upstreamErr, errPick)
 			}
 			return cliproxyexecutor.Response{}, errPick
 		}
@@ -775,7 +826,7 @@ func (m *Manager) executeCountMixedOnce(ctx context.Context, providers []string,
 		auth, executor, provider, errPick := m.pickNextMixed(ctx, providers, routeModel, pickOpts, tried)
 		if errPick != nil {
 			if shouldReturnLastErrorOnPickFailure(homeMode, lastErr, errPick) {
-				return cliproxyexecutor.Response{}, preferredExecutionAttemptError(lastErr, upstreamErr)
+				return cliproxyexecutor.Response{}, roundPickFailureError(lastErr, upstreamErr, errPick)
 			}
 			return cliproxyexecutor.Response{}, errPick
 		}
@@ -1033,7 +1084,7 @@ func (m *Manager) executeStreamMixedOnce(ctx context.Context, providers []string
 				if homeMode {
 					return nil, markHomeRetryRoundExhausted(preferredErr, roundTiming.RetryAfter(), isHomeNextRoundImmediatelyAvailable(errPick))
 				}
-				return nil, preferredErr
+				return nil, roundPickFailureError(lastErr, upstreamErr, errPick)
 			}
 			return nil, errPick
 		}
