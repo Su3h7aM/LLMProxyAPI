@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0025-panel-oauth-vertex
 type: panel
 agent: deepseek-v4.1-flash
@@ -103,3 +103,51 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 ## Follow-ups
 
 ## Result
+
+Landed:
+- `apps/web/src/services/api/oauth.ts` uses the v8 routes:
+  `GET /oauth/auth-url?provider=<p>[&is_webui=true]`,
+  `GET /oauth/status`, `DELETE /oauth/session`,
+  `POST /oauth/callback`. The UI key `anthropic` maps to the backend
+  `claude` provider. Plugin providers share `/oauth/auth-url`.
+- `apps/web/src/services/api/vertex.ts` uses
+  `POST /oauth/import?provider=vertex` (multipart, `file` and optional
+  `location`).
+- Provider list checked against the Go dispatch: the eight built-ins
+  (meta, kimi, kimi-ai, codex, anthropic, antigravity, xai, devin) all
+  have a backend route. No entry or icon removed.
+- Tests: `devinOAuthApi`, `kimiOAuth`, `metaOAuthProvider`,
+  `pluginOAuthEntries`, and `oauthRequestCancellation` now assert v8
+  routes. New `tests/oauthV8Contract.test.ts` ports the pre-import
+  assertions for `anthropic` to `claude`, the shared plugin route, and
+  the Vertex import route.
+
+Commits (on top of `integration/panel-bumpyclock` 35c2c884):
+- 0ac293d4 chore(panel): start issue 0025 OAuth and Vertex v8
+- a197df89 feat(panel): move OAuth and Vertex import APIs to v8
+- 8c0c684b docs(issues): log OAuth and Vertex v8 port
+- (this commit) docs(issues): finish issue 0025
+
+Gate: `bun install --frozen-lockfile`, `bun run verify` (1708 tests:
+1697 pass, 11 skip, 0 fail; lint and build clean),
+`bun run tokens:check` clean. Rebased on `integration/panel-bumpyclock`;
+the branch had not moved.
+
+Known gaps:
+- Step 4 had no in-scope work: the pre-import OAuth flow has no provider
+  hint or `oauth_provider` handling. The backend hint support
+  (`3b12afff`, `Upstream: .../482efbf5`) serves target-credential
+  re-login, which this panel does not have yet.
+- SIWC bind (`/oauth/siwc/bind`) is a fork feature that BumpyClock does
+  not have and this issue does not list. Not ported.
+- The OAuth page still shows the BumpyClock 404 callback "upgrade"
+  hint. It is a text, not a route probe; kept as is.
+
+Follow-ups:
+- Add target-credential re-login to the providers or auth files area,
+  with the `oauth_provider` hint from the backend.
+- Port the Codex SIWC bind flow (pre-import `siwcBinding.ts` and
+  `SiwcBindDialog`) in its own issue.
+- Decide whether to drop the 404 callback upgrade hint from the OAuth
+  page.
+
