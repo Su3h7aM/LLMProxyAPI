@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0023-panel-logs-system
 type: panel
 agent: deepseek-v4.1-flash
