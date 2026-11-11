@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0013-housekeeping-vet-fmt-assets
 type: chore
 agent: deepseek-v4.1-flash
@@ -42,8 +42,24 @@ One commit per item (Conventional Commits: `fix(test): ...`, `style: ...`, `chor
 - 2026-11-11: Branch renamed from `t3/housekeeping-vet-fmt-assets` to `issue/0013-housekeeping-vet-fmt-assets`. Status set to `in-progress`.
 - Item 1: the vet finding is the dead local `var reconfigureOnce sync.Once` and `_ = reconfigureOnce` in `TestHostApplyConfigWaitsForBlockedQuiesceBeforeCanceledRollbackAndReplay`. Nothing reads the variable. I removed both lines. No test assertion changed. `go vet ./internal/pluginhost/` is clean, `go test ./internal/pluginhost/` passes.
 - Item 2: `gofmt -l $(git ls-files '*.go')` listed exactly the two files in the issue. After `gofmt -w` on them the list is empty. No other file needed a change.
+- Gate: `go build ./...` pass, `go vet ./...` pass with no output. The first `go test ./...` run had one failure (`TestAntigravityManagerExecuteAndStream_ToppedUpCreditsRecoverDuringQuotaCooldown`, see Follow-ups); the second full run passed. `git rebase main` was a no-op because `main` did not move.
 - Item 3: exact-name grep per the issue returns one hit for every listed file, and that hit is this issue file (`issues/0013-housekeeping-vet-fmt-assets.md`), which only lists the names. I treat that as the source of the list, not a reference, so all 21 files had zero real hits and I deleted them. Case-insensitive `grep -F` also returned no hit. A looser basename search (`apikey`, `fennoai`, `infistar`, `qiniucloud`, `xcode`, `packycode`, `poixeai`, `runapi`) returns only unrelated words in source, i18n, and issue 0007. No `go:embed` directive points to `assets/`. `assets/logo/` was not touched.
 
 ## Follow-ups
 
+- `TestAntigravityManagerExecuteAndStream_ToppedUpCreditsRecoverDuringQuotaCooldown` failed once in a full parallel `go test ./...` run, then passed on rerun and 50 focused runs. It looks time-dependent (uses `time.Now()` and `time.Local`). It is outside this issue.
+
 ## Result
+
+Landed on `issue/0013-housekeeping-vet-fmt-assets`, five commits over `c46d61a1`:
+
+1. `fix(test): drop dead sync.Once value in plugin reconfigure case`. `go vet ./...` is now fully clean.
+2. `style: gofmt claude thinking replay and codex bootstrap buffering tests`. `gofmt -l $(git ls-files '*.go')` is empty.
+3. `chore: remove unused partner banners`. Deleted 21 unreferenced top-level files in `assets/`. `assets/logo/` is untouched.
+4. `chore(issues): start issue 0013 housekeeping` and `docs(issues): log housekeeping progress for issue 0013`.
+
+Gate at `HEAD`: `go build ./...` pass, `go vet ./...` pass with no output, `go test ./...` pass on the second run (first run had the flaky antigravity test above).
+
+How to use: nothing to configure. `go vet ./...` is clean, so the CI vet step can be strict later.
+
+Known gaps: no test asserts the vet cleanliness, so a new copy of a lock value can come back. A `go vet` step in CI is the durable guard, if the coordinator wants it.
