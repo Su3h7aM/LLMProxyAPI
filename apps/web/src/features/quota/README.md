@@ -2,7 +2,7 @@
 
 Quota checks run once when the route receives its first accepted auth-file list for the current connection. Re-entering the route checks again. Checks use every eligible account, independent of filters, sorting and pagination. There is no background polling. Refresh all first reloads auth files so snapshot-backed providers receive current backend usage.
 
-A shared per-credential request owner handles batch and individual observations. Concurrent consumers join in-flight reads; invalidated or superseded responses cannot overwrite accepted snapshots. Snapshot-backed account refreshes, including Qoder, reload auth files before reading usage. Failed list reads retain stale values without advancing successful timestamps.
+A shared per-credential request owner handles batch and individual observations. Concurrent consumers join in-flight reads; invalidated or superseded responses cannot overwrite accepted snapshots. Each account refresh reloads auth files before it reads usage. Failed list reads retain stale values without advancing successful timestamps.
 
 Bulk observations publish loading and settled snapshots once per provider. Each provider waits for its slowest newly owned read before publishing settled results; row actions that join those reads also wait. Other providers and unrelated single-account requests remain independent. Ownership and generation checks run again at publication, and cached successful values remain visible throughout.
 

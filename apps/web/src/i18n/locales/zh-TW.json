@@ -1169,7 +1169,6 @@
     "oauth_callback_required": "請先貼上完整的回調 URL。",
     "oauth_callback_success": "回調 URL 已提交，請繼續等待驗證。",
     "oauth_callback_error": "提交回調 URL 失敗:",
-    "oauth_callback_upgrade_hint": "請更新 LLM Proxy API 或檢查連線",
     "oauth_callback_status_success": "回調 URL 已提交，等待驗證中...",
     "oauth_callback_status_error": "回調 URL 提交失敗:",
     "missing_state": "無法取得驗證狀態參數",
@@ -2358,9 +2357,6 @@
       "claude": "Claude",
       "vertex": "Vertex",
       "openaiCompatibility": "OpenAI 相容",
-      "apikeyFun": "APIKEY.FUN",
-      "fennoAI": "FennoAI",
-      "qiniuCloud": "七牛雲",
       "kimi": "Kimi"
     },
     "table": {

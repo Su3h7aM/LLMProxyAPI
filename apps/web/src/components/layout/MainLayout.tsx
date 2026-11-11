@@ -27,7 +27,6 @@ import {
   IconSidebarOauth,
   IconSidebarPlugins,
   IconSidebarProviders,
-  IconSidebarQuickStart,
   IconSidebarQuota,
   IconSidebarRouting,
   IconSidebarStore,
@@ -61,7 +60,6 @@ import { iconSize, media, space } from '@/design-system';
 
 const sidebarIcons: Record<string, ReactNode> = {
   dashboard: <IconSidebarDashboard size={iconSize['18']} />,
-  quickStart: <IconSidebarQuickStart size={iconSize['18']} />,
   aiProviders: <IconSidebarProviders size={iconSize['18']} />,
   authFiles: <IconSidebarAuthFiles size={iconSize['18']} />,
   oauth: <IconSidebarOauth size={iconSize['18']} />,

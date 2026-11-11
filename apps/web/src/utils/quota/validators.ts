@@ -57,12 +57,10 @@ export function isPluginQuotaFile(file: AuthFileItem): boolean {
     'antigravity',
     'claude',
     'codex',
-    'github-copilot',
     'devin',
     'kimi',
     'meta',
     'opencode-go',
-    'qoder',
     'xai',
   ].includes(resolveAuthProvider(file));
 }

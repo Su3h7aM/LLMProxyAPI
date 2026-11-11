@@ -176,11 +176,9 @@ describe('generic plugin quota contract', () => {
       'kimi',
       'kimi-ai',
       'antigravity',
-      'github-copilot',
       'xai',
       'devin',
       'meta',
-      'qoder',
     ]) {
       const item = { ...file, provider };
       expect(resolveQuotaProviderType(item)).not.toBe('plugin');

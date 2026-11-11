@@ -10,7 +10,7 @@ import { useAuthStore, useNotificationStore, useThemeStore } from '@/stores';
 import { oauthApi, pluginsApi, type BuiltInOAuthProvider } from '@/services/api';
 import { vertexApi, type VertexImportResponse } from '@/services/api/vertex';
 import { copyToClipboard } from '@/utils/clipboard';
-import { getErrorMessage, isRecord } from '@/utils/helpers';
+import { getErrorMessage } from '@/utils/helpers';
 import { notifyAuthFilesChanged } from '@/features/authFiles/authFilesEvents';
 import { SiwcBindDialog } from '@/features/oauth/components/SiwcBindDialog';
 import { createOAuthAttempts, type OAuthAttempt } from './oauthAttempts';
@@ -72,11 +72,6 @@ interface BuiltInOAuthProviderCard {
 }
 
 type OAuthProviderCard = BuiltInOAuthProviderCard | PluginOAuthProviderCard;
-
-function getErrorStatus(error: unknown): number | undefined {
-  if (!isRecord(error)) return undefined;
-  return typeof error.status === 'number' ? error.status : undefined;
-}
 
 const PROVIDERS: BuiltInOAuthProviderCard[] = [
   {
@@ -570,14 +565,7 @@ export function OAuthPage() {
       }
     } catch (err: unknown) {
       if (!attempt.isCurrent()) return;
-      const status = getErrorStatus(err);
-      const message = getErrorMessage(err);
-      const errorMessage =
-        status === 404
-          ? t('auth_login.oauth_callback_upgrade_hint', {
-              defaultValue: 'Please update LLM Proxy API or check the connection.',
-            })
-          : message || undefined;
+      const errorMessage = getErrorMessage(err) || undefined;
       updateProviderState(provider, {
         callbackSubmitting: false,
         callbackStatus: 'error',

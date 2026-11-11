@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import { Glob } from 'bun';
 import { chart, fontSize } from '@/design-system/tokens';
 
-// Metadata, counts, badges, chart labels and log lines share one 12px reading floor. The rendered
-// census (tests/visual-audit) found text at 9-11.5px in the sidebar, logs, quota and chart labels.
+// Metadata, counts, badges, chart labels and log lines share one 12px reading floor. An earlier
+// rendered census found text at 9-11.5px in the sidebar, logs, quota and chart labels.
 const FLOOR_PX = 12;
 
 const files = (pattern: string) => [...new Glob(pattern).scanSync({ cwd: 'src' })];

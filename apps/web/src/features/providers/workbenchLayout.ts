@@ -30,27 +30,6 @@ export function shouldExpandUnconfigured(options: {
   return options.configuredCount === 0 || !options.activeIsConfigured;
 }
 
-export interface QuickStartStep {
-  to: string;
-  labelKey: string;
-  destinationKey: string;
-}
-
-/** The general setup sequence. Each step opens the existing route that completes it. */
-export const QUICK_START_STEPS: ReadonlyArray<QuickStartStep> = [
-  {
-    to: '/ai-providers',
-    labelKey: 'redesign.providers.setupProvider',
-    destinationKey: 'nav.ai_providers',
-  },
-  { to: '/oauth', labelKey: 'redesign.providers.setupOAuth', destinationKey: 'nav.oauth' },
-  {
-    to: '/config?field=apiKeys',
-    labelKey: 'redesign.providers.setupClient',
-    destinationKey: 'nav.config_management',
-  },
-];
-
 export type ProviderHealth = 'active' | 'disabled' | 'failing';
 
 /** Matches the status bar's low-rate band (`statusRateLow`), so the word and colour agree. */
