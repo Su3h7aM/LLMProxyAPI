@@ -68,6 +68,32 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+### 2026-11-11: Inventory (step 1)
+
+Pre-import SIWC code (from `git grep -il siwc panel-pre-bumpyclock -- apps/web/src apps/web/tests`):
+
+- API: `services/api/oauth.ts` (`SiwcBindResponse`, `oauthApi.startSiwcBind`, `captureSiwcBindingApi`); `services/api/authFiles.ts` normalizer SIWC fields; `types/authFile.ts` SIWC fields.
+- Logic: `features/oauth/siwcBinding.ts`: `supportsSiwcBinding`, `listSiwcTargets`, `getSiwcBindingStatus`, `isSiwcCallbackValid`, `createSiwcStart`.
+- UI: `features/oauth/components/SiwcBindDialog.tsx` + `.module.scss`; `features/oauth/components/SiwcStatusBadge.tsx` + `.module.scss`; `features/authFiles/components/AuthFileCard.tsx` + `.module.scss` (status badge + expiry row); `features/authFiles/components/AuthFileDetailsSheet.tsx` (`use_siwc` toggle); `features/oauth/OAuthPage.tsx` (entry + dialog).
+- Helpers: `features/authFiles/constants.ts` (`supportsAuthFileSiwc`, `readAuthFileUseSiwc`); `features/authFiles/hooks/useAuthFilesPrefixProxyEditor.ts` (`useSiwc`, patch, preview).
+- i18n: `siwc.*` (32 keys), `auth_files.use_siwc_label`, `auth_files.use_siwc_hint`.
+- Tests: `tests/siwcBinding.test.ts`; SIWC parts of `tests/oauthPage.test.ts`, `tests/managementClientV8.test.ts`, `tests/authFileWeight.test.ts`.
+
+State on `integration/panel-bumpyclock` (after 0018 to 0027): the normalizer and `AuthFileItem` already carry `siwcBindSupported`, `useSiwc`, `siwcBound`, `siwcExpiresAt`, and `AuthFileFieldsPatch.use_siwc` exists (issue 0020). Missing: all SIWC UI, `siwcBinding.ts`, the API calls, the locale keys.
+
+Backend shapes (checked in Go, not guessed):
+
+- `POST /v8/management/oauth/siwc/bind` body `{name}` -> `{status:"ok", url, state, flow:"siwc_bind", expires_in}`.
+- `GET /oauth/siwc/status` and `GET /credentials/siwc/status` use the same handler `GetSIWCStatus`; query `name` or `auth_index`; response `{status:"off"|"valid"|"invalid"}`.
+- Callback: `POST /oauth/callback` `{provider:"codex", redirect_url}`; cancel: `DELETE /oauth/session?state=`.
+
+### 2026-11-11: Decisions taken inside the issue, and one deviation
+
+- No `unsupported` phase and no 404 probe in the bind dialog: the panel and the proxy are one unit, and the rules forbid a capability probe by 404. Any start error shows the generic error view. The `siwc.unsupported` locale key is not ported (31 keys, not 32).
+- BumpyClock has no Badge primitive; the SIWC badge is a small pill built from the BumpyClock tokens, like `regionBadge` and `state` in `OAuthPage.module.scss` and `AuthFileCard.module.scss`.
+- The OAuth page entry is a `Card` inside the existing "Other login methods" section, next to Vertex, and it opens the bind `Modal`. This follows the BumpyClock page, which has no provider-tile grid.
+- Status endpoints: both v8 GET paths hit the same Go handler. The API module gets both wrappers, covered by a test. The card and the sheet use the list fields (`siwc_bound`, `siwc_expires_at`), as the pre-import panel did, so no extra request is sent per credential.
+
 ## Follow-ups
 
 ## Result
