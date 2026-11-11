@@ -32,7 +32,12 @@ import {
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
-import { logsApi, type ErrorLogFile, type LogsQuery } from '@/services/api/logs';
+import {
+  logsApi,
+  responseDataToText,
+  type ErrorLogFile,
+  type LogsQuery,
+} from '@/services/api/logs';
 import { copyToClipboard } from '@/utils/clipboard';
 import { getErrorMessage } from '@/utils/helpers';
 import { downloadBlob } from '@/utils/download';
@@ -135,19 +140,6 @@ const getErrorPayloadText = (err: unknown): string => {
 const isLoggingToFileDisabledError = (err: unknown): boolean => {
   const text = `${getErrorMessage(err)} ${getErrorPayloadText(err)}`.toLowerCase();
   return text.includes('logging to file disabled');
-};
-
-const responseDataToText = async (data: unknown): Promise<string> => {
-  if (data instanceof Blob) return data.text();
-  if (data instanceof ArrayBuffer) return new TextDecoder().decode(data);
-  if (typeof data === 'string') return data;
-  if (data === undefined || data === null) return '';
-
-  try {
-    return JSON.stringify(data, null, 2);
-  } catch {
-    return String(data);
-  }
 };
 
 type TabType = 'logs' | 'errors';
