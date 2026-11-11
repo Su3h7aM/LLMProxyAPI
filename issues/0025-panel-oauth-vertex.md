@@ -68,6 +68,38 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Branch `issue/0025-panel-oauth-vertex` created from
+  `integration/panel-bumpyclock` (35c2c884). Status in-progress.
+- 2026-11-11: Routes checked in `internal/api/server_management_v8.go` and
+  the handlers. v8 has `GET`/`POST /oauth/auth-url`, `GET /oauth/status`,
+  `DELETE /oauth/session`, `POST /oauth/callback`,
+  `POST /oauth/import?provider=vertex`. The auth-url GET reads
+  `is_webui` from the query, so the web UI flag stays a query parameter.
+- 2026-11-11: `oauth.ts` moved to the v8 routes. The UI key `anthropic`
+  maps to the backend provider `claude` (path and callback body).
+  Plugin providers use the same `/oauth/auth-url?provider=<id>` route.
+  `vertex.ts` moved to `/oauth/import?provider=vertex`.
+- 2026-11-11: Step 2 checked against the Go dispatch in `StartOAuthV8`:
+  claude, codex, antigravity, kimi, kimi-ai, xai, devin, meta, plus
+  plugin providers. The panel list has exactly these eight built-ins
+  (`anthropic` is the UI name for `claude`), no qoder and no other
+  provider without a backend. No entry removed.
+- 2026-11-11: Step 4 checked: the pre-import OAuth flow has no provider
+  hint or `oauth_provider` handling to port (`git grep` over
+  `features/oauth` and `services/api/oauth.ts` on tag
+  `panel-pre-bumpyclock` finds no such use). Commit `3b12afff`
+  (`Upstream: router-for-me/CLIProxyAPI@482efbf5`) is backend-only. The
+  panel side needs the target-credential re-login, which belongs to the
+  auth files or providers area, not this issue.
+- 2026-11-11: Tests: the v0 path assertions in `devinOAuthApi`,
+  `kimiOAuth`, `metaOAuthProvider`, `pluginOAuthEntries`, and
+  `oauthRequestCancellation` now expect v8 routes. New
+  `tests/oauthV8Contract.test.ts` ports the pre-import assertions for the
+  anthropic to claude mapping, the shared plugin route, and the Vertex
+  import route.
+- 2026-11-11: Gate passed on commit a197df89: `bun run verify` (1708
+  tests, lint, build) and `bun run tokens:check`.
+
 ## Follow-ups
 
 ## Result
