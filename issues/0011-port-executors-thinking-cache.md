@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0011-port-executors-thinking-cache
 type: port
 agent: deepseek-v4.1-flash
@@ -128,6 +128,73 @@ Option A. Order is now: `f36b195e`, `eb6e25ab`, `949b43b3`, `f77a3c10`,
 because upstream cc95661c does not build without it.` The order change is also
 recorded in `## Result`.
 
+### 2026-11-11: port complete, gated, rebased on main
+
+All seven commits ported in the decided order and committed separately. Each
+commit was gated with `go build ./...`, `go test` on its touched packages, and
+`gofmt -l` on its touched files. `go vet ./...` stays clean.
+
+Rebase on `main` (`425895bf`) had three conflicts:
+
+1. `xai_executor_test.go`: `main` added
+   `TestXAIExecutorPreservesPartialUpstreamBodyOnReadErrorWhenRequestLogDisabled`
+   at the same file end as the five new xAI tests. Both sides kept: `main`'s
+   file, then the five added tests appended, and both imports `internal/logging`
+   (from `main`) and `sdk/api/handlers` (from the port) present.
+2. `gemini_executor.go` and 3. `gemini_vertex_executor.go`: `main` already adds
+   `helps.AppendAPIResponseChunk(ctx, e.cfg, data)` before the replay cache
+   call, so the duplicate line from the patch was dropped. Only the
+   `cacheAntigravityReasoningReplayFromResponse` block remains.
+
+After the rebase, `cc95661c` no longer carries the `claude_thinking_replay_test.go`
+and `codex_stream_bootstrap_buffering_test.go` formatting hunks: `main` already
+has them from `102c8f97` (`style: gofmt claude thinking replay and codex
+bootstrap buffering tests`). That is why its numstat is 844/101 and not the
+upstream 866/123.
+
+Final gate on the rebased branch: `go build ./...` OK, `go vet ./...` no
+findings, `go test ./...` 103 packages ok and no failures, `gofmt -l` clean on
+all touched Go files.
+
 ## Follow-ups
 
 ## Result
+
+Port complete. Branch `issue/0011-port-executors-thinking-cache`, commit range
+`425895bf..HEAD`, not merged to `main`.
+
+| Upstream | Fork | Subject |
+| --- | --- | --- |
+| `f36b195e` | `d678d6a0` | perf(antigravity): skip reasoning replay KV for symmetric gemini/interactions protocols |
+| `eb6e25ab` | `49438ae4` | fix(devin): count cache-write tokens in total input |
+| `949b43b3` | `0d9cbbdb` | fix(xai): classify non-stream terminal SSE errors and empty or incomplete streams |
+| `f77a3c10` | `ad8e9f93` | fix(meta): pass through explicit client prompt_cache_retention |
+| `13fdcc5e` | `85a5444b` | fix(thinking): recognize claude thinking.display updates in summary pipeline |
+| `00c6ae82` | `bffb7918` | perf(cache): eliminate double base64 encoding for reasoning replay KV arrays |
+| `cc95661c` | `5769b31d` | feat(gemini): support asymmetric thoughtSignature replay KV across Gemini executors |
+
+Order change: `00c6ae82` comes before `cc95661c`, because upstream `cc95661c`
+references `PeekAntigravityReasoningReplayItemsWithSnapshotRequired`, which
+`00c6ae82` adds. The `cc95661c` body carries the `Port note:` line.
+
+Gate on the rebased branch: `go build ./...` OK; `go vet ./...` no findings;
+`go test ./...` 103 packages ok, no failure; `gofmt -l` clean on all touched
+files.
+
+Numstat parity: every file matches upstream, except:
+- `cc95661c` drops the `claude_thinking_replay_test.go` and
+  `codex_stream_bootstrap_buffering_test.go` formatting hunks (11/11 each),
+  because `main` already has them from `102c8f97`. Its numstat is 844/101, not
+  the upstream 866/123.
+- Rebase conflict in `xai_executor_test.go`: both sides kept, so the commit
+  keeps all five upstream tests and `main`'s test.
+- Rebase conflict in `gemini_executor.go` and `gemini_vertex_executor.go`: the
+  duplicated `AppendAPIResponseChunk` call from upstream was dropped, because
+  `main` already has it. Line counts stay equal to upstream (59/0, 102/6).
+
+`eb6e25ab` and `949b43b3` needed `patch -F3` for import-order hunks only; the
+resulting imports are gofmt-clean.
+
+Known gap: no live request against a real provider endpoint, so the runtime
+effect of the antigravity replay, xAI classification, and Meta cache retention
+changes is proven by unit tests only.
