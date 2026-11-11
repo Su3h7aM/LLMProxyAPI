@@ -43,7 +43,8 @@ Find what the old fork panel could do that the new panel (branch `integration/pa
 ## Log
 
 - Setup: worktree `/tmp/t0035-new` (branch `integration/panel-bumpyclock`,
-  head `db784257`), old panel exported from tag `panel-pre-bumpyclock` to
+  head `db784257`; refreshed to `ade773b1` after 0030, 0033, 0034 merged),
+  old panel exported from tag `panel-pre-bumpyclock` to
   `/tmp/t0035-old`. Route extractors `/tmp/t0035-routes.js` and
   `/tmp/t0035-calls.js`; locale checker `/tmp/t0035-locale3.py`; Go v8 path
   dump in `/tmp/t0035-gorepo/cmd/dumpcfg` (copy of the repo: reflection over
@@ -55,6 +56,12 @@ Find what the old fork panel could do that the new panel (branch `integration/pa
   `codexIdentityConfuse`, `quotaSwitchProject`, `quotaSwitchPreviewModel`).
 - Quality: `bun install --frozen-lockfile`, `bun run verify`,
   `bun run tokens:check` pass on the integration branch.
+- Refresh: the integration branch moved to `ade773b1` (0030, 0033, 0034
+  merged). Scratch worktree `/tmp/t0035-new` is now a detached HEAD, so it
+  does not hold the branch ref. I re-ran the route, config and locale checks
+  and the quality gate at `ade773b1`. No Go file changed in this range, so
+  the v8 path list stands. Results: 2062 tests pass, bundle 3,497.05 kB.
+  OpenCode Go and soonest reset are now OK, not in progress.
 
 ## Follow-ups
 
@@ -72,8 +79,8 @@ Headline: routes and config fields have parity. Four user-visible gaps
 remain: 5 raw locale keys, no log-level filter, no API key names, and a few
 cosmetic dashboard and OAuth differences.
 
-New panel read at `integration/panel-bumpyclock` head `db784257`. Old panel
-read at tag `panel-pre-bumpyclock`.
+New panel read at `integration/panel-bumpyclock` head `ade773b1`. All tables
+were re-checked at this commit. Old panel read at tag `panel-pre-bumpyclock`.
 
 ### Task 1 — feature list
 
@@ -97,20 +104,20 @@ Legend: OK, MISSING, CHANGED, KNOWN (known and in progress).
 | Providers: workbench groups, create/edit/delete sheets, key lists, openai-compatibility, vertex | `features/providers/*` | same feature, 36 files | OK (0021 landed) |
 | Providers: policy editors (behavior, error rules, runtime, model entries, discovery) | `services/api/{errorRules,providerBehavior,runtimePolicy,modelEntries}.ts` | same modules | OK |
 | Providers: model discovery panel | `useModelDiscovery.ts` | `sheets/forms/ModelDiscoveryPanel.tsx` | CHANGED (see Task 4: 2 keys missing) |
-| Providers: OpenCode Go | `opencodeGo` provider + quota | partial | KNOWN 0030 |
+| Providers: OpenCode Go | `opencodeGo` provider + quota | `descriptors.ts:186`, `useProviderWorkbench.ts` | OK (0030 landed) |
 | OAuth: provider list, search, flow dialog, URL copy, callback entry, polling, Devin, plugin OAuth | `features/oauth/*` (17 files) | `pages/OAuthPage.tsx` (1085 lines), `features/oauth/*` | OK |
 | OAuth: SIWC bind dialog and status | `siwc*` | `features/oauth/components/SiwcBindDialog.tsx`, `siwcBinding.ts` | OK (0028) |
 | OAuth: Vertex import | `components/VertexImportDialog.tsx` (drag and drop, "import another") | `OAuthPage.tsx:940-990` (file chooser) | CHANGED (no drop zone, no "import another") |
 | Quota: card bodies for claude, codex, kimi, meta, xai, devin, antigravity, plugin | `features/quota/providers/*` | same | OK |
 | Quota: Claude reset grants | `claudeResetGrants.ts` | `providers/claude/ClaudeResetGrants.tsx` | OK (0026) |
 | Quota: Codex reset credits | `codex/CodexQuotaBody.tsx` | same | OK |
-| Quota: OpenCode Go body | `providers/opencodeGo/*` | absent | KNOWN 0030 |
+| Quota: OpenCode Go body | `providers/opencodeGo/*` | `features/quota/providers/opencodeGo/*`, 15 `opencode_go_quota` keys | OK (0030 landed) |
 | Quota: xAI prepaid block, usage breakdown, resets label | `xai/XaiQuotaBody.tsx:169-211` | pay-as-you-go labels only | CHANGED (verify with design owner) |
 | Quota: Claude stale snapshot badge | `claude/ClaudeQuotaBody.tsx:58` | absent | CHANGED (minor) |
 | Quota: Meta window duration in hours | `meta/MetaQuotaBody.tsx:46` | absent | CHANGED (minor) |
 | Quota: Codex "Pro Max" plan label | `codex/CodexQuotaBody.tsx:53` | absent | CHANGED (minor) |
 | Quota: dev-only tier preview page | `preview/QuotaTierPreview.tsx` | absent | OK (dev only, not shipped) |
-| Routing: board, strategy, session affinity, soonest reset | `features/routing/*` | same | OK (0029, 0033 in progress) |
+| Routing: board, strategy, session affinity, soonest reset | `features/routing/*` | same, plus `soonestReset.ts`, `SoonestResetSection.tsx` | OK (0029, 0033) |
 | Logs: tail, request and error log tabs, error log open/download, request payload download by id, fullscreen, search, method/status/path filters | `features/logs/*` | `pages/LogsPage.tsx` + `pages/hooks/*` | OK |
 | Logs: log-level filter (`logs.level_filter`) | `LogsPage.tsx:528-530` | none; `useLogFilters.ts` filters method, status, path only | MISSING |
 | Logs: follow/pause read status, buffer eviction notice | `logs.read_status_*` | `logs.auto_refresh` toggle | CHANGED |
@@ -254,22 +261,22 @@ section list only, so `bun run verify` stays green with the 9 missing keys.
 ### Task 5 — quality checks
 
 All commands ran in `/tmp/t0035-new/apps/web` on
-`integration/panel-bumpyclock` (`db784257`), with bun from
+`integration/panel-bumpyclock` (`ade773b1`), with bun from
 `/home/su3h7am/.local/share/mise/installs/bun/latest/bin`.
 
 | Command | Result |
 |---|---|
 | `bun install --frozen-lockfile` | pass, 272 packages |
-| `bun run test` (inside verify) | 2031 pass, 0 fail, 244 files, 5.98 s |
+| `bun run test` (inside verify) | 2062 pass, 0 fail, 249 files, 6.00 s |
 | eslint (`bun run verify`) | pass |
 | `tsc --noEmit` (app + node configs) | pass |
 | `vite build` | pass, 1561 modules |
 | `bun run tokens:check` | pass ("Design token output is up to date") |
 | `bun run verify` | exit 0 |
 
-Bundle: new `dist/index.html` 3,481.69 kB, gzip 1,001.88 kB. Old panel, same
-commands on the tag tree: 3,416.99 kB, gzip 1,021.55 kB. New is 64.7 kB
-larger on disk and 19.7 kB smaller as gzip.
+Bundle: new `dist/index.html` 3,497.05 kB, gzip 1,005.55 kB. Old panel, same
+commands on the tag tree: 3,416.99 kB, gzip 1,021.55 kB. New is 80.06 kB
+larger on disk and 15.99 kB smaller as gzip.
 
 ### Proposed fix list, ranked by user impact
 
