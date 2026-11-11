@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0007-port-models-and-docs
 type: port
 agent: deepseek-v4.1-flash
@@ -48,13 +48,79 @@ Triage notes: Triage: data and comments only; apply clean (test import order may
 
 ## Workflow
 
-1. In your checkout create branch `issue/0007-port-models-and-docs` (rename your branch if T3 gave another name). Set `status: in-progress` in this file and commit.
+1. In your checkout create branch `issue/0007-port-models-and-docs` (rename your branch if T3 gave another name). Set `status: done` in this file and commit.
 2. Work in small steps, commit often. Keep `## Log` current (what you did, what you found, open questions).
 3. When all commits are in and the gate passes: `git rebase main` (resolve conflicts; re-run the gate), set `status: done`, fill `## Result` (commits ported with new fork hashes, gate output summary, deviations from upstream, known gaps), commit.
 4. Do NOT merge to main. Report to the coordinator: short summary, branch, commit range, follow-ups, surprises. Mark each claim you could not confirm.
 
 ## Log
 
+- 2026-11-11: Renamed branch `t3/port-models-docs` to
+  `issue/0007-port-models-and-docs`. Created the stub
+  `apps/web/dist/management.html` (not committed).
+- 2026-11-11: Ported `19a0a854` clean with `git apply --3way`. Data only.
+- 2026-11-11: Ported `84534584` with `patch -p1 -F3`. `git apply --3way`
+  failed on `config.example.yaml` only because the fork inserts extra
+  soonest-reset and weighted-round-robin comments before the touched lines
+  (hunk 1 applied at offset -15, fuzz 1). `config_types.go` applied at offset
+  +8. This is context-only, not semantic. Checked that the documented
+  behaviour exists in the fork: `sdk/cliproxy/auth/selector.go` has
+  `pickLCP` with LCP compaction matching, and `X-Session-ID` is a session
+  header. The test helpers `yamlPath` and `findMapKeyIndex` already exist in
+  `internal/config/config_v8.go`, so the new test compiles without edits.
+- 2026-11-11: Ported `effbac16` clean with `git apply --3way`. Note: the
+  subject names Gemini 4 Carbon only, but the commit also adds
+  `gemini-4-carbon-high`, and `muse-ember-1.0` (owned_by meta). Ported all
+  entries as upstream has them.
+- 2026-11-11: Cleanup commit for the sponsor image. `grep -rn aicodemirror`
+  (excluding `.refs`, `node_modules`, `.git`) finds: `issues/0002-*.md` and
+  `issues/0007-*.md` (text), and `apps/web/tests/providerGroupsV8.test.ts`
+  (the provider base URL `https://api.aicodemirror.ai`). None references the
+  image file; the web test uses the domain, not the asset, so deletion does
+  not break it. `assets/aicodemirror.png` is the AI CodeMirror sponsor logo
+  (checked the image). Deleted in commit `chore: remove unused sponsor image`.
+- 2026-11-11: `main` moved while this issue ran (issue 0003 merged, 11
+  commits). Rebased onto `main` (now `53f611e2`) with no conflicts.
+- 2026-11-11: Full gate on the rebased tree: `go build ./...` OK,
+  `go test ./...` all packages pass, `go vet ./...` shows only the known
+  baseline finding `internal/pluginhost/host_test.go:1637` (accepted by the
+  DECISIONS.md vet rule). `gofmt -l internal/config/` is empty.
+- No `Co-Authored-By` trailer was supplied by the harness, so the port
+  commits end with the `Upstream:` trailer only.
+
+
 ## Follow-ups
 
+- `assets/` still holds other partner/sponsor logos (`packycode*`, `poixeai`, `runapi`, and others). Only `aicodemirror.png` was in this issue scope. Decide separately if they should go.
+- The `gofmt` and `go vet` findings on `main` that DECISIONS.md accepts (two executor test files, `host_test.go:1637`) still need their own small issue.
+
 ## Result
+
+Ported three upstream commits, one fork commit each, plus the sponsor image
+cleanup, on branch `issue/0007-port-models-and-docs` rebased onto `main`
+`53f611e2`.
+
+| Fork commit | Upstream commit | Content |
+| --- | --- | --- |
+| `98c18cf9` | `19a0a854` | `claude-fable-5-2` and `gemini-omni-1.2-flash` entries in `internal/registry/models/models.json` |
+| `cb64bc47` | `84534584` | X-Session-ID and Merkle LCP compaction guidance in `config.example.yaml` and `RoutingConfig` comments, plus `TestV8ExampleDocumentsSessionAffinityCompactionGuidance` |
+| `d7735573` | `effbac16` | `gemini-4-carbon`, `gemini-4-carbon-high`, `muse-ember-1.0` entries in `models.json` |
+| `04d4ebfd` | none | deleted unused sponsor asset `assets/aicodemirror.png` |
+
+Gate on the rebased tree:
+
+- `go build ./...`: pass.
+- `go test ./...`: pass, all packages.
+- `go vet ./...`: only the known baseline finding
+  `internal/pluginhost/host_test.go:1637`.
+- `gofmt -l` on touched Go files: clean.
+
+Deviations from upstream: none in content. `config.example.yaml` needed
+`patch -F3` for context that the fork had changed (comment-only). The web
+panel was not rebuilt or browser-checked: the changes are Go data and
+comments, and no web source references the deleted asset.
+
+Known gaps: the panel has no UI for the new model entries beyond what the
+registry already serves. Unverified: that upstream's `muse-ember-1.0` entry
+intent matches its placement (it came with the "Gemini 4 Carbon" commit).
+
