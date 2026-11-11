@@ -10,11 +10,7 @@ import { runVisualConfig } from './helpers/visualConfig';
 
 describe('buildConfigPatch', () => {
   // Visual integration expectations below are a verbatim port from the v8
-  // panel. They stay skipped until the config-page issue ports useVisualConfig
-  // to the v8 config tree; the current visual maps the same fields to older
-  // paths (for example apiKeysText lands on top-level api-keys, not
-  // access.api-keys). Do not adapt them to the old mapping.
-  describe.skip('visual integration (pending v8 visual port)', () => {
+describe('visual integration (v8 visual port)', () => {
     for (const [field, path] of [
       ['port', 'server.port'],
       ['requestRetry', 'routing.retry.request-retry'],
