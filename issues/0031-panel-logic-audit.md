@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0031-panel-logic-audit
 type: panel
 agent: muse-spark-1.3-contributor
@@ -68,6 +68,114 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md` and triage
+  results 0015, 0016, 0017. Note: `git log panel-pre-bumpyclock -- <path>`
+  yields no official-panel "fix" history; that side is squashed to the
+  vendor commit `71171f19` plus fork commits, so classification below
+  rests on content comparison only.
+- 2026-11-11: Diffed pre-import tag vs integration branch over
+  `src/utils/quota/*`, quota provider `data.ts` files, `src/services/api/*`
+  request details, provider model-discovery/test builders, and `src/utils/*`
+  upstream helpers. Class table (A = BumpyClock newer/better, keep;
+  B = pre-import provider-API fix that BumpyClock lacks, restore;
+  C = UI only or unclear, do not touch):
+
+  | File | Delta (pre-import `-` vs integration `+`) | Class |
+  | --- | --- | --- |
+  | `utils/quota/constants.ts` | `User-Agent: claude-cli/2.1.280 (external, cli)` dropped from `CLAUDE_REQUEST_HEADERS` | B, restore |
+  | `utils/quota/constants.ts` | Antigravity Hub and Grok version-alignment comments dropped (values same) | B-trivial, restore comments |
+  | `utils/quota/constants.ts` | `XAI_USER_URL`/`XAI_SETTINGS_URL` dropped | C, needs deleted enrichment pipeline |
+  | `utils/quota/constants.ts` | `OPENCODE_GO_*` dropped | Skip, issue 0030 owns |
+  | `utils/quota/constants.ts` | `TYPE_COLORS` literals moved to design tokens | A, keep |
+  | `utils/quota/builders.ts` | Antigravity label `description ?? window` fallback dropped | C, unclear benefit |
+  | `utils/quota/builders.ts` | Kimi monthly `periodHours` 720 dropped, ratio clamped | A, current test pins `null`, keep |
+  | `utils/quota/builders.ts` | `resolveXaiSubscriptionPlan`, `prepaidBalanceCents` dropped | C, tied to removed enrichment |
+  | `utils/quota/planTier.ts` | Elite Pro 500 (`promax`) changed to Pro 20x (`pro`) | C, semantic conflict, current test pins new |
+  | `utils/quota/validators.ts` | `isOpencodeGoFile`/`BUILT_IN_*` dropped, copilot/qoder added | Skip, issue 0030 / Plus surface |
+  | `quota/providers/claude/data.ts` | `resolveClaudeMaxTier` (Max 5x/20x) dropped, tests deleted, i18n keys orphaned | B, restore resolver and tests |
+  | `quota/providers/claude/data.ts` | Dollar-denominated `iguana_necktie` handling dropped | C, types changed too |
+  | `quota/providers/codex/data.ts` | Redeem `code` check and `resetCooldown` orchestration dropped | C, fork-backend orchestration |
+  | `quota/providers/kimi/data.ts`, `services/api/kimiQuota.ts` | `fetchKimiPlanName`/`parseKimiPlanName` dropped | C, needs deleted enrichment |
+  | `quota/providers/xai/data.ts` | Subscription-plan `enrichQuota` dropped | C, needs deleted enrichment |
+  | `quota/providers/meta,devin,antigravity,plugin/data.ts` | Only `getObservations` added or generic rewrite | A, keep |
+  | `services/api/models.ts` | Base-URL normalizer, signal/timeout added | A, keep |
+  | `services/api/logs,plugins,oauth,client.ts` | `setRequestLog`, store refresh, SIWC, `x-server-*` narrowing | A or other issues, keep |
+  | `features/providers` discovery/test builders | No logic diff (icon sizes only) | None |
+  | `utils/connection,format,constants`, `cardTier.ts`, `quotaEnrichment.ts` | Decoupling, formatting, deleted enrichment | Skip or C |
+
+- 2026-11-11: Route check with `/tmp/opencode/route_check_0031.py`
+  (static plus template `apiClient` paths in `services/api` and feature
+  modules, matched against `internal/api/server_management_v8.go`).
+  Result: every backend-facing call has a v8 route. Script false
+  positives, all verified served: `/plugins/store` plus `?refresh=true`
+  query, `/plugins/store/:id/install` via template, `/oauth/callback`
+  (engine-level POST with prefix), all `/config/*` tree paths via the
+  `Handle /config/*path` wildcard, form posts `/credentials` and
+  `/oauth/import?provider=vertex`. Upstream calls via `api-call`
+  (Claude/XAI/Kimi/Codex/Antigravity/Meta/Devin quota, model discovery)
+  need no backend route. No call without a route; nothing to fix.
+
 ## Follow-ups
 
+- C1: xAI subscription plan (`XAI_USER_URL`, `XAI_SETTINGS_URL`,
+  `resolveXaiSubscriptionPlan`, `planLabel`/`planTier`,
+  `prepaidBalanceCents`) with `tests/xaiQuotaEnrichment.test.ts`.
+  Needs the deleted `quotaEnrichment.ts` pipeline; the BumpyClock side
+  replaced it with `canObserve`/`observation`/`healthTest`. Restore
+  only with a new observation, not by reverting.
+- C2: Kimi plan name (`fetchKimiPlanName`, `parseKimiPlanName`,
+  `tests/kimiPlan.test.ts`). Same deleted-pipeline reason as C1.
+- C3: Codex reset flow (redeem `code` must be `reset`/`already_redeemed`,
+  else `reset_not_confirmed`; then `resetCooldown` with connection
+  guards; `tests/codexQuotaReset.test.ts`). Fork-backend
+  orchestration; the integration side simplified reset to
+  consume-then-fetch. Note: unknown `code` values now count as
+  success. Needs a decision before any change.
+- C4: Claude dollar-denominated `iguana_necktie` handling
+  (`isDollarDenominatedWindow`, cloud-session-credits row,
+  `limit_dollars` types). Types changed on the integration side;
+  needs a decision.
+- C5: Kimi monthly `periodHours`. Pre-import invented 720; the
+  integration side pins `null` ("without inventing a fixed period").
+  Kept as is.
+- C6: `planTier.ts` elite conflict: pre-import Pro 500 (`promax`),
+  integration Pro 20x (`pro`). Current `quotaPlanTier.test.ts` pins
+  the new mapping. Needs upstream evidence; not changed.
+- C7: Antigravity `labels.ts` machinery (bucket label keys, group
+  models with "Gemini Argon") and the bucket `description ?? window`
+  label fallback. UI/i18n feature tied to bodies; not restored.
+- C8: Backend version drift: panel pins Antigravity Hub `2.23.0`
+  while `internal/misc/antigravity_version.go` fallback is now
+  `2.29.0` (floor statement still `2.23.0`, so no break). Watch
+  only; coordinator decides if the panel pin should move.
+- Unconfirmed: whether Anthropic still accepts `claude-cli/2.1.280`
+  (restored value is the last known-good fork value; backend proxy
+  default is `2.1.70`); whether Grok still accepts versions above
+  `1.0.13` (comment claim, not re-verified live); dynamic quota
+  call counts at runtime (static analysis only, no live backend).
+
 ## Result
+
+- Landed: two class-B restores, one small commit each, both with
+  pinning tests. (1) `fix(panel): send claude-cli User-Agent on
+  Claude quota requests` (`1219a8b0`): `User-Agent:
+  claude-cli/2.1.280 (external, cli)` back in
+  `CLAUDE_REQUEST_HEADERS` plus the Hub/Grok alignment comments,
+  with new `tests/claudeRequestHeaders.test.ts`.
+  (2) `fix(panel): separate Claude Max 5x from Max 20x by
+  rate-limit tier` (`1c869d9e`): `resolveClaudeMaxTier` back in
+  `quota/providers/claude/data.ts` plus the deleted
+  `claudePlanType.test.ts` cases (`plan_max20`/`plan_max5` i18n
+  keys were orphaned). BumpyClock style kept; no UI changed.
+- Gate: `bun install --frozen-lockfile`, `bun run verify` passes
+  (2042 tests, 245 files, lint clean, `dist/index.html` 3.48 MB),
+  `bun run type-check` clean. Area tests
+  (`claudeRequestHeaders`, `claudePlanType`, `claudeOAuthUsage`,
+  `claudeFableQuota`: 46 pass) green after each commit.
+- Route check: every backend-facing `apiClient` call in the area
+  has a v8 route; no missing route. Script kept out of the repo
+  at `/tmp/opencode/route_check_0031.py`.
+- Known gaps: none in the restored behavior. Open points are all
+  in `## Follow-ups` (C1-C8): xAI plan, Kimi plan name, Codex
+  reset flow, Claude dollar windows, Kimi monthly period, planTier
+  elite conflict, Antigravity labels, Hub version drift.
