@@ -10,7 +10,7 @@ type: triage (read-only, no code changes)
 
 Review upstream commits and decide, per commit, if the fork should take it.
 Upstream is `router-for-me/CLIProxyAPI`, cloned at
-`/home/su3h7am/Apps/LLMProxyAPI/.refs/LLMProxyAPI` (read-only: never edit or
+`/home/su3h7am/Apps/LLMProxyAPI/.refs/CLIProxyAPI` (read-only: never edit or
 commit there). Baseline pinned in `UPSTREAM_BASELINE.md`:
 `e5e6ad1e1b91fc20ab9964e6fb22c0c269b9d882`. Range: `e5e6ad1e..HEAD`.
 
@@ -29,7 +29,7 @@ Area: all other commits (auth scheduler and routing, translators, pluginhost, wa
   - Upstream config, auth files, and kv.db must keep loading (compat is mandatory).
   - Plus (CPA-Manager-Plus) code: never bring in.
 - To see how the fork differs from the baseline, compare the fork file with the
-  baseline file: `git -C .refs/LLMProxyAPI show e5e6ad1e:<path>` vs the fork path
+  baseline file: `git -C .refs/CLIProxyAPI show e5e6ad1e:<path>` vs the fork path
   (apply the module-path rename before you compare).
 
 ## Commits to review (oldest first)
