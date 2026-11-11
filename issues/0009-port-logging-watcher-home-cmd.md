@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0009-port-logging-watcher-home-cmd
 type: port
 agent: muse-spark-1.3-contributor
