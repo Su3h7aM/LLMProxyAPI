@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0003-port-translators-openai
 type: port
 agent: deepseek-v4.1-flash
