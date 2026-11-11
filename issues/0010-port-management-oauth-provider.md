@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0010-port-management-oauth-provider
 type: port
 agent: deepseek-v4.1-flash
@@ -54,6 +54,59 @@ Triage notes: Triage: `0559fa3` applies clean (additive v8 field; the frozen v0 
 
 ## Log
 
+- 0559fa3c ported as `69e280ab` (hash after rebase onto main). Patch applied with `git apply --3way`. The new
+  test file needed one gofmt fix: in the fork the module path sorts before
+  `github.com/gin-gonic/gin`, so `gin` goes last in the third-party group.
+- 482efbf5 ported as `3b12afff` (hash after rebase onto main). Only import-order context conflicts, as triage
+  said:
+  - `auth_files_provider_oauth.go` and `auth_provider.go`: the patch adds the
+    `github.com/MoeForge/moego/ojson` import in an upstream import block. I
+    dropped those two import hunks and added the import in fork order.
+  - `auth_files_oauth_provider_test.go`: the whole file is rewritten by the
+    patch, so the context of the gofmt-reordered import block did not match. I
+    took the upstream file at 482efbf5, rewrote the module path, and ran
+    `gofmt -w`. Content equals upstream, except import order.
+- Checked the two commits against upstream 482efbf5 file by file. Only
+  pre-existing fork lines differ: `gin` import position, the OpenCode Go
+  `supports_quota`/`quota_provider` entry in `auth_files.go`, and
+  `claude.GenerateState()` in `auth_files_provider_oauth.go`.
+- Question in the issue: compare the fork body of `HasMultipleAuthProviders`
+  with upstream baseline `e5e6ad1e`. Result: the function does not exist in
+  either tree before 482efbf5. `git log -S` on upstream shows 482efbf5 as the
+  only commit that adds it, so there is no fork version to compare and no
+  semantic conflict. The fork has `callRecordAuthProviderIdentifiers`,
+  `recordCurrent`, and `ojson` already, so the new code compiles unchanged.
+- Gate: `go build ./...` OK; `go vet ./...` reports only the known
+  `internal/pluginhost/host_test.go:1637` finding; `go test ./...` all pass;
+  `gofmt -l` clean on the eight touched files.
+- Rebased onto main (`6deacf71`, which includes issue 0013). After the rebase
+  `go vet ./...` prints nothing, because 0013 removed that finding. Gate re-run
+  after rebase: build OK, vet clean, all tests pass.
+
 ## Follow-ups
 
+- The panel (`apps/web`) does not read the new `oauth_provider` field. Show it
+  in the credential list if the product wants it.
+
 ## Result
+
+Ported both upstream commits, one fork commit each:
+
+| Upstream | Fork commit | Subject |
+| --- | --- | --- |
+| `0559fa3cfd5722cf1755a7dc3a90573ede3835f6` | `69e280ab` | feat(management): expose oauth_provider in credential list |
+| `482efbf5a777771523c1237ed7aaee965451c51d` | `3b12afff` | feat(auth): enhance OAuth provider handling with explicit hints and metadata preservation |
+
+The v8 credential list now returns `oauth_provider` when the credential has an
+OAuth provider hint. The v0 route keeps its frozen shape; a test locks this.
+Plugin auth parsing, login polling, refresh, and file synthesis now read the
+hint from storage JSON too, stamp it for multi-entry plugins, and preserve it
+across refresh.
+
+Deviations from upstream: import order only (`ojson` import position,
+`gin` last in the third-party group of the new test file). No logic change. The
+port does not change `apps/web`.
+
+Gate at the end, after the rebase onto `6deacf71`: `go build ./...` OK,
+`go vet ./...` clean (issue 0013 is on main already), `go test ./...` all pass,
+`gofmt -l` clean on the touched files.
