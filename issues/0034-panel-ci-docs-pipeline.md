@@ -67,6 +67,31 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Branch created from `integration/panel-bumpyclock` (`db784257`). Baseline `bun run verify` passes.
+- CI: added `.github/workflows/ci.yml`. Jobs `go` (setup-go 1.27.3, stub
+  `apps/web/dist/management.html`, gofmt check, build, vet, test) and
+  `panel` (setup-bun 1.4.4, `bun install --frozen-lockfile`,
+  `bun run verify`). Triggers: push to `main`, all pull requests.
+  Unconfirmed: GitHub Actions cannot run here. YAML parsed with `yq`;
+  `actionlint` is not installed. The Go job commands were run locally
+  with `/usr/bin/go` and pass.
+- Container: read `Containerfile` and `.containerignore`. `podman build
+  --target panel` with a clean context passes and produces
+  `dist/index.html` plus `dist/management.html`. The bun base image has
+  `bun` on `PATH`, so the design token plugin works. Found one problem:
+  the build context had no ignore for `apps/web/node_modules` and
+  `apps/web/dist`, so `COPY apps/web/ ./` could copy a host
+  `node_modules` over the installed one. Added both to
+  `.containerignore`. No `Containerfile` change was needed.
+- Scripts: `build-web.sh` and `install.sh` now run
+  `bun install --frozen-lockfile`. `check-panel.sh` already checks the
+  title `LLM Proxy API Management Center`; no change.
+- Docs: root `README.md` panel section, `apps/web/README.md`,
+  `apps/web/AGENTS.md`, and the panel notes in `UPSTREAM_BASELINE.md`
+  now describe the final state (BumpyClock pin `ce5f6179`, v8 only,
+  same origin, no legacy, fork changes). `DECISIONS.md` untouched.
+- Open questions: none.
+
 ## Follow-ups
 
 ## Result
