@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0030-panel-opencode-go
 type: panel
 agent: muse-spark-1.3-contributor
@@ -70,6 +70,15 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 - 2026-11-11: Set `status: in-progress`. Branch from `integration/panel-bumpyclock`.
 - 2026-11-11: Inventory. `760d7f3a` adds provider `opencodeGo` (key-only: API key, prefix, priority, excluded models; no URL/models/headers) on family `opencode-go-api-key` via v8 config groups, plus quota tab (`opencodeGo/OpencodeGoQuotaBody.tsx`, `data.ts`), `TYPE_COLORS['opencode-go']`, `OPENCODE_GO_USAGE_URL=https://opencode.ai/zen/go/v1/usage` with `x-opencode-session` headers, `filter_opencode-go`, `providerNames.opencodeGo`, `opencode_go_quota` strings, icons `opencode.svg`/`opencode-dark.svg`, and 2 tests. `c712e17f` adds 7-locale strings and LPA/LPAMC/LLM Proxy API brand text. `f3912994` maps `api-keys.opencode-go` groups to `openCodeGoApiKeys` in `transformers.ts` and marks config-backed keys `runtime_only=true` in Go synthesizer.
-- 2026-11-11: Go side. Config key `opencode-go-api-key` (`internal/config/config.go:166`, `config_types.go:987`); v8 read via tree `PUT /config/*path` (`internal/api/server_management_v8.go`). Quota: `internal/auth/opencode/usage.go` (5h/weekly/monthly windows, session header); `plugin_quota.go:154` routes `opencode-go` auth to quota fetch; v8 `credentials/quota/fetch` removed (404 per `server_management_v8_test.go:119`). So panel uses `POST /requests/api-call` with fixed usage URL. Current panel already reads `api-keys.opencode-go` (`transformers.ts:384`), has `openCodeGoApiKeys`, family CRUD, `useConfigStore` case. Missing: descriptors, adapters, brandLogos, ProviderBrand, workbench mapping, dashboard count, authFiles icons/filter, quota provider, timeline/resetSchedule, locale strings (4 locales), icons.
+- 2026-11-11: Gate passes after rebase. `bun run verify` green (2051 tests, lint, build 3.50 MB `dist/index.html`), `tokens:check` up to date, area tests green. Set `status: done`. No merge per rules.
+
+## Follow-ups
+
+- Pre-import locale test covered 7 locales (ko, tr, vi); this port covers the 4 BumpyClock locales. ko/tr/vi are a later step per DECISIONS.md.
+- No Go changes. Panel uses `POST /v8/management/requests/api-call` with the fixed usage URL; the removed v8 `credentials/quota/fetch` route is not used.
+
+## Result
+
+- What landed: OpenCode Go as a first-class provider in the BumpyClock design. Provider workbench entry (key-only descriptor, `ProviderBrand.opencodeGo`, adapter, logo, order, CRUD via family `opencode-go-api-key`, dashboard count), quota tab (`opencodeGo/data.ts` + `OpencodeGoQuotaBody.tsx`, registry/index/types, `useQuotaStore.opencodeGoQuota`, `QUOTA_TAB_ORDER`, badge color in design tokens, `getObservations` for reset schedule and soonest highlights), credential filter (`filter_opencode-go`, `AUTH_FILE_ICONS`), locale strings in 4 locales (`opencode_go_quota`, `providerNames.opencodeGo`, `filter_opencode-go`), icons, and ported tests (quota parser/fetch/session/observations/locale, config keys, tab counts).
 
 ## Result
