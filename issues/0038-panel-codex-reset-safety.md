@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0038-panel-codex-reset-safety
 type: panel
 agent: muse-spark-1.3-contributor
