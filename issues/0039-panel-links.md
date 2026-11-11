@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0039-panel-links
 type: panel
 agent: deepseek-v4.1-flash
@@ -112,4 +112,40 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Follow-ups
 
+- Decide the `remote-management.panel-github-repository` placeholder in
+  `SectionConnectivity.tsx` together with the Go default
+  (`internal/config/config_defaults.go:4`). Still the reference panel
+  repository. Carried over from issue 0032.
+- Decide who is first-party for plugins: `OFFICIAL_PLUGIN_REPO_PREFIX`
+  in `pluginResources.ts` still names `github.com/router-for-me/`. It is
+  a trust rule, so it needs a security decision.
+- The main repository card and the WebUI repository card point to the
+  same URL. Decide if the System page needs both cards.
+
 ## Result
+
+Landed on `issue/0039-panel-links` (base `integration/panel-bumpyclock`
+at `10999bd2`):
+
+- `14555bd4` fix(panel): point the main repository link at the fork
+  - `src/pages/SystemPage.tsx`: the main repository card links
+    `https://github.com/Su3h7aM/LLMProxyAPI` instead of the
+    non-existent `router-for-me/LLMProxyAPI`.
+  - `tests/round2SystemPage.test.ts`: the URL test now reads each
+    quick-link card on its own and fails if the page links
+    `router-for-me/LLMProxyAPI` or the reference panel repository.
+- `3fca91ea` docs(0039): audit the external links of the panel
+  - full list and verdict for each external link in `apps/web/src` and
+    the locale files, in `## Log`.
+
+Gate after the rebase onto `integration/panel-bumpyclock`: `bun install
+--frozen-lockfile`, `bun run verify` green (2092 tests pass, eslint
+clean, type-check clean, `vite build` writes `dist/index.html`).
+
+Known gaps:
+
+- No locale text changed. `Main Repository` and `WebUI Repository`
+  still describe the cards correctly for the fork.
+- The audit items in `## Log` under "Open questions" are not changed.
+
+Follow-ups: see `## Follow-ups`.
