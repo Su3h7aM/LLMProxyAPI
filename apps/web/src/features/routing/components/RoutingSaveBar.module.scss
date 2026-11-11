@@ -1,0 +1,165 @@
+@use '../../../styles/mixins' as *;
+
+/*
+ * Floating save bar, portalled to the body. RoutingSaveBar.tsx sets the dock's left/width to
+ * the policy column (or centres it over the layout once the panel stacks). Visuals follow the
+ * config page's FloatingSaveBar: glass surface, mono status, quiet discard, ink save pill.
+ */
+
+.dock {
+  position: fixed;
+  bottom: calc($space-12 + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  width: min($size-560, calc(100vw - $space-24));
+  margin: 0 auto; /* fallback centring until the column is measured */
+  z-index: $z-dropdown;
+  pointer-events: none;
+}
+
+.bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-8 $space-12;
+  min-width: 0;
+  padding: $space-10 $space-10 $space-10 $space-16;
+  border-radius: $radius-16;
+  --glass-blur: $blur-14;
+  border: $border-width-1 solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop-filter);
+  box-shadow: var(--shadow-lg);
+
+  &[data-leaving] {
+    pointer-events: none;
+  }
+}
+
+.status {
+  min-width: 0;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-650;
+  font-variant-numeric: tabular-nums;
+  color: var(--amber-text);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.savePill {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-7;
+  border: 0;
+  border-radius: $radius-9999;
+  padding: $space-9 $space-16;
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform var(--dur-press) var(--ease-out-strong),
+    background-color var(--dur-hover) var(--ease-out-strong),
+    box-shadow var(--dur-hover) var(--ease-out-strong);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $opacity-0-55;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale($motion-scale-0-97);
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--primary-color);
+    outline-offset: $space-2;
+  }
+}
+
+.ghostAction {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  border-radius: $radius-9999;
+  padding: $space-9 $space-12;
+  background: none;
+  color: var(--text-secondary);
+  font-size: $font-size-12-5;
+  font-weight: $font-weight-550;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--dur-hover) var(--ease-out-strong),
+    transform var(--dur-press) var(--ease-out-strong);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $opacity-0-55;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale($motion-scale-0-97);
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--primary-color);
+    outline-offset: $space-2;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .savePill:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--text-primary) $tint-0-86, var(--bg-secondary));
+    box-shadow: 0 $size-12 $size-26 color-mix(in srgb, var(--text-primary) $tint-0-22, transparent);
+  }
+
+  .ghostAction:hover:not(:disabled) {
+    color: var(--text-primary);
+  }
+}
+
+@include mobile {
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: $space-10;
+  }
+
+  .status {
+    padding: $space-2 $space-4 0;
+  }
+
+  .actions {
+    margin-left: 0;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .savePill,
+  .ghostAction {
+    transition: none;
+  }
+
+  .savePill:active:not(:disabled),
+  .ghostAction:active:not(:disabled) {
+    transform: none;
+  }
+}

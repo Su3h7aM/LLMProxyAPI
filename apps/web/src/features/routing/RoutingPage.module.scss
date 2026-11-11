@@ -1,0 +1,635 @@
+@use '../../styles/mixins' as *;
+
+/* ============================================================
+ * Routing board: a vertical ladder of priority tiers on a rail,
+ * with the gateway policy beside it.
+ * Rail axis: tier padding + tier border + half the tier index.
+ * Tier label indent: padding + border + index + gap.
+ * ============================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-20;
+  width: 100%;
+  min-width: 0;
+  /* While the floating save bar is up, leave room to scroll the last row above it. */
+  padding-bottom: calc(
+    var(--routing-action-bar-height, 0px) + $space-16 + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+/* ---------- layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) $size-300;
+  align-items: start;
+  gap: $space-24;
+
+  @media (max-width: $breakpoint-1100) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+  min-width: 0;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+}
+
+.footnote {
+  text-wrap: pretty;
+  max-width: 72ch;
+  margin: 0;
+  padding-left: $space-16 + $space-1 + $space-22 + $space-10;
+  font-size: $font-size-12;
+  line-height: $line-height-1-55;
+  color: var(--text-tertiary);
+
+  @include mobile {
+    padding-left: 0;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: $size-1;
+  height: $size-1;
+  margin: (-$space-1);
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- ladder ---------- */
+
+.ladder {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry,
+.exhausted {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: $space-8 $space-14;
+  min-height: $size-36;
+  padding-left: $space-16 + $space-1 + $space-22 + $space-10;
+}
+
+/* Pinned to the first line so the dot stays on the rail when the picker wraps below. */
+.entryDot,
+.exhaustedDot {
+  position: absolute;
+  left: $space-16 + $space-1 + $space-11 - $space-5;
+  top: $space-13;
+  width: $size-10;
+  height: $size-10;
+  border-radius: 50%;
+}
+
+.entryDot {
+  background: var(--viz-success);
+  box-shadow: 0 0 0 $space-4 color-mix(in srgb, var(--viz-success) $tint-0-16, transparent);
+}
+
+.exhaustedDot {
+  border: $border-width-1-5 solid var(--text-tertiary);
+  background: var(--bg-secondary);
+}
+
+.entryLabel,
+.exhaustedText {
+  display: inline-flex;
+  align-items: center;
+  min-height: $size-36;
+}
+
+.entryLabel {
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+}
+
+.entryControl {
+  flex: 1 1 $size-240;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.exhaustedText {
+  font-size: $font-size-12-5;
+  color: var(--text-tertiary);
+}
+
+.modelPicker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $space-4;
+  width: min(100%, $size-320);
+}
+
+.modelInput {
+  width: 100%;
+  margin: 0;
+}
+
+.modelField:global(.input) {
+  height: $size-36;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: $radius-10;
+  background: var(--bg-primary);
+  font-size: $font-size-13;
+}
+
+.modelProgress {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* Gaps carry the rail between tiers and open into drop zones while dragging. */
+
+.gap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: $size-20;
+  padding-left: $space-16 + $space-1 + $space-22 + $space-10;
+  transition: min-height var(--dur-hover) var(--ease-out-strong);
+}
+
+.rail {
+  position: absolute;
+  left: $space-16 + $space-1 + $space-11;
+  top: 0;
+  bottom: 0;
+  width: $size-1;
+  margin-left: (-$distance-0-5);
+  background: var(--border-primary);
+}
+
+.gapOpen {
+  min-height: $size-56;
+}
+
+.gapDrop {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: $size-40;
+  border: $border-width-1 dashed var(--border-primary);
+  border-radius: $radius-12;
+  font-size: $font-size-12;
+  color: var(--text-tertiary);
+  transition:
+    border-color var(--dur-hover) var(--ease-out-strong),
+    background-color var(--dur-hover) var(--ease-out-strong),
+    color var(--dur-hover) var(--ease-out-strong);
+}
+
+.gapHover .gapDrop {
+  border-color: var(--viz-success);
+  background: color-mix(in srgb, var(--viz-success) $tint-0-06, transparent);
+  color: var(--text-primary);
+}
+
+/* ---------- tier ---------- */
+
+.tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-12;
+  padding: $space-14 $space-16 $space-16;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-14;
+  background: var(--bg-primary);
+  transition:
+    border-color var(--dur-hover) var(--ease-out-strong),
+    background-color var(--dur-hover) var(--ease-out-strong),
+    box-shadow var(--dur-hover) var(--ease-out-strong);
+}
+
+.tierHover {
+  border-color: var(--viz-success);
+  box-shadow: 0 0 0 $space-3 color-mix(in srgb, var(--viz-success) $tint-0-12, transparent);
+}
+
+.tierHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-4 $space-10;
+  min-width: 0;
+  min-height: $space-22;
+}
+
+.tierIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: $space-22;
+  height: $space-22;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  transition:
+    background-color var(--dur-hover) var(--ease-out-strong),
+    color var(--dur-hover) var(--ease-out-strong);
+}
+
+.tierName {
+  font-size: $font-size-14;
+  font-weight: $font-weight-650;
+  letter-spacing: (-$letter-spacing-0-005);
+  color: var(--text-primary);
+}
+
+.tierPriority,
+.tierPriorityChanged {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.tierPriorityChanged {
+  color: var(--amber-color);
+}
+
+/* State reads as a quiet status line on the right; its dot carries the color. */
+.tierState {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-7;
+  margin-left: auto;
+  font-size: $font-size-12;
+  line-height: $line-height-1-4;
+  color: var(--text-tertiary);
+
+  &::before {
+    content: '';
+    flex-shrink: 0;
+    width: $size-6;
+    height: $size-6;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  @include mobile {
+    flex-basis: 100%;
+    margin-left: $space-22 + $space-10;
+  }
+}
+
+.tierMembers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+  min-width: 0;
+  padding-left: $space-22 + $space-10;
+
+  @include mobile {
+    padding-left: 0;
+  }
+}
+
+.tierActive {
+  border-color: color-mix(in srgb, var(--viz-success) $tint-0-38, var(--border-color));
+
+  .tierIndex {
+    background: var(--viz-success);
+    color: $color-base-white;
+  }
+
+  .tierState {
+    color: var(--viz-success);
+    font-weight: $font-weight-600;
+  }
+}
+
+.tierStandby .tierState::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 $border-width-1 currentColor;
+}
+
+.tierCooling .tierState {
+  color: var(--amber-color);
+}
+
+.tierUnknown .tierState {
+  color: var(--text-secondary);
+}
+
+/* Skipped tiers recede by outline, not opacity, so their (already dimmed) cards stay legible. */
+.tierSkipped {
+  border-style: dashed;
+  background: transparent;
+
+  .tierIndex {
+    background: transparent;
+    box-shadow: inset 0 0 0 $border-width-1 var(--border-primary);
+    color: var(--text-tertiary);
+  }
+
+  .tierName {
+    color: var(--text-secondary);
+  }
+
+  .tierState::before {
+    background: var(--text-quaternary);
+  }
+}
+
+/* ---------- policy panel ---------- */
+
+.policy {
+  position: sticky;
+  top: $space-16;
+  display: flex;
+  flex-direction: column;
+  padding: $space-20;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-14;
+  background: var(--bg-primary);
+
+  @media (max-width: $breakpoint-1100) {
+    position: static;
+  }
+}
+
+.policyHead {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding-bottom: $space-18;
+}
+
+.policyTitle {
+  margin: 0;
+  font-size: $font-size-15;
+  font-weight: $font-weight-650;
+  letter-spacing: (-$letter-spacing-0-01);
+  color: var(--text-primary);
+}
+
+.policySubtitle,
+.policyHint {
+  margin: 0;
+  text-wrap: pretty;
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  color: var(--text-tertiary);
+}
+
+/* Sections are separated by hairlines instead of extra boxes. */
+.policySection,
+.policyRow {
+  padding: $space-18 0;
+  border-top: $border-width-1 solid var(--border-color);
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.policySection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-12;
+}
+
+.policyLabel {
+  margin: 0;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  letter-spacing: $letter-spacing-0-02;
+  color: var(--text-tertiary);
+}
+
+/* Vertical segmented control: a recessed track with one raised selection. */
+.strategyMark {
+  width: $size-18;
+  height: $size-10;
+  flex-shrink: 0;
+}
+
+.strategyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-12;
+  background: color-mix(in srgb, var(--text-primary) $tint-0-05, transparent);
+}
+
+.strategyOption,
+.strategyOptionActive {
+  @include button-reset;
+  display: flex;
+  align-items: center;
+  gap: $space-10;
+  height: $size-34;
+  padding: 0 $space-10;
+  border-radius: $radius-8;
+  font-size: $font-size-13;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease-out-strong),
+    box-shadow var(--dur-hover) var(--ease-out-strong),
+    color var(--dur-hover) var(--ease-out-strong);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $opacity-0-6;
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--primary-color);
+    outline-offset: $space-1;
+  }
+}
+
+.strategyOptionActive {
+  background: var(--floating-surface);
+  box-shadow:
+    0 0 0 $border-width-1 color-mix(in srgb, var(--text-primary) $tint-0-06, transparent),
+    0 $space-1 $space-2 color-mix(in srgb, $color-base-black $tint-0-08, transparent);
+  color: var(--text-primary);
+  font-weight: $font-weight-600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .strategyOption:hover:not(:disabled) {
+    color: var(--text-primary);
+  }
+}
+
+.policyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-16;
+}
+
+.policyRowText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.policyRowLabel {
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+}
+
+.numberField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-16;
+
+  input {
+    flex-shrink: 0;
+    width: $size-60;
+    height: $size-32;
+    padding: 0 $space-8;
+    border: $border-width-1 solid var(--border-color);
+    border-radius: $radius-8;
+    background: var(--bg-secondary);
+    font-family: $font-family-mono;
+    font-size: $font-size-13;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    text-align: center;
+    appearance: textfield;
+    transition: border-color var(--dur-hover) var(--ease-out-strong);
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    &:focus-visible {
+      outline: $border-width-2 solid var(--primary-color);
+      outline-offset: $space-1;
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .numberField input:hover:not(:disabled) {
+    border-color: var(--border-hover);
+  }
+}
+
+/* ---------- dialogs ---------- */
+
+.dialogHint {
+  margin: 0 0 $space-12;
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+  color: var(--text-secondary);
+}
+
+.dialogNotice {
+  margin: 0 0 $space-12;
+  padding: $space-8 $space-12;
+  border-radius: $radius-8;
+  background: var(--bg-tertiary);
+  font-size: $font-size-12-5;
+  color: var(--text-secondary);
+}
+
+.weightList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+.weightRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-12;
+
+  input {
+    width: $size-112;
+    height: $size-34;
+    padding: 0 $space-10;
+    border: $border-width-1 solid var(--border-color);
+    border-radius: $radius-8;
+    background: var(--bg-secondary);
+    font-family: $font-family-mono;
+    font-size: $font-size-13;
+    color: var(--text-primary);
+    text-align: right;
+
+    &:focus-visible {
+      outline: $border-width-2 solid var(--primary-color);
+      outline-offset: $space-1;
+    }
+  }
+}
+
+.weightLabel {
+  @include text-ellipsis;
+  font-family: $font-family-mono;
+  font-size: $font-size-12-5;
+  color: var(--text-secondary);
+}
+
+.changeList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  max-height: 50vh;
+  margin: 0;
+  padding: 0 0 0 $space-18;
+  overflow-y: auto;
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+  color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gap,
+  .gapDrop,
+  .tier,
+  .tierIndex,
+  .strategyOption,
+  .strategyOptionActive,
+  .numberField input {
+    transition: none;
+  }
+}

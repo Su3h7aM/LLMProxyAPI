@@ -57,6 +57,7 @@ const VAR_FALLBACK = /var\(\s*(--[\w-]+)\s*,/g;
 export const RUNTIME_CUSTOM_PROPERTIES = new Set([
   '--content-center-x',
   '--oauth-editor-actions-height',
+  '--routing-action-bar-height',
   '--config-action-bar-height',
   '--auth-files-action-bar-height',
   '--segment-delay',

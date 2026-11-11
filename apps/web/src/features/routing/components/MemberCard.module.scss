@@ -1,0 +1,263 @@
+@use '../../../styles/mixins' as *;
+
+/* One schedulable member: drag handle, brand mark, name/kind, share or state chip, menu. */
+
+.card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-8;
+  min-width: 0;
+  max-width: 100%;
+  height: $size-48;
+  padding: 0 $space-6 0 $space-2;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-10;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: grab;
+  transition:
+    border-color var(--dur-hover) var(--ease-out-strong),
+    box-shadow var(--dur-hover) var(--ease-out-strong),
+    opacity var(--dur-hover) var(--ease-out-strong),
+    transform var(--dur-press) var(--ease-out-strong);
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:focus-within {
+    border-color: var(--border-hover);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .card:hover .handle {
+    color: var(--text-secondary);
+  }
+}
+
+.card:focus-within .handle {
+  color: var(--text-secondary);
+}
+
+.serving {
+  border-color: color-mix(in srgb, var(--viz-success) $tint-0-55, var(--border-color));
+  box-shadow: 0 0 0 $border-width-1 color-mix(in srgb, var(--viz-success) $tint-0-18, transparent);
+}
+
+.muted {
+  opacity: $opacity-0-5;
+}
+
+.dragging {
+  opacity: $opacity-0-35;
+  transform: scale($motion-scale-0-98);
+}
+
+.locked {
+  cursor: default;
+
+  &:active {
+    cursor: default;
+  }
+}
+
+.handle {
+  @include button-reset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: $size-20;
+  height: $size-32;
+  border-radius: $radius-6;
+  color: var(--text-quaternary);
+  cursor: inherit;
+  transition: color var(--dur-hover) var(--ease-out-strong);
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--primary-color);
+    outline-offset: $space-1;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: $size-26;
+  height: $size-26;
+  border-radius: $radius-7;
+  background: var(--bg-primary);
+  overflow: hidden;
+  font-size: $font-size-12;
+  font-weight: $font-weight-700;
+  color: var(--text-secondary);
+
+  img {
+    width: $size-18;
+    height: $size-18;
+    object-fit: contain;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  max-width: $size-220;
+}
+
+.name {
+  @include text-ellipsis;
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  line-height: $line-height-1-2;
+}
+
+.kind {
+  @include text-ellipsis;
+  font-size: $font-size-12;
+  line-height: $line-height-1-2;
+  color: var(--text-tertiary);
+}
+
+.weight {
+  color: var(--text-secondary);
+}
+
+.share {
+  flex-shrink: 0;
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  font-variant-numeric: tabular-nums;
+  color: var(--viz-success);
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: $space-2 $space-7;
+  border-radius: $radius-9999;
+  background: var(--bg-tertiary);
+  font-size: $font-size-12;
+  line-height: $line-height-1-4;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.menuWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.menuButton {
+  @include button-reset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $size-28;
+  height: $size-28;
+  border-radius: $radius-7;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease-out-strong),
+    color var(--dur-hover) var(--ease-out-strong);
+
+  &[aria-expanded='true'] {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--primary-color);
+    outline-offset: $space-1;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuButton:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + $space-6);
+  right: 0;
+  z-index: $z-dropdown;
+  display: flex;
+  flex-direction: column;
+  min-width: $size-168;
+  max-width: $size-240;
+  padding: $space-4;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-10;
+  background: var(--floating-surface);
+  box-shadow: var(--floating-shadow);
+  cursor: default;
+  transform-origin: top right;
+  animation: menuIn var(--dur-hover) var(--ease-out-strong);
+
+  button {
+    @include button-reset;
+    padding: $space-8 $space-10;
+    border-radius: $radius-7;
+    font-size: $font-size-13;
+    text-align: left;
+    color: var(--text-primary);
+    cursor: pointer;
+
+    &:disabled {
+      color: var(--text-quaternary);
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      outline: none;
+      background: var(--bg-tertiary);
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menu button:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+  }
+}
+
+.menuNote {
+  margin: 0;
+  padding: $space-6 $space-10 $space-8;
+  font-size: $font-size-12;
+  line-height: $line-height-1-4;
+  color: var(--text-tertiary);
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: scale($motion-scale-0-96) translateY(-$distance-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .handle,
+  .menuButton {
+    transition: none;
+  }
+
+  .menu {
+    animation: none;
+  }
+}

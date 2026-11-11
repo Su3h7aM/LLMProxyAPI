@@ -6,6 +6,7 @@ interface ToggleSwitchProps {
   onChange: (value: boolean) => void;
   label?: ReactNode;
   ariaLabel?: string;
+  ariaDescribedBy?: string;
   disabled?: boolean;
   labelPosition?: 'left' | 'right';
   /** `field` matches neighbouring form-field labels (13px, medium, secondary) inside forms. */
@@ -19,6 +20,7 @@ export function ToggleSwitch({
   onChange,
   label,
   ariaLabel,
+  ariaDescribedBy,
   disabled = false,
   labelPosition = 'right',
   labelVariant = 'emphasis',
@@ -46,6 +48,7 @@ export function ToggleSwitch({
         onChange={handleChange}
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
       />
       <span className={styles.track}>
         <span className={styles.thumb} />
