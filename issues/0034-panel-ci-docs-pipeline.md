@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0034-panel-ci-docs-pipeline
 type: panel
 agent: deepseek-v4.1-flash
@@ -95,3 +95,58 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 ## Follow-ups
 
 ## Result
+
+Status: done. No merge (coordinator merges).
+
+What landed:
+
+- `.github/workflows/ci.yml`: two jobs. `go` runs on Go 1.27.3: it
+  writes a stub `apps/web/dist/management.html`, fails on any output of
+  `gofmt -l`, then runs `go build ./...`, `go vet ./...`, `go test ./...`.
+  `panel` runs on bun 1.4.4: `bun install --frozen-lockfile` and
+  `bun run verify` in `apps/web`. Triggers: push to `main` and all pull
+  requests. Actions: `actions/checkout@v4` (same as the other workflows),
+  `actions/setup-go@v5`, `oven-sh/setup-bun@v2`.
+- `.containerignore`: ignore `apps/web/node_modules` and
+  `apps/web/dist`, so `COPY apps/web/ ./` cannot copy a host tree over the
+  container install. No `Containerfile` change was needed.
+- `scripts/build-web.sh`, `scripts/install.sh`: `bun install
+  --frozen-lockfile`. `scripts/check-panel.sh` already checks the title
+  `LLM Proxy API Management Center`.
+- Docs: root `README.md` panel section (BumpyClock panel, embedded,
+  same origin, management key login, mise and bun builds),
+  `apps/web/README.md` and `apps/web/AGENTS.md` (v8 only, same origin,
+  tokens rule, verify, add a page), `UPSTREAM_BASELINE.md` panel notes
+  (BumpyClock `ce5f6179` is the source, official `953fb24` is not, list of
+  fork changes). `DECISIONS.md` not touched.
+
+Commits:
+
+- `5714780d` docs(issues): start issue 0034 panel pipeline
+- `63962d08` ci: run Go and panel checks on push and pull request
+- `31c8d94f` build: ignore panel build output in container context, freeze web installs
+- `566edab9` docs: describe the BumpyClock panel, its build, and the fork changes
+- `ad4ea843` docs(issues): log issue 0034 progress
+- final commit: docs(issues): mark 0034 done with result
+
+Gate (after rebase onto `bedf8bde`):
+
+- `bun install --frozen-lockfile` ok; `bun run tokens:check` ok;
+  `bun run verify` exit 0: 2042 pass, 0 fail, lint ok, type-check ok,
+  build writes `dist/index.html`.
+- Go: `gofmt -l` empty; `go build ./...`, `go vet ./...`,
+  `go test ./...` all pass (103 packages ok).
+- Container: `podman build --target panel` passes; the panel stage
+  contains `dist/index.html` and `dist/management.html`.
+
+Known gaps and follow-ups:
+
+- GitHub Actions is unconfirmed: no run was possible here. The YAML was
+  parsed with `yq`; `actionlint` is not installed. The Go commands were
+  run locally and pass.
+- CI runs `go test ./...` on the whole tree. That is what the issue
+  asks; it does not split the slow packages.
+- `apps/web` does not proxy the API in `bun run dev`, so the panel works
+  end to end only through the proxy. This is the current code state, not
+  a new gap.
+
