@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0008-port-codex-requests-compaction
 type: port
 agent: muse-spark-1.3-contributor
