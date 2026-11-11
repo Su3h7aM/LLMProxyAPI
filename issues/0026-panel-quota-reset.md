@@ -68,6 +68,38 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md`, triage 0015/0016/0017.
+- 2026-11-11: Inventory (pre-import `panel-pre-bumpyclock` vs current tree):
+  - `services/api/claudeResetGrants.ts` (315 lines): MISSING. Cedar_ember
+    grant read/claim via `apiCallApi` (already v8 `POST /requests/api-call`
+    in this tree). Pure data layer, no UI.
+  - `features/quota/providers/claude/resetGrantReads.ts`,
+    `resetGrantOperations.ts`, `resetGrantRequestId.ts`,
+    `selectResetGrant.ts`: MISSING. Session-scoped reads, spend journal,
+    request ID, grant selection. Pure logic.
+  - `features/quota/providers/claude/ClaudeResetGrants.tsx`
+    (`useClaudeResetGrants`) and `ClaudeResetGrantDetails.tsx`: MISSING.
+    Mounted in pre-import `QuotaCard` (plan chip, details list, footer
+    button). Reuses `codexResetCredits*` classes, which this tree has.
+  - `claude_reset` i18n block: MISSING in all 4 locales (pre-import has
+    32 keys in 7 locales).
+  - `resetSchedule.ts` (`collectQuotaRowInstants`, `pickUrgentRowId`) and
+    `quotaTimelineModel.ts`: PRESENT, rewritten on the observation
+    registry. Every provider body already highlights the soonest row.
+  - API (step 2): `apiCall.ts` is already v8; all provider `data.ts`
+    fetch via `apiCallApi`; plugin quota via v8 `/plugins/:id/quota`
+    (issue 0024); cooldown reset via v8 `POST /routing/cooldown/reset`.
+    `useQuotaStore.ts` matches current providers (no `opencodeGo`, which
+    is a later issue by design). Step 2 is verify-only.
+  - NOT porting: `opencodeGo` (own issue), `cardTier.ts`,
+    `quotaEnrichment.ts`, `antigravity/labels.ts`,
+    `preview/QuotaTierPreview.tsx`, `hasClaudeUsageData`/`observedAt`
+    retention (BumpyClock card redesign), `usage.ts`/`copilot` (other areas).
+  - User meaning of each piece: reset schedule = per-row next-reset
+    instants with soonest-row highlight; timeline = lane chart of reset
+    windows; reset grants = spend one banked Claude reset to clear
+    limited windows, with unknown-outcome journal.
+
 ## Follow-ups
 
 ## Result
