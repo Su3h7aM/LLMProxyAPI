@@ -22,7 +22,9 @@ import {
   useModelsStore,
   useThemeStore,
 } from '@/stores';
-import { configApi, versionApi } from '@/services/api';
+import { versionApi } from '@/services/api';
+import { logsApi } from '@/services/api/logs';
+import { guardConfigConnection } from '@/services/api/configValue';
 import { useApiKeysForModels } from '@/hooks/useApiKeysForModels';
 import { formatDateTimeValue, isoTitle } from '@/utils/format';
 import { classifyModels } from '@/utils/models';
@@ -258,9 +260,12 @@ export function SystemPage() {
     const previous = requestLogEnabled;
     setRequestLogSaving(true);
     updateConfigValue('request-log', requestLogDraft);
+    const assertConnection = guardConfigConnection();
 
     try {
-      await configApi.updateRequestLog(requestLogDraft);
+      assertConnection();
+      await logsApi.setRequestLog(requestLogDraft);
+      assertConnection();
       clearCache('request-log');
       showNotification(t('notification.request_log_updated'), 'success');
       setRequestLogModalOpen(false);

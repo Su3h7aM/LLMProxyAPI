@@ -88,6 +88,20 @@ describe('logs domain response normalization', () => {
   });
 });
 
+describe('request-log flag', () => {
+  test('writes the v8 config tree path with a raw boolean body', async () => {
+    const put = spyOn(apiClient, 'put').mockResolvedValue(undefined);
+    try {
+      await logsApi.setRequestLog(true);
+      expect(put).toHaveBeenLastCalledWith('/config/observability/logs/request-log', true);
+      await logsApi.setRequestLog(false);
+      expect(put).toHaveBeenLastCalledWith('/config/observability/logs/request-log', false);
+    } finally {
+      put.mockRestore();
+    }
+  });
+});
+
 describe('log downloads', () => {
   test('preserves raw successful downloads, encoded paths, timeout and signal', async () => {
     const response = { data: new Blob(['{"error":"this is log content"}']) };

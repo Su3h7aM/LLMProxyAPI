@@ -158,4 +158,10 @@ export const logsApi = {
 
   downloadRequestLogById: (id: string, options: LogsRequestOptions = {}) =>
     downloadLog(`/observability/logs/requests/${encodeURIComponent(id)}`, options),
+
+  /**
+   * 请求日志开关（v8 配置树路径）
+   */
+  setRequestLog: (enabled: boolean) =>
+    apiClient.put('/config/observability/logs/request-log', enabled),
 };
