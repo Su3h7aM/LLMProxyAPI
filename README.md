@@ -57,11 +57,39 @@ mise tasks ls          # list all tasks
 
 ## Panel
 
-The panel lives in `apps/web` and ships inside the proxy binary: one
-project, one binary. Build order is `build-web`, `stage-panel`,
-`build-server` (each depends on the previous). The binary serves the
-embedded panel at `/management.html`. Nothing is downloaded at runtime.
-Panel development can still point at a live bundle:
+The panel in `apps/web` is the
+[BumpyClock Management Center](https://github.com/BumpyClock/Cli-Proxy-API-Management-Center)
+at pin `ce5f6179`, adapted to this fork. It is part of the proxy binary:
+one project, one process, one port. The binary serves it at
+`/management.html` from the same origin. Nothing is downloaded at
+runtime.
+
+The panel calls `/v8/management` only. It has no API base URL setting and
+no remote connect flow. The management key login stays: the browser
+stores the key and sends it as `Authorization: Bearer` on every
+management call.
+
+### Build the panel
+
+With mise, run `mise run build-web` and `mise run stage-panel`. The chain
+`build-web`, `stage-panel`, `build-server` runs in order, because each
+task depends on the previous. `stage-panel` copies
+`apps/web/dist/index.html` to `apps/web/dist/management.html`, which
+`apps/web/panel.go` embeds.
+
+With bun alone:
+
+```
+cd apps/web
+bun install --frozen-lockfile
+bun run verify
+```
+
+Bun 1.4.4 is required. `bun run verify` runs the tests, lint, type-check,
+and the production build. The build needs `bun` on `PATH`, because the
+design token plugin calls it.
+
+For UI work, point the server at a live bundle:
 
 ```
 MANAGEMENT_STATIC_PATH=$PWD/apps/web/dist ./llmproxy -config config.yaml

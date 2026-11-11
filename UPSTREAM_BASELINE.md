@@ -18,15 +18,26 @@ Pinned on 2026-11-06 (UTC).
 Notes:
 
 - CLIProxyAPI is the main source. Its license is MIT.
-- Cli-Proxy-API-Management-Center (official) is the panel source that is
-  vendored into `apps/web` today. Its license is MIT. The BumpyClock fork
-  below is going to replace it (see `DECISIONS.md`, 2026-11-11).
-- BumpyClock-Cli-Proxy-API-Management-Center is the future panel source and
-  the frontend reference. Its license is MIT (Router-For.ME notice). Lineage:
-  official Management Center, then `kaitranntt` fork (dashboard for
-  CLIProxyAPIPlus, base `v1.24.2`), then BumpyClock. The clone is
-  `.refs/BumpyClock-Cli-Proxy-API-Management-Center`. It carries sponsor
-  content and CLIProxyAPIPlus-specific pages; do not copy those.
+- BumpyClock-Cli-Proxy-API-Management-Center is the panel source. The
+  panel in `apps/web` is vendored from it at pin `ce5f6179`. Its license
+  is MIT (Router-For.ME notice). Lineage: official Management Center,
+  then `kaitranntt` fork (dashboard for CLIProxyAPIPlus, base `v1.24.2`),
+  then BumpyClock. The clone is
+  `.refs/BumpyClock-Cli-Proxy-API-Management-Center`. The fork changed
+  these on top of the pin:
+  - the API layer speaks `/v8/management` only (no v0, no version
+    negotiation, no legacy probes);
+  - same-origin login: the panel ships inside the binary, so it has no
+    API base URL setting and no remote connect flow; the management key
+    login stays;
+  - sponsor content and pages for CLIProxyAPIPlus-only providers
+    (Copilot, Qoder) are removed;
+  - fork features are rebuilt in the BumpyClock design: OpenCode Go
+    keys and quota, the routing page with soonest-reset, SIWC, and
+    Claude reset grants.
+- Cli-Proxy-API-Management-Center (official) at pin `953fb24` was the
+  panel source before the move to BumpyClock. It is no longer the
+  source; `apps/web` no longer contains its tree. Its license is MIT.
 - CPA-Manager-Plus is reference-only. Its license is MIT.
 - magpie is the ideas source. Its license is MIT, with extra notices in its
   `THIRD_PARTY_NOTICES` file.
