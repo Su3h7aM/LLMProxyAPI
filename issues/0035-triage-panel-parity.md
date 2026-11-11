@@ -43,8 +43,8 @@ Find what the old fork panel could do that the new panel (branch `integration/pa
 ## Log
 
 - Setup: worktree `/tmp/t0035-new` (branch `integration/panel-bumpyclock`,
-  head `db784257`; refreshed to `ade773b1` after 0030, 0033, 0034 merged),
-  old panel exported from tag `panel-pre-bumpyclock` to
+  head `db784257`; refreshed to `ade773b1` (0030, 0033, 0034) and then to
+  `6c4ab49b` (0032)), old panel exported from tag `panel-pre-bumpyclock` to
   `/tmp/t0035-old`. Route extractors `/tmp/t0035-routes.js` and
   `/tmp/t0035-calls.js`; locale checker `/tmp/t0035-locale3.py`; Go v8 path
   dump in `/tmp/t0035-gorepo/cmd/dumpcfg` (copy of the repo: reflection over
@@ -62,6 +62,10 @@ Find what the old fork panel could do that the new panel (branch `integration/pa
   and the quality gate at `ade773b1`. No Go file changed in this range, so
   the v8 path list stands. Results: 2062 tests pass, bundle 3,497.05 kB.
   OpenCode Go and soonest reset are now OK, not in progress.
+- Refresh 2: the branch moved again to `6c4ab49b` (0032 merged: Usage page
+  hidden, `codexIdentityConfuse` removed, brand pass). Checks re-run there:
+  2059 tests pass, bundle 3,458.70 kB, 96 config fields, 9 missing locale
+  keys, route set unchanged. No Go file changed, so the v8 path list stands.
 
 ## Follow-ups
 
@@ -79,7 +83,7 @@ Headline: routes and config fields have parity. Four user-visible gaps
 remain: 5 raw locale keys, no log-level filter, no API key names, and a few
 cosmetic dashboard and OAuth differences.
 
-New panel read at `integration/panel-bumpyclock` head `ade773b1`. All tables
+New panel read at `integration/panel-bumpyclock` head `6c4ab49b`. All tables
 were re-checked at this commit. Old panel read at tag `panel-pre-bumpyclock`.
 
 ### Task 1 — feature list
@@ -89,13 +93,13 @@ Legend: OK, MISSING, CHANGED, KNOWN (known and in progress).
 | Feature | Old location | New location | Status |
 |---|---|---|---|
 | Routes (`/`, `/dashboard`, `/ai-providers`, `/auth-files`, `/oauth`, `/routing`, `/quota`, `/config`, `/logs`, `/system`, `/plugins`, `/plugin-store`, `/plugin-pages/:id/:i`) | `src/router/MainRoutes.tsx` | same file | OK |
-| `/usage` route | absent | `src/pages/UsagePage.tsx`, nav item at `MainLayout.tsx:435` | KNOWN 0027 (hide, no backend data) |
+| `/usage` route | absent | removed from `MainRoutes.tsx` and the nav (0032) | OK by decision (no backend data) |
 | Nav groups and order | `MainLayout.tsx:594-681` | `MainLayout.tsx:382-471` | OK |
 | Login: key only, remember option, show/hide | `pages/LoginPage.tsx` | `pages/LoginPage.tsx` | OK (custom base removed on purpose, 0019) |
 | Dashboard: hero verdict, vitals, throughput chart, quota summary, provider health, attention panel, credentials, runtime table, config panel | `features/dashboard/*` | same feature, 38 files | OK |
 | Dashboard: 6 quick-link cards (`dashboard.cta_*`) | `DashboardPage.tsx:186-222` | no grid; inline links at `DashboardPage.tsx:633,653,710,713` | CHANGED (cosmetic) |
 | Dashboard: sparkline of live requests | `components/LiveWire.tsx`, `Sparkline.tsx` | `components/ThroughputChart.tsx` | CHANGED |
-| Dashboard: usage section | `/usage` reads | `UsagePanel.tsx` | KNOWN 0027 |
+| Dashboard: usage section | `/usage` reads | section removed from `DashboardPage.tsx` (0032) | OK by decision |
 | Auth files: list, search, paging, select, upload, download, delete one/all, status, refresh | `features/authFiles/*` | same feature, 41 files | OK |
 | Auth files: section nav (tabs) | absent | `components/AuthFilesSectionNav.tsx` | OK (new) |
 | Auth files: cooldown + reset, policy fields, models dialog, cooldown hint | `AuthFilePolicyFields`, `authFileCooldowns.ts` | `AuthFileCooldownSection.tsx`, `authFilePolicyAdapter.ts` | OK |
@@ -129,9 +133,10 @@ Legend: OK, MISSING, CHANGED, KNOWN (known and in progress).
 
 ### Task 2 — config coverage
 
-Visual config field set: old 94 fields, new 97 fields (`fieldId` sets in
-`features/config/searchIndex.ts`). Only in new: `codexIdentityConfuse`,
-`quotaSwitchProject`, `quotaSwitchPreviewModel`. Only in old: none.
+Visual config field set: old 94 fields, new 96 fields (`fieldId` sets in
+`features/config/searchIndex.ts`). Only in new: `quotaSwitchProject`,
+`quotaSwitchPreviewModel`. Only in old: none. 0032 removed
+`codexIdentityConfuse`.
 Sections: new adds `quota` (`SectionQuota.tsx`).
 
 Proof: `comm` on the `fieldId` lists gives 0 old-only entries.
@@ -261,22 +266,22 @@ section list only, so `bun run verify` stays green with the 9 missing keys.
 ### Task 5 — quality checks
 
 All commands ran in `/tmp/t0035-new/apps/web` on
-`integration/panel-bumpyclock` (`ade773b1`), with bun from
+`integration/panel-bumpyclock` (`6c4ab49b`), with bun from
 `/home/su3h7am/.local/share/mise/installs/bun/latest/bin`.
 
 | Command | Result |
 |---|---|
 | `bun install --frozen-lockfile` | pass, 272 packages |
-| `bun run test` (inside verify) | 2062 pass, 0 fail, 249 files, 6.00 s |
+| `bun run test` (inside verify) | 2059 pass, 0 fail, 248 files, 5.98 s |
 | eslint (`bun run verify`) | pass |
 | `tsc --noEmit` (app + node configs) | pass |
 | `vite build` | pass, 1561 modules |
 | `bun run tokens:check` | pass ("Design token output is up to date") |
 | `bun run verify` | exit 0 |
 
-Bundle: new `dist/index.html` 3,497.05 kB, gzip 1,005.55 kB. Old panel, same
-commands on the tag tree: 3,416.99 kB, gzip 1,021.55 kB. New is 80.06 kB
-larger on disk and 15.99 kB smaller as gzip.
+Bundle: new `dist/index.html` 3,458.70 kB, gzip 996.29 kB. Old panel, same
+commands on the tag tree: 3,416.99 kB, gzip 1,021.55 kB. New is 41.71 kB
+larger on disk and 25.26 kB smaller as gzip.
 
 ### Proposed fix list, ranked by user impact
 
