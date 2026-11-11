@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0029-panel-routing-board
 type: panel
 agent: muse-spark-1.3-contributor
@@ -67,6 +67,16 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 4. Do NOT merge. Report: short summary, branch, commit range, follow-ups, surprises, unconfirmed claims.
 
 ## Log
+
+- 2026-11-11: Set `status: in-progress`. Branch from `integration/panel-bumpyclock`. Read `DECISIONS.md` and triage results 0015/0016/0017.
+- 2026-11-11: Inventory. Pre-import routing (`git show panel-pre-bumpyclock:apps/web/...`):
+  - `features/routing/`: `RoutingPage.tsx` (426 lines), `logic.ts` (518, pure board arithmetic: tiers, moves, priorities, plan, route preview), `format.ts` (30), `useDragAutoScroll.ts` (107), `components/PolicyPanel.tsx` (183, strategy radio + affinity + retry counts), `TierLadder.tsx` (215), `MemberCard.tsx` (279), `WeightDialog.tsx` (92), `ChangeReviewDialog.tsx` (76), `RoutingSaveBar.tsx` (175, floating save bar). SCSS: `RoutingPage` (655), `MemberCard` (263), `RoutingSaveBar` (165) — all raw px values, must be rewritten with design tokens (guard `tests/designTokenGuard.test.ts` rejects raw values).
+  - `services/api/routing.ts` (482): board reads `GET /config` + credential list via `authFilesApi`, model names via model-definitions; save writes credentials one by one, then one `PATCH /config` with the connection guard. No `/routing/*` board endpoint exists.
+  - `types/routing.ts` (168): board/draft/plan/tier/member/settings types, `ROUTING_STRATEGIES` with `soonest-reset`.
+  - 94-key `routing` locale block, `/routing` route (`MainRoutes.tsx`), nav entry in gateway group, dashboard strategy label.
+  - User flow: view tier ladder (priority tiers, member cards, state chips, cooldown countdown, cooldown chips, weight badges, share preview per model filter), drag/keyboard reorder, weight edit, policy select, review dialog, save bar with conflict error on stale revision.
+- 2026-11-11: Backend routes (`internal/api/server_management_v8.go`): `/routing/*` is only 3 routes — `POST /routing/cooldown/reset`, `GET /routing/model-definitions/:channel`, `POST /routing/model-definitions/refresh`. The board itself uses `/config` + `/credentials`. Commit `ecc09878`: `soonest-reset` is 4th strategy (parser, select option, board mark with outer dots filled, no fixed split in preview as for `fill-first`, search entry, dashboard label). Search entry, dashboard label, `SectionNetwork` option already in this tree via issue 0022.
+- 2026-11-11: Current tree gaps: no `features/routing`, no `services/api/routing.ts`, no `types/routing.ts`, no `/routing` route or nav entry, no `routing` locale keys. All page deps exist here (`ui/Button`, `ToggleSwitch`, `AutocompleteInput`, `EmptyState`, `Skeleton`, `PageTransitionLayer`, `useRevealGroup`, `useUnsavedChangesGuard`, `createSharedClock`, `authFilesApi.list/patchFields/getModelDefinitions/getModelsForAuthFile`, `guardConfigConnection`, `isModelExcluded`, stores). Closest BumpyClock page pattern: `QuotaPage` workbench shell (`PageHeader` + cards); ladder itself is bespoke and keeps the pre-import structure with token SCSS.
 
 ## Follow-ups
 
