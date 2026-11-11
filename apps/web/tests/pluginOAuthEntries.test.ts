@@ -178,16 +178,17 @@ describe('plugin OAuth entry normalization', () => {
 });
 
 describe('plugin OAuth entry dispatch and attempt identity', () => {
-  test('starts each portal with its own management endpoint', async () => {
+  test('starts each portal with its own provider on the shared OAuth endpoint', async () => {
     const plugins = await loadPlugins([multiPlugin()]);
     spies.splice(0).forEach((spy) => spy.mockRestore());
     const start = spyOn(apiClient, 'get').mockResolvedValue({ state: 'login-state' });
     spies.push(start);
     const cards = buildPluginOAuthProviderCards(plugins, apiBase, builtIns);
     for (const card of cards) await oauthApi.startAuth(card.id);
-    expect(start.mock.calls.map(([path]) => path)).toEqual([
-      '/portal-a-auth-url',
-      '/portal-b-auth-url',
+    expect(start.mock.calls.map(([path]) => path)).toEqual(['/oauth/auth-url', '/oauth/auth-url']);
+    expect(start.mock.calls.map(([, config]) => config?.params)).toEqual([
+      { provider: 'portal-a' },
+      { provider: 'portal-b' },
     ]);
   });
 

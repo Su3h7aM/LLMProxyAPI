@@ -10,13 +10,13 @@ describe('Kimi regional login', () => {
     const controller = new AbortController();
     try {
       await oauthApi.startAuth('kimi', controller.signal);
-      expect(get).toHaveBeenLastCalledWith('/kimi-auth-url', {
-        params: undefined,
+      expect(get).toHaveBeenLastCalledWith('/oauth/auth-url', {
+        params: { provider: 'kimi' },
         signal: controller.signal,
       });
       await oauthApi.startAuth('kimi-ai', controller.signal);
-      expect(get).toHaveBeenLastCalledWith('/kimi-ai-auth-url', {
-        params: undefined,
+      expect(get).toHaveBeenLastCalledWith('/oauth/auth-url', {
+        params: { provider: 'kimi-ai' },
         signal: controller.signal,
       });
     } finally {
