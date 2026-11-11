@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0004-port-pluginhost-store
 type: port
 agent: deepseek-v4.1-flash
