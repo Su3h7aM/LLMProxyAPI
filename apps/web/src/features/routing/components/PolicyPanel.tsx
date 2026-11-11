@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ROUTING_STRATEGIES, type RoutingSettings, type RoutingStrategy } from '@/types/routing';
 import styles from '../RoutingPage.module.scss';
+import {
+  SoonestResetSection,
+  type SoonestResetSectionData,
+} from './SoonestResetSection';
 
 const strategyKey = (strategy: RoutingStrategy) => strategy.replace(/-/g, '_');
 
@@ -13,6 +17,9 @@ export interface PolicyPanelProps {
   settings: RoutingSettings;
   disabled?: boolean;
   onChange: (next: RoutingSettings) => void;
+  /** Cached-snapshot readout; shown only for the soonest-reset strategy. */
+  soonest?: SoonestResetSectionData | null;
+  nowMs?: number;
 }
 
 function StrategyMark({ strategy }: { strategy: RoutingStrategy }) {
@@ -42,7 +49,7 @@ function StrategyMark({ strategy }: { strategy: RoutingStrategy }) {
   );
 }
 
-export function PolicyPanel({ settings, disabled = false, onChange }: PolicyPanelProps) {
+export function PolicyPanel({ settings, disabled = false, onChange, soonest, nowMs }: PolicyPanelProps) {
   const { t } = useTranslation();
   const id = useId();
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -122,6 +129,10 @@ export function PolicyPanel({ settings, disabled = false, onChange }: PolicyPane
           {t(`routing.strategy_${strategyKey(settings.strategy)}_desc`)}
         </p>
       </section>
+
+      {settings.strategy === 'soonest-reset' && soonest && nowMs !== undefined ? (
+        <SoonestResetSection data={soonest} nowMs={nowMs} />
+      ) : null}
 
       <section className={styles.policyRow}>
         <div className={styles.policyRowText}>

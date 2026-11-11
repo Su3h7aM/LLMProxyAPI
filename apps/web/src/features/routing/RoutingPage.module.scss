@@ -633,3 +633,71 @@
     transition: none;
   }
 }
+
+/* ---------- soonest-reset readout ---------- */
+
+.soonestNext {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: $space-4 $space-8;
+  margin: 0;
+  font-size: $font-size-13;
+  color: var(--text-primary);
+}
+
+.soonestNextLabel {
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  letter-spacing: $letter-spacing-0-02;
+  color: var(--text-tertiary);
+}
+
+.soonestList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.soonestRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-10;
+  font-size: $font-size-12;
+}
+
+.soonestName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.soonestNext .soonestName {
+  font-weight: $font-weight-600;
+  color: var(--text-primary);
+}
+
+.soonestReset {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.soonestExhausted {
+  flex-shrink: 0;
+  color: var(--amber-color);
+}
+
+.soonestEmpty {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.soonestLink {
+  color: var(--primary-color);
+}

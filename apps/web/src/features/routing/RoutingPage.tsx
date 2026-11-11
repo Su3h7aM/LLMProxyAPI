@@ -23,8 +23,9 @@ import {
   routingApi,
   type RoutingApplyResult,
 } from '@/services/api/routing';
-import { useAuthStore, useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
+import { useAuthStore, useConfigStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
 import type { ResolvedTheme } from '@/types';
+import type { AuthFileItem } from '@/types/authFile';
 import type {
   RoutingBoard,
   RoutingDraft,
@@ -50,6 +51,7 @@ import {
 import { ChangeReviewDialog } from './components/ChangeReviewDialog';
 import { PolicyPanel } from './components/PolicyPanel';
 import { RoutingSaveBar } from './components/RoutingSaveBar';
+import { predictSoonestReset, resolveCredentialSnapshots } from './soonestReset';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { TierLadder } from './components/TierLadder';
 import { WeightDialog } from './components/WeightDialog';
@@ -69,6 +71,7 @@ export function RoutingPage() {
   const { t } = useTranslation();
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
+  const quotaState = useQuotaStore();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const resolvedTheme: ResolvedTheme = useThemeStore((state) => state.resolvedTheme);
@@ -86,6 +89,7 @@ export function RoutingPage() {
   const [board, setBoard] = useState<RoutingBoard | null>(null);
   const [draft, setDraft] = useState<RoutingDraft | null>(null);
   const [catalog, setCatalog] = useState<RoutingModelCatalog>(EMPTY_CATALOG);
+  const [files, setFiles] = useState<AuthFileItem[]>([]);
   const [modelProgress, setModelProgress] = useState<ModelProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +145,7 @@ export function RoutingPage() {
       if (!isCurrent()) return;
       const next = buildRoutingBoard(config.raw ?? {}, files);
       setBoard(next);
+      setFiles(files);
       setDraft(draftFromBoard(next));
       loadModels(next, requestId);
     } catch (err) {
@@ -214,6 +219,24 @@ export function RoutingPage() {
     () => (board ? collectModelOptions(board, catalog) : []),
     [board, catalog]
   );
+  // Cached quota snapshots only; this page never fetches quota itself.
+  const soonest = useMemo(() => {
+    if (!board || !draft) return null;
+    const inputs = board.members.flatMap((member) =>
+      member.location.kind === 'credential'
+        ? [
+            {
+              key: member.key,
+              name: member.name,
+              snapshots: resolveCredentialSnapshots(files, quotaState, member.location.name),
+            },
+          ]
+        : []
+    );
+    if (inputs.length === 0) return null;
+    const prediction = predictSoonestReset(inputs, draft.tiers, nowMs);
+    return { ranks: prediction.ranks, nextKey: prediction.nextKey };
+  }, [board, draft, files, quotaState, nowMs]);
 
   const applyTiers = useCallback(
     (tiers: RoutingTier[]) => {
@@ -374,7 +397,7 @@ export function RoutingPage() {
           />
           <p className={styles.footnote}>{t('routing.footnote')}</p>
         </section>
-        <PolicyPanel settings={draft.settings} disabled={saving} onChange={handleSettings} />
+        <PolicyPanel settings={draft.settings} disabled={saving} onChange={handleSettings} soonest={soonest} nowMs={nowMs} />
       </div>
     );
   };
