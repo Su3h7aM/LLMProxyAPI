@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0028-panel-siwc
 type: panel
 agent: deepseek-v4.1-flash
@@ -105,4 +105,34 @@ No Go change. No v0 path. The normalizer and `AuthFileItem` already carried the 
 
 ## Follow-ups
 
+- The SIWC status calls (`oauthApi.getSiwcStatus`, `oauthApi.getCredentialSiwcStatus`) have no UI consumer yet: the card and the sheet read the binding state from the credential list, as the pre-import panel did. A later issue can use them for a live refresh per credential.
+- The bind dialog is covered by source contracts and lifecycle unit tests, not by a browser test. A browser check of the paste-callback path needs a live Codex authorization.
+
 ## Result
+
+Landed on `issue/0028-panel-siwc`, no merge.
+
+What landed:
+
+- v8 API: `POST /oauth/siwc/bind`, `GET /oauth/siwc/status`, `GET /credentials/siwc/status`, plus `captureSiwcBindingApi` for a same-connection start and cancel.
+- Logic: `features/oauth/siwcBinding.ts` (capability, target list, status, callback validation, start lifecycle).
+- Credential card: SIWC pill in the credential subline, SIWC expiry entry in the details column.
+- Details sheet: "Use SIWC (use_siwc)" switch, SIWC pill and expiry; the switch writes `use_siwc` and preserves the binding data.
+- OAuth page: "Bind SIWC" card in "Other login methods" that opens a modal: pick a Codex credential, open the authorization URL, paste the loopback callback, wait for the server to save the binding, restart in place on failure.
+- 4 locales: `siwc.*` (31 keys) and `auth_files.use_siwc_label/hint`.
+
+Commits: `76ad487b`, `2d22ec02`, `d453a73a`, `3fb92a27`, `e9f91840`, `605b3bff`, `de9a50d9`.
+
+Gate (after `git rebase integration/panel-bumpyclock`), in `apps/web`:
+
+- `bun install --frozen-lockfile`: no changes.
+- `bun run tokens:check`: output up to date.
+- `bun run verify`: 2031 pass, 0 fail (244 files); eslint clean; `tsc` clean; build wrote `dist/index.html` (3.48 MB).
+
+Known gaps:
+
+- No 404 capability probe and no "unsupported" view: the panel and the proxy are one unit. The `siwc.unsupported` locale key is not ported.
+- No live SIWC status request per credential; see Follow-ups.
+- The bind flow is not exercised against a real Codex authorization in this environment.
+
+Unconfirmed: the SIWC pill placement in the narrow status column was avoided on purpose (it sits in the credential subline), but the real look on a narrow screen was not checked in a browser.
