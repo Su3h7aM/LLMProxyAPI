@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { IconUpload } from '@/components/ui/icons';
+import { IconRefreshCw, IconUpload } from '@/components/ui/icons';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
 import styles from './VaultHeader.module.scss';
@@ -27,6 +27,9 @@ export type VaultHeaderProps = {
   disableControls: boolean;
   onUpload: () => void;
   onRefresh: () => void;
+  refreshingCredentials?: boolean;
+  credentialRefreshDisabled?: boolean;
+  onRefreshCredentials?: () => void;
 };
 
 export function VaultHeader(props: VaultHeaderProps) {
@@ -40,6 +43,9 @@ export function VaultHeader(props: VaultHeaderProps) {
     disableControls,
     onUpload,
     onRefresh,
+    refreshingCredentials = false,
+    credentialRefreshDisabled = false,
+    onRefreshCredentials,
   } = props;
   const { t } = useTranslation();
   // Phones already show the top bar's refresh, which runs this page's refresh; dropping the
@@ -74,6 +80,22 @@ export function VaultHeader(props: VaultHeaderProps) {
       }
       actions={
         <div className={styles.actions}>
+          {onRefreshCredentials && (
+            <Button
+              variant="secondary"
+              onClick={onRefreshCredentials}
+              disabled={
+                disableControls || loading || refreshingCredentials || credentialRefreshDisabled
+              }
+            >
+              {refreshingCredentials ? (
+                <LoadingSpinner size={iconSize['14']} />
+              ) : (
+                <IconRefreshCw size={iconSize['15']} />
+              )}
+              {t('auth_files.refresh_all_button')}
+            </Button>
+          )}
           {!isPhone && (
             <RefreshButton
               onClick={onRefresh}

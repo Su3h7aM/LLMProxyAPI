@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
+import { getAuthFileRefreshKey } from '@/features/authFiles/manualRefresh';
 import { statusBarDataFromRecentRequests } from '@/utils/recentRequests';
 import { formatFileSize } from '@/utils/format';
 import {
@@ -61,11 +62,13 @@ export type AuthFileCardProps = {
   deleting: string | null;
   statusUpdating: Record<string, boolean>;
   manualRefreshing: Record<string, boolean>;
+  cooldownResetting: Record<string, boolean>;
   quotaFilterType: AuthFileQuotaFilter;
   statusBarCache: Map<string, AuthFileStatusBarData>;
   onShowModels: (file: AuthFileItem) => void;
   onDownload: (name: string) => void;
   onManualRefresh: (file: AuthFileItem) => void;
+  onCooldownReset: (file: AuthFileItem) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
   onToggleStatus: (file: AuthFileItem, enabled: boolean) => void;
@@ -88,11 +91,13 @@ export function AuthFileCard(props: AuthFileCardProps) {
     deleting,
     statusUpdating,
     manualRefreshing,
+    cooldownResetting,
     quotaFilterType,
     statusBarCache,
     onShowModels,
     onDownload,
     onManualRefresh,
+    onCooldownReset,
     onOpenPrefixProxyEditor,
     onDelete,
     onToggleStatus,
@@ -104,9 +109,15 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const isAistudio = providerKey === 'aistudio';
   const showModelsButton = !isRuntimeOnly || isAistudio;
   const showManualRefreshButton = !isRuntimeOnly && supportsAuthFileManualRefresh(providerKey);
-  const isManualRefreshing = manualRefreshing[file.name] === true;
+  const refreshKey = getAuthFileRefreshKey(file);
+  const isManualRefreshing = manualRefreshing[refreshKey] === true;
+  const isStatusUpdating = statusUpdating[refreshKey] === true;
   const typeLabel = getTypeLabel(t, providerKey);
   const typeColor = getTypeColor(providerKey, resolvedTheme);
+  const oauthProvider =
+    typeof file.oauth_provider === 'string' ? file.oauth_provider.trim() : '';
+  const showOauthProvider =
+    oauthProvider.length > 0 && normalizeProviderKey(oauthProvider) !== providerKey;
 
   const quotaType = resolveAuthFileQuotaType(file, quotaFilterType);
   const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
@@ -281,7 +292,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
           disabled={
             disableControls ||
             file.disabled ||
-            statusUpdating[file.name] === true ||
+            isStatusUpdating ||
             isManualRefreshing
           }
         >
@@ -406,6 +417,11 @@ export function AuthFileCard(props: AuthFileCardProps) {
           {isRuntimeOnly && (
             <span className={styles.runtimeLabel}>{t('auth_files.type_virtual')}</span>
           )}
+          {showOauthProvider && (
+            <span className={styles.fileName} title={oauthProvider}>
+              {oauthProvider}
+            </span>
+          )}
           {identity.secondary && (
             <span className={styles.fileName} title={identity.fullName}>
               {identity.secondary}
@@ -470,7 +486,12 @@ export function AuthFileCard(props: AuthFileCardProps) {
           </button>
         )}
 
-        <AuthFileCooldownSection snapshot={file.cooldownSnapshot} />
+        <AuthFileCooldownSection
+          snapshot={file.cooldownSnapshot}
+          resetting={Boolean(authIndexKey && cooldownResetting[authIndexKey])}
+          resetDisabled={disableControls || isStatusUpdating || isManualRefreshing}
+          onReset={authIndexKey ? () => onCooldownReset(file) : undefined}
+        />
         {/* Cards keep freshness visible; the desktop table has its own Updated column. */}
         {modified && (
           <p className={styles.cardUpdated}>
@@ -546,7 +567,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <ToggleSwitch
               ariaLabel={t('auth_files.card_toggle', { name: file.name })}
               checked={!file.disabled}
-              disabled={disableControls || statusUpdating[file.name] === true || isManualRefreshing}
+              disabled={disableControls || isStatusUpdating || isManualRefreshing}
               onChange={(value) => onToggleStatus(file, value)}
             />
           </div>

@@ -29,7 +29,7 @@ describe('auth file row presentation contract', () => {
     expect(enableCell).toContain('<ToggleSwitch');
     expect(enableCell).toContain("t('auth_files.card_toggle', { name: file.name })");
     expect(enableCell).toContain('checked={!file.disabled}');
-    expect(enableCell).toContain('statusUpdating[file.name] === true || isManualRefreshing');
+    expect(enableCell).toContain('isStatusUpdating || isManualRefreshing');
     expect(enableCell).toContain('!isRuntimeOnly &&');
   });
 

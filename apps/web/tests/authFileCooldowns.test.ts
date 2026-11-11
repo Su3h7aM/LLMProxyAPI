@@ -227,6 +227,7 @@ describe('cooldown section rendering', () => {
             time: '32s',
             status: 429,
             level: 6,
+            message: 'sample error',
           });
           expect(result).not.toContain('auth_files.');
           expect(result).not.toContain('{{');

@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi, type AuthFileFieldsPatch } from '@/services/api';
+import {
+  applyCredentialPolicyPatch,
+  buildCredentialPolicyPatch,
+  credentialPolicyError,
+  readCredentialPolicy,
+  type CredentialPolicyDraft,
+  type CredentialPolicyField,
+  type CredentialPolicyValue,
+} from '@/features/authFiles/credentialPolicy';
 import type { AuthFileItem } from '@/types';
 import { useNotificationStore } from '@/stores';
 import {
@@ -32,6 +41,7 @@ type AuthFileWeightErrorKey = 'auth_files.weight_invalid_integer' | 'auth_files.
 type AuthFileEditorErrorKey = AuthFileHeadersErrorKey | AuthFileWeightErrorKey;
 
 export type PrefixProxyEditorField =
+  | CredentialPolicyField
   | 'prefix'
   | 'proxyUrl'
   | 'priority'
@@ -43,9 +53,10 @@ export type PrefixProxyEditorField =
   | 'excludedModelsText'
   | 'headersText';
 
-export type PrefixProxyEditorFieldValue = string | boolean;
+export type PrefixProxyEditorFieldValue = string | boolean | CredentialPolicyValue;
 
 export type PrefixProxyEditorState = {
+  policy?: CredentialPolicyDraft;
   fileName: string;
   fileInfoText: string;
   loading: boolean;
@@ -375,6 +386,7 @@ export const buildAuthFileFieldsPatch = (
     }
   }
 
+  Object.assign(patch, buildCredentialPolicyPatch(original, editor.policy));
   return patch;
 };
 
@@ -438,6 +450,7 @@ const buildPrefixProxyUpdatedText = (
     next['excluded-models'] = patch['excluded-models'];
   }
 
+  applyCredentialPolicyPatch(next, patch);
   applyHeadersPatch(next, patch.headers);
 
   if (patch.websockets !== undefined) {
@@ -462,7 +475,8 @@ export function useAuthFilesPrefixProxyEditor(
 
   const hasBlockingValidationError = Boolean(
     (prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError) ||
-    prefixProxyEditor?.weightError
+    prefixProxyEditor?.weightError ||
+    credentialPolicyError(prefixProxyEditor?.policy)
   );
   const prefixProxyUpdatedText =
     prefixProxyEditor && !hasBlockingValidationError
@@ -474,7 +488,8 @@ export function useAuthFilesPrefixProxyEditor(
       ? buildAuthFileFieldsPatch(prefixProxyEditor, (key) => t(key))
       : null;
 
-  const prefixProxyDirty = hasKeys(prefixProxyPatch);
+  const prefixProxyDirty =
+    hasKeys(prefixProxyPatch) || Boolean(credentialPolicyError(prefixProxyEditor?.policy));
 
   const closePrefixProxyEditor = () => {
     setPrefixProxyEditor(null);
@@ -584,6 +599,7 @@ export function useAuthFilesPrefixProxyEditor(
           rawText: originalText,
           invalidContentPreview: '',
           json,
+          policy: readCredentialPolicy(json),
           providerKey,
           prefix,
           proxyUrl,
@@ -622,6 +638,17 @@ export function useAuthFilesPrefixProxyEditor(
   ) => {
     setPrefixProxyEditor((prev) => {
       if (!prev) return prev;
+      if (field === 'requestRetry' || field === 'modelAliases' || field === 'errorRules') {
+        const policy = prev.policy ?? readCredentialPolicy(prev.json ?? {});
+        return {
+          ...prev,
+          policy: {
+            ...policy,
+            [field]: value,
+            touched: { ...policy.touched, [field]: true },
+          },
+        };
+      }
       if (field === 'prefix') return { ...prev, prefix: String(value) };
       if (field === 'proxyUrl') return { ...prev, proxyUrl: String(value) };
       if (field === 'priority') return { ...prev, priority: String(value) };

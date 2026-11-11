@@ -125,6 +125,14 @@
   margin-top: $space-6;
 }
 
+.actionRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $space-8;
+  padding-top: $space-8;
+  border-top: $border-width-1 solid var(--border-color);
+}
+
 .elapsed {
   color: var(--text-secondary);
 }
