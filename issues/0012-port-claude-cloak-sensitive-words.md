@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0012-port-claude-cloak-sensitive-words
 type: port
 agent: muse-spark-1.3-contributor
