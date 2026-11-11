@@ -13,9 +13,13 @@ import type {
   PrefixProxyEditorState,
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import {
+  supportsAuthFileSiwc,
   supportsAuthFileUsingApi,
   supportsAuthFileWebsockets,
 } from '@/features/authFiles/constants';
+import { siwcBindingStatus } from '@/features/oauth/siwcBinding';
+import { SiwcStatusBadge } from '@/features/oauth/components/SiwcStatusBadge';
+import { formatDateTimeValue } from '@/utils/format';
 import { MAX_CREDENTIAL_WEIGHT } from '@/utils/credentialWeight';
 import { AuthFileExcludedModelsField } from './AuthFileExcludedModelsField';
 import { AuthFilePolicyFields } from './AuthFilePolicyFields';
@@ -52,7 +56,7 @@ export type AuthFileDetailsSheetProps = {
  * 脏状态下关闭（Escape/遮罩/×/取消）先走确认对话框。
  */
 export function AuthFileDetailsSheet(props: AuthFileDetailsSheetProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { disableControls, editor, updatedText, dirty, onClose, onCopyText, onSave, onChange } =
     props;
@@ -102,6 +106,9 @@ export function AuthFileDetailsSheet(props: AuthFileDetailsSheetProps) {
   const previewText = formatJsonText(updatedText);
   const invalidContentPreview = editor?.invalidContentPreview ?? '';
   const fileInfoText = editor?.fileInfoText ?? '';
+  const siwcExpires = editor?.siwcExpiresAt
+    ? formatDateTimeValue(editor.siwcExpiresAt, i18n.language)
+    : '';
   const displayInfoText = useMemo(() => {
     if (!fileInfoText) return '';
     try {
@@ -271,6 +278,30 @@ export function AuthFileDetailsSheet(props: AuthFileDetailsSheetProps) {
                         ariaLabel={t('auth_files.using_api_label')}
                       />
                       <div className="hint">{t('auth_files.using_api_hint')}</div>
+                    </div>
+                  )}
+                  {supportsAuthFileSiwc(editor.providerKey) && (
+                    <div className="form-group">
+                      <label>{t('auth_files.use_siwc_label')}</label>
+                      <ToggleSwitch
+                        checked={editor.useSiwc}
+                        onChange={(value) => onChange('useSiwc', value)}
+                        disabled={disableControls || editor.saving || !editor.json}
+                        ariaLabel={t('auth_files.use_siwc_label')}
+                      />
+                      <div className="hint">{t('auth_files.use_siwc_hint')}</div>
+                      {editor.siwcBindSupported && (
+                        <div className={styles.siwcStatus}>
+                          <SiwcStatusBadge
+                            status={siwcBindingStatus(editor.useSiwc, editor.siwcBound)}
+                          />
+                          {siwcExpires && (
+                            <span className={styles.siwcExpiry} title={editor.siwcExpiresAt}>
+                              {t('siwc.expires', { date: siwcExpires })}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   <AuthFileExcludedModelsField

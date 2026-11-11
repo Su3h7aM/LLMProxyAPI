@@ -1,0 +1,44 @@
+/* SIWC state pill: dot plus short word, in the same shape as the OAuth region badge. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-6;
+  padding: 0 $space-8;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-999;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  line-height: $line-height-18px;
+  white-space: nowrap;
+}
+
+.active {
+  color: var(--success-color);
+  border-color: color-mix(in srgb, var(--success-color) $tint-0-35, transparent);
+  background: color-mix(in srgb, var(--success-color) $tint-0-08, transparent);
+}
+
+.bound {
+  color: var(--warning-color);
+  border-color: color-mix(in srgb, var(--warning-color) $tint-0-35, transparent);
+  background: color-mix(in srgb, var(--warning-color) $tint-0-08, transparent);
+}
+
+.unbound {
+  color: var(--text-secondary);
+}
+
+.dot {
+  flex-shrink: 0;
+  width: $size-6;
+  height: $size-6;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.label {
+  letter-spacing: $letter-spacing-0-04;
+}

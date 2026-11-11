@@ -30,7 +30,7 @@ import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
 import { getAuthFileRefreshKey } from '@/features/authFiles/manualRefresh';
 import { statusBarDataFromRecentRequests } from '@/utils/recentRequests';
-import { formatFileSize } from '@/utils/format';
+import { formatDateTimeValue, formatFileSize } from '@/utils/format';
 import {
   getAuthFileStatusMessage,
   getModifiedTimeParts,
@@ -48,6 +48,8 @@ import { deriveAuthFileIdentity } from '@/features/authFiles/identity';
 import { resolveAuthFileQuotaType, summarizeRequestActivity } from '@/features/authFiles/logic';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import { AuthFileQuotaSection } from '@/features/authFiles/components/AuthFileQuotaSection';
+import { getSiwcBindingStatus, supportsSiwcBinding } from '@/features/oauth/siwcBinding';
+import { SiwcStatusBadge } from '@/features/oauth/components/SiwcStatusBadge';
 import { AuthFileCooldownSection } from './AuthFileCooldownSection';
 import styles from './AuthFileCard.module.scss';
 import { menuFocusTarget } from '@/utils/menuFocus';
@@ -114,8 +116,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const isStatusUpdating = statusUpdating[refreshKey] === true;
   const typeLabel = getTypeLabel(t, providerKey);
   const typeColor = getTypeColor(providerKey, resolvedTheme);
-  const oauthProvider =
-    typeof file.oauth_provider === 'string' ? file.oauth_provider.trim() : '';
+  const oauthProvider = typeof file.oauth_provider === 'string' ? file.oauth_provider.trim() : '';
   const showOauthProvider =
     oauthProvider.length > 0 && normalizeProviderKey(oauthProvider) !== providerKey;
 
@@ -138,6 +139,11 @@ export function AuthFileCard(props: AuthFileCardProps) {
   // 主行显示账号（email/项目 ID），文件名降为满卡宽的 mono 副行
   const identity = deriveAuthFileIdentity(file);
   const modified = getModifiedTimeParts(file, i18n.language);
+  // SIWC is a Codex-only credential variant: the server decides which files can bind.
+  const showSiwc = supportsSiwcBinding(file);
+  const siwcExpires = file.siwcExpiresAt
+    ? formatDateTimeValue(file.siwcExpiresAt, i18n.language)
+    : '';
   const activity = summarizeRequestActivity(
     { success: successCount, failure: failureCount },
     statusData
@@ -289,12 +295,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
           role="menuitem"
           tabIndex={-1}
           onClick={() => onManualRefresh(file)}
-          disabled={
-            disableControls ||
-            file.disabled ||
-            isStatusUpdating ||
-            isManualRefreshing
-          }
+          disabled={disableControls || file.disabled || isStatusUpdating || isManualRefreshing}
         >
           {isManualRefreshing ? (
             <LoadingSpinner size={iconSize['14']} />
@@ -427,6 +428,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
               {identity.secondary}
             </span>
           )}
+          {showSiwc && <SiwcStatusBadge status={getSiwcBindingStatus(file)} />}
         </p>
 
         {!compact && noteValue && (
@@ -552,6 +554,12 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <span className={styles.metaMetric} title={t('auth_files.weight_tooltip')}>
               <span className={styles.metaMetricLabel}>{t('auth_files.weight_display')}</span>
               <span>{weightValue}</span>
+            </span>
+          )}
+          {siwcExpires && (
+            <span className={styles.metaMetric} title={t('siwc.expires', { date: siwcExpires })}>
+              <span className={styles.metaMetricLabel}>SIWC</span>
+              <time dateTime={file.siwcExpiresAt}>{siwcExpires}</time>
             </span>
           )}
         </div>

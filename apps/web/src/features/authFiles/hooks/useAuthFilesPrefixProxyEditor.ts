@@ -18,8 +18,10 @@ import {
   normalizeProviderKey,
   parsePriorityValue,
   readAuthFileDisableCooling,
+  readAuthFileUseSiwc,
   readAuthFileWebsockets,
   readAuthFileUsingApi,
+  supportsAuthFileSiwc,
   supportsAuthFileWebsockets,
   supportsAuthFileUsingApi,
 } from '@/features/authFiles/constants';
@@ -49,6 +51,7 @@ export type PrefixProxyEditorField =
   | 'disableCooling'
   | 'websockets'
   | 'usingApi'
+  | 'useSiwc'
   | 'note'
   | 'excludedModelsText'
   | 'headersText';
@@ -78,6 +81,12 @@ export type PrefixProxyEditorState = {
   websocketsTouched: boolean;
   usingApi: boolean;
   usingApiTouched: boolean;
+  useSiwc: boolean;
+  useSiwcTouched: boolean;
+  /** Server-reported SIWC capability and binding of this credential. */
+  siwcBindSupported: boolean;
+  siwcBound: boolean;
+  siwcExpiresAt?: string;
   note: string;
   noteTouched: boolean;
   excludedModelsText: string;
@@ -372,6 +381,12 @@ export const buildAuthFileFieldsPatch = (
     }
   }
 
+  if (supportsAuthFileSiwc(editor.providerKey) && editor.useSiwcTouched) {
+    if (editor.useSiwc !== readAuthFileUseSiwc(original)) {
+      patch.use_siwc = editor.useSiwc;
+    }
+  }
+
   if (editor.headersTouched) {
     const { value: parsedHeaders, errorKey } = parseHeadersText(editor.headersText);
     if (errorKey) {
@@ -461,6 +476,10 @@ const buildPrefixProxyUpdatedText = (
     next = applyAuthFileUsingApi(next, patch.using_api);
   }
 
+  if (patch.use_siwc !== undefined) {
+    next.use_siwc = patch.use_siwc;
+  }
+
   return JSON.stringify(next);
 };
 
@@ -527,6 +546,11 @@ export function useAuthFilesPrefixProxyEditor(
       websocketsTouched: false,
       usingApi: false,
       usingApiTouched: false,
+      useSiwc: false,
+      useSiwcTouched: false,
+      siwcBindSupported: file.siwcBindSupported === true,
+      siwcBound: file.siwcBound === true,
+      siwcExpiresAt: file.siwcExpiresAt,
       note: '',
       noteTouched: false,
       excludedModelsText: '',
@@ -612,6 +636,8 @@ export function useAuthFilesPrefixProxyEditor(
           websocketsTouched: false,
           usingApi,
           usingApiTouched: false,
+          useSiwc: supportsAuthFileSiwc(providerKey) ? readAuthFileUseSiwc(json) : false,
+          useSiwcTouched: false,
           note,
           noteTouched: false,
           excludedModelsText,
@@ -673,6 +699,9 @@ export function useAuthFilesPrefixProxyEditor(
       }
       if (field === 'usingApi') {
         return { ...prev, usingApi: Boolean(value), usingApiTouched: true };
+      }
+      if (field === 'useSiwc') {
+        return { ...prev, useSiwc: Boolean(value), useSiwcTouched: true };
       }
       if (field === 'note') return { ...prev, note: String(value), noteTouched: true };
       if (field === 'excludedModelsText') {

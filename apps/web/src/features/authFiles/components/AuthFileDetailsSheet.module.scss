@@ -88,6 +88,20 @@
   gap: $space-14;
 }
 
+/* SIWC state of the credential, under its switch. */
+.siwcStatus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-8;
+  margin-top: $space-8;
+}
+
+.siwcExpiry {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
 .settingsLink {
   color: var(--primary-color);
   font-weight: $font-weight-600;
