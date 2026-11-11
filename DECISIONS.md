@@ -2,6 +2,11 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-11: `go vet ./...` has one old finding on `main`:
+  `internal/pluginhost/host_test.go:1637` (copies `sync.Once`). Gate rule
+  for ports: vet must show no new finding beyond this one. Fix it in a
+  separate small issue, not inside a port. Two executor test files are not
+  gofmt-clean on `main`; same rule.
 - 2026-11-11: Upstream sync, round 1 (baseline e5e6ad1e to 8bba7a77).
   Port bug fixes and valid improvements only; one fork commit per upstream
   commit with an `Upstream:` trailer. Skip: `ce38c75` (reverted upstream by
