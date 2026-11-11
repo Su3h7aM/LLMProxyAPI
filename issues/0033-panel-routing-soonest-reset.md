@@ -67,6 +67,12 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Branch from `integration/panel-bumpyclock`. Read `DECISIONS.md`, issues 0029 (routing board, soonest-reset follow-up) and 0026 (quota reset schedule, timeline, soonest-row highlight).
+- 2026-11-11: Inventory. Quota store (`src/stores/useQuotaStore.ts`): per-provider maps keyed by `getQuotaCacheKey(file)` (plain file name except Devin/plugin multi-identity keys). Reset logic: `features/quota/resetSchedule.ts` (`collectQuotaRowInstants`, `pickSoonestRowId`, `nextRecoveryMs`) over `getQuotaObservations(provider, quota)` windows (`resetAtMs`, `remainingPercent`, `recovers`, `periodHours`); all observed windows have `recovers: true`. Go selector `sdk/cliproxy/auth/selector_soonest_reset.go`: rank known-reset first, then no data, then exhausted; longest window decides the credential reset; elapsed resets skipped; ties on ID. Routing board members of kind `credential` carry the file name in `location.name` (`key: cred:<name>`); apiKey/compat members have no quota snapshots.
+- 2026-11-11: Logic (`features/routing/soonestReset.ts` + `tests/routingSoonestReset.test.ts`, 7 pass). `predictSoonestReset` mirrors the Go rule from cached snapshots only: skip elapsed windows, any zero-remaining window puts the credential last (backend reads Codex `Used-Percent >= 100`; a rejected Claude window fails the quota read so the panel sees it as no data), longest `periodHours` decides, ties on reset then key. Returns board-order ranks, per-tier next, overall next (first tier in order with a credential). `resolveCredentialSnapshots` matches store entries by physical file name (covers multi-identity keys).
+- 2026-11-11: UI (`components/SoonestResetSection.tsx`, wired in `PolicyPanel` + `RoutingPage`). Shown only for `soonest-reset`: next credential with reset time, per-credential rows (relative time with absolute title, quota page pattern), exhausted / no-reset states, Quota-page link hint when nothing is cached. No fetch on this page. Token-only SCSS (token guard green). Strings added in en, zh-CN, zh-TW, ru (pure insertions, verified zero deletions).
+- 2026-11-11: Tests: 7 logic + 4 render (`tests/routingSoonestResetSection.test.ts`, `renderToStaticMarkup` + `MemoryRouter` pattern). `type-check`, `eslint`, token guard, `productionLocales` green.
+
 ## Follow-ups
 
 ## Result
