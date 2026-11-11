@@ -5,6 +5,7 @@ import { AuthFilesPage } from '@/features/authFiles/AuthFilesPage';
 import { AuthFilesOAuthExcludedEditPage } from '@/pages/AuthFilesOAuthExcludedEditPage';
 import { AuthFilesOAuthModelAliasEditPage } from '@/pages/AuthFilesOAuthModelAliasEditPage';
 import { OAuthPage } from '@/pages/OAuthPage';
+import { RoutingPage } from '@/features/routing/RoutingPage';
 import { QuotaPage } from '@/features/quota/QuotaPage';
 import { UsagePage } from '@/pages/UsagePage';
 import { PluginResourcePage } from '@/features/plugins/PluginResourcePage';
@@ -27,6 +28,7 @@ const mainRoutes = [
   { path: '/auth-files/oauth-excluded', element: <AuthFilesOAuthExcludedEditPage /> },
   { path: '/auth-files/oauth-model-alias', element: <AuthFilesOAuthModelAliasEditPage /> },
   { path: '/oauth', element: <OAuthPage /> },
+  { path: '/routing', element: <RoutingPage /> },
   { path: '/quota', element: <QuotaPage /> },
   { path: '/usage', element: <UsagePage /> },
   { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourcePage /> },
