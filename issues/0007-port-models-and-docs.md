@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0007-port-models-and-docs
 type: port
 agent: deepseek-v4.1-flash
