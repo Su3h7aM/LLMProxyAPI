@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0032-panel-cleanup
 type: panel
 agent: deepseek-v4.1-flash
