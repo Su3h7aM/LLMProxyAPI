@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0026-panel-quota-reset
 type: panel
 agent: muse-spark-1.3-contributor
@@ -99,7 +99,41 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
     instants with soonest-row highlight; timeline = lane chart of reset
     windows; reset grants = spend one banked Claude reset to clear
     limited windows, with unknown-outcome journal.
+- 2026-11-11: Ported `claudeResetGrants.ts` + 4 pure logic modules verbatim;
+    all calls go through `apiCallApi` (v8 `POST /requests/api-call`).
+    Adapted ported tests: locale lists to 4 shipped locales, dropped the
+    `User-Agent` assertion (this tree's `CLAUDE_REQUEST_HEADERS` has no UA;
+    grant calls stay consistent with the tree's own Claude reads).
+- 2026-11-11: Wired `useClaudeResetGrants` into `QuotaCard` (plan chip,
+    expiry details, footer action); `claude_reset` block added to 4 locales;
+    optional `planItems`/`afterPlan` on `QuotaBodyProps` (Claude only).
+- 2026-11-11: Token guard flagged `RESET_GRANT_READ_DELAY_MS`; renamed to
+    `RESET_GRANT_READ_TIMEOUT_MS` (business timeout, matches
+    `ANTHROPIC_RESET_GRANT_REDEEM_TIMEOUT_MS`). Gate green: `bun run
+    verify` = 1993 pass, 0 fail, lint clean, build one `dist/index.html`.
+    Rebased onto `integration/panel-bumpyclock` (no movement), re-ran gate.
 
 ## Follow-ups
 
+- OpenCode Go quota tab is the next issue (store has no `opencodeGoQuota`
+    by design; `useQuotaStore` needs no change here).
+- `ko`/`tr`/`vi` locales return in a later issue; ported reset-grant
+    locale tests then cover 7 locales again.
+- No live check against api.anthropic.com was made (no credentials);
+    the claim POST uses the tree's shared Claude headers (no `User-Agent`).
+
 ## Result
+
+- Landed: Claude reset grants back on the quota card in BumpyClock style
+    (chip, expiry list, confirm-then-claim footer action, unknown-outcome
+    journal, cooldown reset). Reset schedule, soonest-row highlight, card
+    sort by soonest recovery, and timeline were already present and stay.
+    Quota area is v8-only (api-call, plugin quota, cooldown reset routes).
+- Commits on `issue/0026-panel-quota-reset` (base `338cc082`):
+    `315ef9d9` inventory, `b57b1aa7` data layer + tests, `c2e2748d` card
+    wiring + locales, `10deb1ff` token-guard rename, plus this file.
+- Gate: `bun install --frozen-lockfile`, `bun run verify` green
+    (1993 tests pass, 0 fail; lint clean; `dist/index.html` 3.37 MB).
+    `bun run type-check` green after each commit.
+- Known gaps: none in scope. Out of scope (untouched): OpenCode Go tab,
+    credentials card, routing board, dashboard, `usage.ts`, Go code.
