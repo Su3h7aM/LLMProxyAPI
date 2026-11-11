@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0018-panel-import-bumpyclock
 type: port (panel)
 agent: muse-spark-1.3-contributor
@@ -54,6 +54,79 @@ In `apps/web` with `export PATH=/home/su3h7am/.local/share/mise/installs/bun/lat
 
 ## Log
 
+- 2026-11-11: Set `status: in-progress`. Created branch from
+  `integration/panel-bumpyclock`.
+- 2026-11-11: Step 1 done (`b9565a58`): `apps/web` replaced with the
+  pinned BumpyClock tree, keep list verified (only `panel.go` extra,
+  `LICENSE` identical).
+- 2026-11-11: Step 2 done (`c94f36e6`): brand replacement per
+  `c40624fc`/`c712e17f`. Main-repo link follows `c40624fc`
+  (`router-for-me/LLMProxyAPI`); header constants, `X-CPA-*` test
+  pins, and the `routeTrail` test fallback string stay unchanged.
+- 2026-11-11: Step 3 done (`0b2b9d10`): sponsor removal.
+  Interpretation: the kimi workbench brand goes with the other
+  sponsor brands (the removal list names its files); "keep the kimi
+  provider" means kimi keeps working through generic
+  openai-compatibility entries plus its OAuth and quota providers,
+  with affiliate links and `kimiPromo` removed. Moonshot and other
+  ex-sponsor endpoints stay in generic groups (rule of `4d1b8e47`,
+  pinned by the recreated `tests/providerGroupsV8.test.ts`).
+  `tests/quotaObservationContracts.test.ts` lost its snapshot-backed
+  block: list-first snapshot observations were qoder-exclusive
+  behavior, and no kept adapter provides it.
+- 2026-11-11: Step 4 done (`f3051d6d`): Copilot and Qoder quota tabs
+  and the Qoder OAuth start option removed. `github-copilot.svg`
+  and `qoder.svg` stay: auth-file credential icons still use them.
+  Auth-file filters, model labels, usage stats, and OAuth key
+  normalization keep Copilot/Qoder names (backend still serves
+  those files).
+- 2026-11-11: Step 5 done (`66417f91`): bun 1.4.4 pins, check-panel
+  title, `apps/web/AGENTS.md`, `apps/web/README.md`. Frozen
+  install passes, so the lockfile is unchanged.
+- 2026-11-11: Gate passes. Rebase is a no-op
+  (`integration/panel-bumpyclock` sits at `2900bc06`). Set
+  `status: done`. No merge (coordinator merges).
+
 ## Follow-ups
 
+- The Usage page and dashboard still read `/usage`, which the fork
+  backend does not serve. The API port rewrites them (per issue).
+- `providersPage.providerNames` keeps dead `apikeyFun`, `fennoAI`,
+  `qiniuCloud`, `kimi` entries, as in the fork. Remove them or keep
+  them in a later pass.
+- `QuickStartSteps.tsx`, `createLabel.ts`, and `workbenchLayout.ts`
+  stay but the `/quick-start` route now redirects to
+  `/ai-providers`, so nothing renders them. Decide later whether to
+  remove them.
+- `isPluginQuotaFile` still excludes `github-copilot` and `qoder`,
+  so those files never fall back to plugin quota. Decide later
+  whether they should.
+- `src/features/quota/README.md` still documents the removed
+  `qoder` provider. Update it in a later pass.
+- ko, tr, vi locales do not exist in this tree (BumpyClock ships
+  4). Per `DECISIONS.md` they are a later, low-priority step.
+
 ## Result
+
+What landed on `issue/0018-panel-import-bumpyclock` (base
+`integration/panel-bumpyclock` at `2900bc06`):
+
+- `b9565a58` tree replacement with the BumpyClock pin `ce5f6179`
+  (exclusions per issue; only `panel.go` kept extra).
+- `c94f36e6` rebrand to LLM Proxy API / LPAMC / LPA.
+- `0b2b9d10` sponsor and promo removal, incl. the recreated
+  `tests/providerGroupsV8.test.ts` (4d1b8e47 rule, adapted to the
+  v0 tree).
+- `f3051d6d` Copilot and Qoder quota removal and Qoder OAuth
+  start removal.
+- `66417f91` bun 1.4.4 pins, check-panel title, panel AGENTS.md
+  and README.md.
+
+Gate output: `bun install --frozen-lockfile` clean (lockfile
+unchanged), `bun run verify` clean (1655 tests pass, lint clean,
+one-file build, `<title>LLM Proxy API Management Center</title>`);
+`go build ./...`, `go vet ./...`, `go test ./...` pass; panel
+smoke check passes (`/tmp/llmproxy` serves the title).
+
+Known gaps: Usage page and dashboard still read `/usage` (next
+issues rewrite them); follow-ups above list the leftovers.
