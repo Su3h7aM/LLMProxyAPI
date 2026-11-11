@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0029-panel-routing-board
 type: panel
 agent: muse-spark-1.3-contributor
@@ -85,5 +85,12 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 ## Follow-ups
 
 - Soonest-reset "next credential + window reset times" needs quota window data on the routing page. Options: (a) read cached quota snapshots only (shows data only after a quota visit); (b) load quota per credential on the routing page (upstream fan-out, the waste 0017 flags); (c) the proposed additive `POST /v8/management/credentials/quota/batch` endpoint (0017 rank 1) with a board read. Coordinator decision. Delivered now: strategy select with `soonest-reset`, board mark, no-split preview, and the desc text that states the rule (no reset time or exhausted quota comes last).
+
+## Result
+
+- Landed: routing page in BumpyClock design (`/routing`, gateway nav entry, 4 locales). Tier ladder with drag/keyboard reorder, weight edit, model-filter route preview, policy panel (strategy radio incl. `soonest-reset`, affinity toggle, retry counts), change review dialog, floating save bar with connection-revision guard and conflict handling. v8 only: `GET/PATCH /config`, `GET /credentials`, `PATCH /credentials/fields`, `GET /routing/model-definitions/:channel`.
+- Commits on `issue/0029-panel-routing-board` over `integration/panel-bumpyclock` (`0e86792b..e1949ee8`): inventory docs, API+types+icons, logic+tests, page+token SCSS, wiring+locales. Rebased clean; one resolved conflict (`services/api/index.ts`: kept 0026 `claudeResetGrants` export next to `routing`).
+- Gate after rebase: `bun install --frozen-lockfile`, `bun run verify` pass — 2017 tests / 0 fail (24 ported `routingBoard`, token guard, `productionLocales`, `visualConfigRoutingStrategy`), `eslint` clean, `type-check` clean, `vite build` one `dist/index.html` (3,457 kB).
+- Known gaps: per-credential soonest-reset times need quota data (see Follow-ups). No page-level tests for the new components (logic covered by ported tests). Not merged, as ordered.
 
 ## Result
