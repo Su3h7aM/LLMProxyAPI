@@ -2,14 +2,18 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nextProvider } from 'react-i18next';
+import type { Mock } from 'bun:test';
 import { apiClient } from '@/services/api/client';
 import { authFilesApi } from '@/services/api/authFiles';
+import { pluginsApi } from '@/services/api/plugins';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useQuotaStore } from '@/stores/useQuotaStore';
 import {
   PLUGIN_CONFIG,
   normalizePluginQuota,
   normalizePluginQuotaSummary,
+  resetPluginQuotaRouteCache,
+  resolveQuotaPluginId,
 } from '@/features/quota/providers/plugin/data';
 import { PluginQuotaBody } from '@/features/quota/providers/plugin/PluginQuotaBody';
 import { classifyQuotaFiles, resolveQuotaProviderType } from '@/features/quota/logic';
@@ -19,12 +23,34 @@ import { requestQuota } from '@/features/quota/hooks/quotaRequests';
 import { selectQuotaWindow } from '@/features/quota/providers/observations';
 import { buildTimelineLane } from '@/features/quota/quotaTimelineModel';
 import { QUOTA_CLASS_KEYS, type QuotaClassMap } from '@/features/quota/types';
+import type { PluginListEntry, PluginListResponse } from '@/types';
 import { createTestI18n } from './helpers/locales';
 
 const i18n = await createTestI18n();
 await i18n.changeLanguage('en');
 const t = i18n.t.bind(i18n);
-const originalSupport = useAuthStore.getState().supportsPlugin;
+const quotaPlugin = (overrides: Partial<PluginListEntry> = {}): PluginListEntry => ({
+  id: 'kiro-quota',
+  path: '/plugins/kiro-quota',
+  configured: true,
+  registered: true,
+  enabled: true,
+  effectiveEnabled: true,
+  supportsOAuth: false,
+  supportsQuota: true,
+  quotaProvider: 'kiro',
+  logo: '',
+  configFields: [],
+  menus: [],
+  metadata: null,
+  ...overrides,
+});
+const pluginList = (plugins: PluginListEntry[]): PluginListResponse => ({
+  pluginsEnabled: true,
+  pluginsDir: 'plugins',
+  plugins,
+});
+let list: Mock<typeof pluginsApi.list>;
 const file = {
   name: 'custom.json',
   provider: 'custom-provider',
@@ -37,12 +63,15 @@ const classes = Object.fromEntries(
 ) as unknown as QuotaClassMap;
 const originalStorage = useAuthStore.persist.getOptions().storage;
 beforeEach(() => {
+  resetPluginQuotaRouteCache();
+  list = spyOn(pluginsApi, 'list').mockResolvedValue(pluginList([quotaPlugin()]));
   useAuthStore.persist.setOptions({
     storage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
   });
 });
 afterEach(() => {
-  useAuthStore.setState({ supportsPlugin: originalSupport });
+  list.mockRestore();
+  resetPluginQuotaRouteCache();
   useAuthStore.persist.setOptions({ storage: originalStorage });
   useQuotaStore.getState().clearQuotaCache();
 });
@@ -58,8 +87,7 @@ function markup(data: ReturnType<typeof normalizePluginQuota>) {
 }
 
 describe('generic plugin quota contract', () => {
-  test('dispatches the current v0 quota endpoint with normalized identity', async () => {
-    useAuthStore.setState({ supportsPlugin: true });
+  test('dispatches the v8 plugin quota route with normalized identity', async () => {
     const post = spyOn(apiClient, 'post').mockResolvedValue({
       summary: [
         { key: 'balance', label: 'Balance', value: 0, format: 'currency', currency: 'USD' },
@@ -67,8 +95,7 @@ describe('generic plugin quota contract', () => {
     });
     try {
       const data = await PLUGIN_CONFIG.fetchQuota(file, t);
-      expect(post).toHaveBeenCalledWith('/quota/fetch', {
-        provider: 'quota-provider',
+      expect(post).toHaveBeenCalledWith('/plugins/kiro-quota/quota', {
         auth_index: 'fixture-index',
       });
       expect(data.summary).toEqual([
@@ -87,25 +114,26 @@ describe('generic plugin quota contract', () => {
     }
   });
 
-  test('supports declarative probes without fabricating a provider', async () => {
-    useAuthStore.setState({ supportsPlugin: true });
-    const post = spyOn(apiClient, 'post').mockResolvedValue({});
+  test('reports probe-only credentials as unsupported without a quota route', async () => {
+    const post = spyOn(apiClient, 'post');
     try {
-      await PLUGIN_CONFIG.fetchQuota({ ...file, quotaProvider: undefined }, t);
-      expect(post).toHaveBeenCalledWith('/quota/fetch', { auth_index: 'fixture-index' });
+      await expect(
+        PLUGIN_CONFIG.fetchQuota({ ...file, quotaProvider: undefined }, t)
+      ).rejects.toThrow(t('plugin_quota.probe_unsupported'));
+      expect(post).not.toHaveBeenCalled();
+      expect(list).not.toHaveBeenCalled();
     } finally {
       post.mockRestore();
     }
   });
 
-  test('unsupported backends and disabled credentials never dispatch', async () => {
+  test('disabled and unsupported credentials never dispatch', async () => {
     const post = spyOn(apiClient, 'post');
     try {
-      useAuthStore.setState({ supportsPlugin: false });
-      await expect(PLUGIN_CONFIG.fetchQuota(file, t)).rejects.toThrow();
-      expect(await requestQuota(file, PLUGIN_CONFIG as never, t)).toEqual({ status: 'skipped' });
-      useAuthStore.setState({ supportsPlugin: true });
       await expect(PLUGIN_CONFIG.fetchQuota({ ...file, disabled: true }, t)).rejects.toThrow();
+      expect(
+        await requestQuota({ ...file, disabled: true }, PLUGIN_CONFIG as never, t)
+      ).toMatchObject({ status: 'error', message: t('plugin_quota.unavailable') });
       await expect(
         PLUGIN_CONFIG.fetchQuota({ ...file, supportsQuota: false }, t)
       ).rejects.toThrow();
@@ -187,8 +215,51 @@ describe('generic plugin quota contract', () => {
     expect(useQuotaStore.getState().pluginQuota).toEqual({});
   });
 
+  test('resolves the quota plugin like the backend first pass, then a sole provider', () => {
+    const plugins = [
+      quotaPlugin({ id: 'unregistered', quotaProvider: 'kiro', registered: false }),
+      quotaPlugin({ id: 'oauth-match', quotaProvider: 'other', oauthProvider: 'kiro' }),
+      quotaPlugin({ id: 'kiro', quotaProvider: 'other-2' }),
+      quotaPlugin({ id: 'quota-match', quotaProvider: 'kiro' }),
+      quotaPlugin({ id: 'no-quota', quotaProvider: 'kiro', supportsQuota: false }),
+    ];
+    expect(resolveQuotaPluginId(plugins, ' Kiro ')).toBe('quota-match');
+    expect(resolveQuotaPluginId(plugins.slice(0, 3), 'kiro')).toBe('kiro');
+    expect(resolveQuotaPluginId(plugins.slice(0, 2), 'kiro')).toBe('oauth-match');
+    expect(resolveQuotaPluginId(plugins, 'unknown')).toBeNull();
+    expect(resolveQuotaPluginId([quotaPlugin({ id: 'only', quotaProvider: 'x' })], 'y')).toBe(
+      'only'
+    );
+    expect(resolveQuotaPluginId(plugins, '')).toBeNull();
+  });
+
+  test('shares the plugin list across credentials and reports a missing plugin', async () => {
+    const post = spyOn(apiClient, 'post').mockResolvedValue({});
+    try {
+      await Promise.all(
+        ['1', '2', '3'].map((authIndex) =>
+          PLUGIN_CONFIG.fetchQuota({ ...file, name: `kiro-${authIndex}.json`, authIndex }, t)
+        )
+      );
+      expect(list).toHaveBeenCalledTimes(1);
+      expect(post).toHaveBeenCalledTimes(3);
+
+      list.mockResolvedValue(
+        pluginList([
+          quotaPlugin({ id: 'first', quotaProvider: 'other' }),
+          quotaPlugin({ id: 'second', quotaProvider: 'other-2' }),
+        ])
+      );
+      resetPluginQuotaRouteCache();
+      await expect(PLUGIN_CONFIG.fetchQuota(file, t)).rejects.toThrow(
+        t('plugin_quota.plugin_not_found', { provider: 'quota-provider' })
+      );
+    } finally {
+      post.mockRestore();
+    }
+  });
+
   test('request ownership suppresses a stale response after connection invalidation', async () => {
-    useAuthStore.setState({ supportsPlugin: true });
     let resolve!: (value: unknown) => void;
     const post = spyOn(apiClient, 'post').mockImplementation(
       () =>
@@ -198,8 +269,7 @@ describe('generic plugin quota contract', () => {
     );
     try {
       const pending = requestQuota(file, PLUGIN_CONFIG as never, t);
-      await Promise.resolve();
-      await Promise.resolve();
+      while (post.mock.calls.length === 0) await Promise.resolve();
       useQuotaStore.getState().clearQuotaCache();
       resolve({ summary: [{ key: 'balance', label: 'Balance', value: 10 }] });
       expect(await pending).toEqual({ status: 'superseded' });

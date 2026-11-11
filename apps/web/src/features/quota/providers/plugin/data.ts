@@ -1,7 +1,13 @@
 import type { TFunction } from 'i18next';
-import type { AuthFileItem, PluginQuotaGroup, PluginQuotaMetric, PluginQuotaState } from '@/types';
+import type {
+  AuthFileItem,
+  PluginListEntry,
+  PluginQuotaGroup,
+  PluginQuotaMetric,
+  PluginQuotaState,
+} from '@/types';
 import { apiClient } from '@/services/api/client';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { pluginsApi } from '@/services/api/plugins';
 import { normalizeAuthIndex } from '@/utils/authIndex';
 import { isRecord } from '@/utils/helpers';
 import { isDisabledAuthFile, isPluginQuotaFile } from '@/utils/quota/validators';
@@ -76,20 +82,68 @@ export function normalizePluginQuota(value: unknown): PluginQuotaData {
   };
 }
 
+const normalizeProviderId = (value: unknown) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+/** Map a credential's quota provider to the registered plugin that serves it. */
+export const resolveQuotaPluginId = (
+  plugins: readonly PluginListEntry[],
+  provider: string
+): string | null => {
+  const target = normalizeProviderId(provider);
+  if (!target) return null;
+  const candidates = plugins.filter((plugin) => plugin.registered && plugin.supportsQuota);
+  const match =
+    candidates.find((plugin) => normalizeProviderId(plugin.quotaProvider) === target) ??
+    candidates.find((plugin) => normalizeProviderId(plugin.id) === target) ??
+    candidates.find((plugin) => normalizeProviderId(plugin.oauthProvider) === target) ??
+    candidates.find((plugin) =>
+      (plugin.oauthProviders ?? []).some((id) => normalizeProviderId(id) === target)
+    ) ??
+    (candidates.length === 1 ? candidates[0] : undefined);
+  return match?.id ?? null;
+};
+
+const PLUGIN_LIST_TTL_MS = 30_000;
+let pluginListCache: {
+  revision: number;
+  expiresAt: number;
+  promise: Promise<PluginListEntry[]>;
+} | null = null;
+
+/** Refresh-all fans out per credential; share one plugin list per connection. */
+const loadQuotaPlugins = (): Promise<PluginListEntry[]> => {
+  const revision = apiClient.getConnectionRevision();
+  const now = Date.now();
+  if (pluginListCache && pluginListCache.revision === revision && pluginListCache.expiresAt > now) {
+    return pluginListCache.promise;
+  }
+  const promise = pluginsApi.list().then((response) => response.plugins);
+  const entry = { revision, expiresAt: now + PLUGIN_LIST_TTL_MS, promise };
+  pluginListCache = entry;
+  promise.catch(() => {
+    if (pluginListCache === entry) pluginListCache = null;
+  });
+  return promise;
+};
+
+export const resetPluginQuotaRouteCache = () => {
+  pluginListCache = null;
+};
+
 export async function fetchPluginQuota(file: AuthFileItem, t: TFunction): Promise<PluginQuotaData> {
-  if (
-    !useAuthStore.getState().supportsPlugin ||
-    !isPluginQuotaFile(file) ||
-    isDisabledAuthFile(file)
-  ) {
+  if (!isPluginQuotaFile(file) || isDisabledAuthFile(file)) {
     throw new Error(t('plugin_quota.unavailable'));
   }
   const authIndex = normalizeAuthIndex(file.authIndex ?? file.auth_index);
   if (!authIndex) throw new Error(t('plugin_quota.missing_auth_index'));
   const provider = text(file.quotaProvider);
+  if (!provider) throw new Error(t('plugin_quota.probe_unsupported'));
+  const pluginId = resolveQuotaPluginId(await loadQuotaPlugins(), provider);
+  if (!pluginId) throw new Error(t('plugin_quota.plugin_not_found', { provider }));
+
   return normalizePluginQuota(
-    await apiClient.post<unknown>('/quota/fetch', {
-      ...(provider ? { provider } : {}),
+    await apiClient.post<unknown>(`/plugins/${encodeURIComponent(pluginId)}/quota`, {
       auth_index: authIndex,
     })
   );
@@ -99,7 +153,6 @@ export const PLUGIN_CONFIG: QuotaProviderData<PluginQuotaState, PluginQuotaData>
   type: 'plugin',
   i18nPrefix: 'plugin_quota',
   filterFn: (file) => isPluginQuotaFile(file) && !isDisabledAuthFile(file),
-  canObserve: () => useAuthStore.getState().supportsPlugin,
   fetchQuota: fetchPluginQuota,
   getObservations: (state) =>
     observeQuota(
