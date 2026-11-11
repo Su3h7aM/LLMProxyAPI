@@ -90,8 +90,6 @@ describe('Requests KPI scope says which sources the total sums', () => {
       'dashboard.vitals_rate_scope',
       'dashboard.vitals_success_unmeasured',
       'dashboard.vitals_unavailable',
-      'dashboard.vitals_usage_differs_short',
-      'dashboard.vitals_usage_differs',
       'dashboard.scope_all',
       'dashboard.scope_credential_files_only',
       'dashboard.scope_provider_keys_only',
@@ -228,13 +226,6 @@ describe('Success rate with no requests is an undefined ratio', () => {
 });
 
 describe('Requests and the usage-statistics count', () => {
-  test('the alternate count names its source and the same window, with the reason on demand', () => {
-    expect(t('dashboard.vitals_usage_differs_short', { count: 135 })).toBe(
-      'Usage statistics: 135 in the same window'
-    );
-    expect(t('dashboard.vitals_usage_differs')).toContain('credentials no longer listed');
-  });
-
   test('no dashboard string calls the usage count "since restart"', async () => {
     const { default: en } = await import('../src/i18n/locales/en.json');
     expect(JSON.stringify(en.dashboard)).not.toMatch(/since restart/i);

@@ -107,8 +107,7 @@
     "plugin_store": "Plugin Store",
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
-    "system_info": "System",
-    "usage_statistics": "Usage Statistics"
+    "system_info": "System"
   },
   "nav_groups": {
     "operate": "Operate",
@@ -129,8 +128,7 @@
     "plugin_store": "Discover & install plugins",
     "logs": "Request tracing",
     "config_management": "Gateway configuration",
-    "system_info": "Runtime & diagnostics",
-    "usage_statistics": "Request and token usage"
+    "system_info": "Runtime & diagnostics"
   },
   "dashboard": {
     "action_add_api_key": "Add provider API key",
@@ -312,9 +310,7 @@
     "usage_coverage": "Older request details were not retained. Counts and failures shown cover retained details only.",
     "usage_empty": "No requests recorded for {{window}}.",
     "usage_empty_unknown": "No request details are retained for {{window}}. Request and failure counts are unknown.",
-    "usage_window_bounds": "{{start}} to {{end}}",
     "usage_window_historical": "Historical traffic window. Newer requests and failures are not included here.",
-    "usage_eyebrow": "Usage",
     "usage_link": "Open usage statistics",
     "usage_loading": "Loading usage statistics…",
     "usage_no_failures": "No failed requests in retained details for {{window}}.",
@@ -322,7 +318,6 @@
     "usage_off_action": "Open configuration",
     "usage_off_detail": "Turn them on to see per-model volume, latency, and recent failed requests.",
     "usage_recent_failures": "Recent failures",
-    "usage_title": "Models and latency",
     "usage_truncated_hint": "Older requests for this model are no longer retained, so this is a minimum.",
     "usage_unsupported": "Usage statistics unavailable",
     "usage_unsupported_detail": "This server doesn't report per-model usage, so latency and recent failed requests can't be shown.",
@@ -338,11 +333,9 @@
     "vitals_serving_unit": "serving",
     "vitals_split": "{{success}} ok · {{failed}} failed",
     "vitals_success": "Success rate",
-    "vitals_usage_differs": "A separate source. Usage statistics record requests from every client API key, including credentials no longer listed; the figure above sums only current credential files and provider keys.",
     "window_h": "{{hours}}h",
     "window_hm": "{{hours}}h {{minutes}}m",
     "window_m": "{{minutes}}m",
-    "vitals_usage_differs_short": "Usage statistics: {{count}} in the same window",
     "vitals_scope": "Last {{window}} · {{scope}}",
     "vitals_scope_partial": "Last {{window}} · {{scope}}; {{missing}}",
     "vitals_rate_scope": "From {{scope}}",
@@ -2695,11 +2688,6 @@
     },
     "providers": {
       "configured": "Configured",
-      "setupTitle": "Setup steps",
-      "setupProvider": "Connect an upstream provider",
-      "setupOAuth": "Add an OAuth credential if your provider uses OAuth",
-      "setupClient": "Create a client API key in Config Panel",
-      "setupUsage": "Send a request from your client, then inspect Usage Statistics",
       "addKey": "Add {{provider}} key",
       "addCompatibleProvider": "Add OpenAI-compatible provider",
       "rowEnable": "Enable {{name}}",

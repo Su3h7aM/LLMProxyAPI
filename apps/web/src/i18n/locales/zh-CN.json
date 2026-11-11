@@ -107,8 +107,7 @@
     "plugin_store": "插件商店",
     "config_management": "配置面板",
     "logs": "日志查看",
-    "system_info": "系统",
-    "usage_statistics": "使用统计"
+    "system_info": "系统"
   },
   "nav_groups": {
     "operate": "运行",
@@ -129,8 +128,7 @@
     "plugin_store": "发现并安装插件",
     "logs": "请求追踪与排查",
     "config_management": "网关基础配置",
-    "system_info": "运行与诊断信息",
-    "usage_statistics": "请求与 Token 用量"
+    "system_info": "运行与诊断信息"
   },
   "dashboard": {
     "action_add_api_key": "添加供应商 API 密钥",
@@ -304,9 +302,7 @@
     "usage_coverage": "较早的请求明细已不再保留。所示请求数和失败记录仅覆盖仍保留的明细。",
     "usage_empty": "{{window}} 内没有请求记录。",
     "usage_empty_unknown": "{{window}} 内的请求明细已不再保留，请求总数和失败次数未知。",
-    "usage_window_bounds": "{{start}} 至 {{end}}",
     "usage_window_historical": "当前显示历史流量时间段，未计入此后发生的请求和失败。",
-    "usage_eyebrow": "用量",
     "usage_link": "打开使用统计",
     "usage_loading": "正在加载使用统计…",
     "usage_no_failures": "{{window}} 内仍保留的请求明细中没有失败记录。",
@@ -314,7 +310,6 @@
     "usage_off_action": "打开配置",
     "usage_off_detail": "开启后可查看各模型的请求量、延迟和最近失败的请求。",
     "usage_recent_failures": "最近失败",
-    "usage_title": "模型与延迟",
     "usage_truncated_hint": "该模型更早的请求已不再保留，此数值为最小值。",
     "usage_unsupported": "使用统计不可用",
     "usage_unsupported_detail": "此服务器不提供按模型的用量数据，因此无法显示延迟和最近失败的请求。",
@@ -329,11 +324,9 @@
     "vitals_serving_unit": "可用",
     "vitals_split": "成功 {{success}} · 失败 {{failed}}",
     "vitals_success": "成功率",
-    "vitals_usage_differs": "这是另一个数据来源。使用统计记录所有客户端 API 密钥的请求，包括已不在列表中的凭证；上方数字仅汇总当前的凭证文件和提供商密钥。",
     "window_h": "{{hours}} 小时",
     "window_hm": "{{hours}} 小时 {{minutes}} 分",
     "window_m": "{{minutes}} 分钟",
-    "vitals_usage_differs_short": "使用统计：同一窗口内 {{count}} 次",
     "vitals_scope": "最近 {{window}} · {{scope}}",
     "vitals_scope_partial": "最近 {{window}} · {{scope}}；{{missing}}",
     "vitals_rate_scope": "统计范围：{{scope}}",
@@ -2675,11 +2668,6 @@
     },
     "providers": {
       "configured": "已配置",
-      "setupTitle": "设置步骤",
-      "setupProvider": "连接上游提供商",
-      "setupOAuth": "如果提供商使用 OAuth，请添加 OAuth 凭据",
-      "setupClient": "在配置面板中创建客户端 API 密钥",
-      "setupUsage": "从客户端发送请求，然后查看使用统计",
       "addKey": "添加 {{provider}} 密钥",
       "addCompatibleProvider": "添加 OpenAI 兼容提供商",
       "rowEnable": "启用 {{name}}",
