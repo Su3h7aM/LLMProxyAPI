@@ -111,3 +111,13 @@ export const XAI_API_REQUEST_HEADERS = {
   Authorization: 'Bearer $TOKEN$',
   accept: 'application/json',
 };
+
+// OpenCode Go subscription: fixed usage route told by the workspace
+// member's Go key. The gateway routes nothing that names no session.
+export const OPENCODE_GO_USAGE_URL = 'https://opencode.ai/zen/go/v1/usage';
+
+export const OPENCODE_GO_REQUEST_HEADERS = {
+  Authorization: 'Bearer $TOKEN$',
+  Accept: 'application/json',
+  'Accept-Language': 'en-US,en',
+};

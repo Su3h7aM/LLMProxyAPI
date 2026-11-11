@@ -143,6 +143,7 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
   const devinQuota = useQuotaStore((state) => state.devinQuota);
   const kimiQuota = useQuotaStore((state) => state.kimiQuota);
   const metaQuota = useQuotaStore((state) => state.metaQuota);
+  const opencodeGoQuota = useQuotaStore((state) => state.opencodeGoQuota);
   const xaiQuota = useQuotaStore((state) => state.xaiQuota);
   const pluginQuota = useQuotaStore((state) => state.pluginQuota);
 
@@ -154,6 +155,7 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
       devin: devinQuota,
       kimi: kimiQuota,
       meta: metaQuota,
+      'opencode-go': opencodeGoQuota,
       xai: xaiQuota,
       plugin: pluginQuota,
     }),
@@ -164,6 +166,7 @@ function QuotaPageContent({ sessionGeneration }: { sessionGeneration: number }) 
       devinQuota,
       kimiQuota,
       metaQuota,
+      opencodeGoQuota,
       xaiQuota,
       pluginQuota,
     ]

@@ -4,6 +4,7 @@ import { CODEX_CONFIG } from './codex/data';
 import { DEVIN_CONFIG } from './devin/data';
 import { KIMI_CONFIG } from './kimi/data';
 import { META_CONFIG } from './meta/data';
+import { OPENCODE_GO_CONFIG } from './opencodeGo/data';
 import { PLUGIN_CONFIG } from './plugin/data';
 import { XAI_CONFIG } from './xai/data';
 import { observeQuota, type QuotaObservations } from './observations';
@@ -17,6 +18,7 @@ export const QUOTA_PROVIDER_DATA = {
   devin: DEVIN_CONFIG,
   kimi: KIMI_CONFIG,
   meta: META_CONFIG,
+  'opencode-go': OPENCODE_GO_CONFIG,
   xai: XAI_CONFIG,
   plugin: PLUGIN_CONFIG,
 } satisfies Record<QuotaProviderType, { type: QuotaProviderType }>;

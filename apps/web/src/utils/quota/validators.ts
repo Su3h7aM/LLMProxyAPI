@@ -37,6 +37,10 @@ export function isXaiFile(file: AuthFileItem): boolean {
   return resolveAuthProvider(file) === 'xai';
 }
 
+export function isOpencodeGoFile(file: AuthFileItem): boolean {
+  return resolveAuthProvider(file) === 'opencode-go';
+}
+
 export function isDisabledAuthFile(file: AuthFileItem): boolean {
   const raw = (file as { disabled?: unknown }).disabled;
   if (typeof raw === 'boolean') return raw;
@@ -57,6 +61,7 @@ export function isPluginQuotaFile(file: AuthFileItem): boolean {
     'devin',
     'kimi',
     'meta',
+    'opencode-go',
     'qoder',
     'xai',
   ].includes(resolveAuthProvider(file));

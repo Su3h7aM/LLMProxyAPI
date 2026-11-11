@@ -12,6 +12,8 @@ import iconGrokDark from '@/assets/icons/grok-dark.svg';
 import iconIflow from '@/assets/icons/iflow.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
+import iconOpencodeLight from '@/assets/icons/opencode.svg';
+import iconOpencodeDark from '@/assets/icons/opencode-dark.svg';
 import iconQoder from '@/assets/icons/qoder.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
 import iconVertex from '@/assets/icons/vertex.svg';
@@ -43,6 +45,7 @@ export const QUOTA_PROVIDER_TYPES = new Set<QuotaProviderType>([
   'codex',
   'devin',
   'kimi',
+  'opencode-go',
   'xai',
   'plugin',
 ]);
@@ -93,6 +96,7 @@ export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   xai: { light: iconGrok, dark: iconGrokDark },
   iflow: iconIflow,
   kimi: { light: iconKimiDark, dark: iconKimiLight },
+  'opencode-go': { light: iconOpencodeLight, dark: iconOpencodeDark },
   qoder: iconQoder,
   qwen: iconQwen,
   vertex: iconVertex,

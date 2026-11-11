@@ -718,6 +718,10 @@ export const palette = {
       light: { bg: '#f3f4f6', text: '#111827', border: { color: '#d1d5db', style: 'solid' } },
       dark: { bg: '#111827', text: '#f9fafb', border: { color: '#374151', style: 'solid' } },
     },
+    'opencode-go': {
+      light: { bg: '#e8e8e8', text: '#1f1f1f', border: { color: '#d2d2d2', style: 'solid' } },
+      dark: { bg: '#2a2a2a', text: '#eeeeee', border: { color: '#4b4b4b', style: 'solid' } },
+    },
     iflow: { light: { bg: '#f5e3fc', text: '#9025c8' }, dark: { bg: '#521490', text: '#d49cf5' } },
     vertex: { light: { bg: '#e4edfd', text: '#2b5fbc' }, dark: { bg: '#1a3d80', text: '#89b3f7' } },
     empty: { light: { bg: '#f5f5f5', text: '#616161' }, dark: { bg: '#424242', text: '#bdbdbd' } },

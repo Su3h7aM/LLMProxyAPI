@@ -525,3 +525,26 @@ export interface XaiQuotaState {
   error?: string;
   errorStatus?: number;
 }
+
+// OpenCode Go subscription windows. The usage route tells used percent,
+// so rows run on a 0-100 scale: used is the reported percent, limit is 100.
+export interface OpencodeGoQuotaRow {
+  id: string;
+  label?: string;
+  labelKey?: string;
+  labelParams?: Record<string, string | number>;
+  used: number;
+  limit: number;
+  /** Reset instant in epoch ms; null when the window reports none. */
+  resetAtMs?: number | null;
+  /** Window length in hours; null for the calendar month. */
+  periodHours?: number | null;
+}
+
+export interface OpencodeGoQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  rows: OpencodeGoQuotaRow[];
+  planName?: string | null;
+  error?: string;
+  errorStatus?: number;
+}

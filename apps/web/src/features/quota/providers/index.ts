@@ -9,6 +9,7 @@ import { CodexQuotaBody } from './codex/CodexQuotaBody';
 import { DevinQuotaBody } from './devin/DevinQuotaBody';
 import { KimiQuotaBody } from './kimi/KimiQuotaBody';
 import { MetaQuotaBody } from './meta/MetaQuotaBody';
+import { OpencodeGoQuotaBody } from './opencodeGo/OpencodeGoQuotaBody';
 import { PluginQuotaBody } from './plugin/PluginQuotaBody';
 import { XaiQuotaBody } from './xai/XaiQuotaBody';
 
@@ -34,6 +35,7 @@ export const QUOTA_ADAPTERS: Record<QuotaProviderType, QuotaAdapter> = {
   devin: withBody(QUOTA_PROVIDER_DATA.devin, DevinQuotaBody),
   kimi: withBody(QUOTA_PROVIDER_DATA.kimi, KimiQuotaBody),
   meta: withBody(QUOTA_PROVIDER_DATA.meta, MetaQuotaBody),
+  'opencode-go': withBody(QUOTA_PROVIDER_DATA['opencode-go'], OpencodeGoQuotaBody),
   xai: withBody(QUOTA_PROVIDER_DATA.xai, XaiQuotaBody),
   plugin: withBody(QUOTA_PROVIDER_DATA.plugin, PluginQuotaBody),
 };
