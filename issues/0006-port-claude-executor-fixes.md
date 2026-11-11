@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0006-port-claude-executor-fixes
 type: port
 agent: muse-spark-1.3-contributor
