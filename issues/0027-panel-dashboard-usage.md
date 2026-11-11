@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0027-panel-dashboard-usage
 type: panel
 agent: muse-spark-1.3-contributor
@@ -67,6 +67,45 @@ Tests: port the pre-import tests of your area (`git show panel-pre-bumpyclock:ap
 4. Do NOT merge. Report: short summary, branch, commit range, follow-ups, surprises, unconfirmed claims.
 
 ## Log
+
+- 2026-11-11: Set `status: in-progress`. Read `DECISIONS.md`, triage 0015-0017,
+  `server_management_v8.go`, `handlers/management/usage.go`, `api_key_usage.go`,
+  `config/config_v8.go:116`, pre-import `features/dashboard/hooks/useDashboardOverview.ts`,
+  BumpyClock `useDashboardOverview.ts`, `UsagePage.tsx`, `logic/usage.ts`,
+  `UsagePanel.tsx`, `utils/usageStats.ts`.
+- 2026-11-11: Inventory (step 1). v8 routes served:
+  (a) `GET /v8/management/observability/usage/api-keys` (`GetAPIKeyUsage`):
+  `{provider: {base_url|api_key: {success, failed, recent_requests[]}}}`.
+  Panel already reads it (`apiKeyUsageApi`, `useProviderRecentRequests`, fleet).
+  (b) `GET /v8/management/observability/usage/queue` (`GetUsageQueue`): POPS
+  raw queue records (`redisqueue.PopOldest`; relay transport pushed to a remote
+  client in `sdk/cliproxy/service_home.go:349`). Destructive internal plumbing,
+  never a display source. The panel must not call it.
+  (c) Flag `usage-statistics-enabled`: v8 tree
+  `observability.usage.usage-statistics-enabled` (`config_v8.go:116`); read
+  `GET /config/observability/usage/usage-statistics-enabled`, write via tree
+  PUT (config page already does both: `useVisualConfig.ts:1367,1634`).
+  Pre-import dashboard reads only credentials + api-key-usage + config + models.
+  Pre-import has no Usage page, no `usage.ts`, no usage source at all.
+  BumpyClock data needs: 1. api-key traffic: available (a). 2. credential
+  list/health: available (`GET /credentials`). 3. config counts: available
+  (`GET /config`). 4. model list: available (models store via api-call).
+  5. statistics flag: available after client reshape (c) (was flat
+  `GET /usage-statistics-enabled`, v0-only and absent from v8).
+  6. aggregate `UsageSnapshot` (per-api/model totals, tokens, latency details,
+  daily/hourly buckets): NOT available. `GET /usage` exists on no backend
+  (fork v0 lacks it, v8 lacks it; Plus-only). `RecentRequestBucket` is
+  `{time, success, failed}` only: per-model/token/latency/daily history cannot
+  be rebuilt from (a) or auth-file snapshots. Gap item, see Follow-ups.
+  7. daily/hourly history series: NOT available (same gap).
+- 2026-11-11: Rendering consequence (no new copy, BumpyClock style kept):
+  dashboard `UsagePanel` keeps its `usage_unsupported` block ("This server
+  does not report per-model usage...") and shows it when the flag is on but no
+  snapshot exists; vitals `usageDiffers` banner is gated on snapshot presence
+  so it cannot fire on the permanent null snapshot; Usage page treats
+  enabled-without-snapshot as its existing `empty` status (header only, no
+  numbers or charts; `showData` stays false), which matches the codebase rule
+  that missing fields stay unreported instead of manufacturing zero metrics.
 
 ## Follow-ups
 
