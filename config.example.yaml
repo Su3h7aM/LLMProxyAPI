@@ -181,6 +181,8 @@ routing:
   # An established binding outranks credential priority: once a session is bound, that
   # credential is kept even if a higher-priority credential recovers. Credential priority
   # still decides cold bindings, requests without a session, and post-failover rebinding.
+  # In Home mode, compatible Home versions charge retained WS turns from usage after completion;
+  # CPA preserves the retained credential and concurrency slot instead of redispatching each turn.
   session-affinity: false # default: false
   # How long session-to-auth bindings are retained. Default: 1h
   session-affinity-ttl: "1h"
