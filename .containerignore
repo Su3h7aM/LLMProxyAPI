@@ -16,6 +16,10 @@ README.md
 README_CN.md
 LICENSE
 
+# Panel build output and local dependencies
+apps/web/node_modules
+apps/web/dist
+
 # Runtime data folders (should be mounted as volumes)
 auths
 logs
