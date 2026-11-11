@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { shouldAttemptAutoLogin, useAuthStore } from '../src/stores/useAuthStore';
 import { AUTH_LOGIN_STATE_KEY } from '../src/services/storage/secureStorage';
-import { STORAGE_KEY_AUTH } from '../src/utils/constants';
 
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
 const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
