@@ -101,12 +101,18 @@ func (s *Server) UpdateClientsContext(ctx context.Context, cfg *config.Config) b
 		redisqueue.SetRetentionSeconds(cfg.RedisUsageQueueRetentionSeconds)
 	}
 
-	if oldCfg == nil || oldCfg.UsageDB != cfg.UsageDB {
+	if oldCfg == nil || oldCfg.UsageDB != cfg.UsageDB ||
+		(oldCfg != nil && oldCfg.Home.Enabled != cfg.Home.Enabled) {
 		usagedb.Configure(usagedb.Options{
-			Enabled:       cfg.UsageDB.Enabled,
-			Path:          cfg.EffectiveUsageDBPath(),
-			RetentionDays: cfg.UsageDB.RetentionDays,
-			BufferSize:    cfg.UsageDB.BufferSize,
+			Enabled:          cfg.UsageDB.Enabled,
+			Path:             cfg.EffectiveUsageDBPath(),
+			RetentionDays:    cfg.UsageDB.RetentionDays,
+			BufferSize:       cfg.UsageDB.BufferSize,
+			HomeEnabled:      cfg.Home.Enabled,
+			PriceSyncEnabled: cfg.UsageDB.PriceSync.Enabled,
+			PriceSyncURL:     cfg.UsageDB.PriceSync.URL,
+			PriceSyncHours:   cfg.UsageDB.PriceSync.IntervalHours,
+			ProxyURL:         cfg.SDKConfig.ProxyURL,
 		})
 		if oldCfg != nil && (oldCfg.EffectiveUsageDBPath() != cfg.EffectiveUsageDBPath() ||
 			oldCfg.UsageDB.BufferSize != cfg.UsageDB.BufferSize) {

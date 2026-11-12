@@ -503,6 +503,30 @@ type UsageDBConfig struct {
 	// BufferSize bounds the in-process usage writer channel. Default 4096.
 	// A size change needs a restart to take effect.
 	BufferSize int `yaml:"buffer-size" json:"buffer-size"`
+	// PriceSync configures the models.dev price book sync.
+	PriceSync PriceSyncConfig `yaml:"price-sync" json:"price-sync"`
+}
+
+// PriceSyncConfig configures the usage price book sync with models.dev.
+type PriceSyncConfig struct {
+	// Enabled toggles the price sync. Default true. The first sync runs
+	// 30 s after start, then every IntervalHours.
+	Enabled bool `yaml:"enabled" json:"enabled"`
+	// URL is the price source. Default DefaultPriceSyncURL (models.dev).
+	URL string `yaml:"url,omitempty" json:"url,omitempty"`
+	// IntervalHours sets the sync cadence. Default 24.
+	IntervalHours int `yaml:"interval-hours" json:"interval-hours"`
+}
+
+// WithDefaults fills zero values with the documented defaults.
+func (c PriceSyncConfig) WithDefaults() PriceSyncConfig {
+	if strings.TrimSpace(c.URL) == "" {
+		c.URL = DefaultPriceSyncURL
+	}
+	if c.IntervalHours <= 0 {
+		c.IntervalHours = DefaultPriceSyncIntervalHours
+	}
+	return c
 }
 
 // WithDefaults fills zero values with the documented defaults.
@@ -515,6 +539,7 @@ func (c UsageDBConfig) WithDefaults() UsageDBConfig {
 	if c.BufferSize <= 0 {
 		c.BufferSize = DefaultUsageDBBufferSize
 	}
+	c.PriceSync = c.PriceSync.WithDefaults()
 	return c
 }
 

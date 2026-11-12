@@ -33,21 +33,28 @@ func (Collector) HandleUsage(_ context.Context, record coreusage.Record) {
 
 // Options configures the package-level collector state.
 type Options struct {
-	Enabled       bool
-	Path          string
-	RetentionDays int
-	BufferSize    int
+	Enabled            bool
+	Path               string
+	RetentionDays      int
+	BufferSize         int
+	HomeEnabled        bool
+	PriceSyncEnabled   bool
+	PriceSyncURL       string
+	PriceSyncHours     int
+	ProxyURL           string
 }
 
 var (
-	mu            sync.Mutex
-	collectorOn   atomic.Bool
-	collectorPath atomic.Value // string
-	collectorDays atomic.Int64
-	collectorDB   *Store
-	collectorOut  *Writer
-	retentionStop chan struct{}
-	lastPruneMs   atomic.Int64
+	mu              sync.Mutex
+	collectorOn     atomic.Bool
+	collectorPath   atomic.Value // string
+	collectorDays   atomic.Int64
+	collectorDB     *Store
+	collectorOut    *Writer
+	retentionStop   chan struct{}
+	priceSyncStop   chan struct{}
+	priceSyncConfig PriceSyncConfig
+	lastPruneMs     atomic.Int64
 )
 
 func init() {
@@ -87,8 +94,20 @@ func Configure(opts Options) {
 		stopLocked(10 * time.Second)
 		return
 	}
+	if opts.HomeEnabled {
+		collectorOn.Store(false)
+		stopLocked(10 * time.Second)
+		log.Info("usagedb: home mode enabled, usage persistence disabled")
+		return
+	}
+	syncConfig := PriceSyncConfig{
+		Enabled:       opts.PriceSyncEnabled,
+		URL:           opts.PriceSyncURL,
+		IntervalHours: opts.PriceSyncHours,
+		ProxyURL:      opts.ProxyURL,
+	}
 	if collectorDB != nil && collectorOut != nil && collectorPath.Load().(string) == opts.Path &&
-		collectorOut.Capacity() == opts.BufferSize {
+		collectorOut.Capacity() == opts.BufferSize && priceSyncConfig == syncConfig {
 		collectorOn.Store(true)
 		return
 	}
@@ -105,6 +124,11 @@ func Configure(opts Options) {
 	collectorOut.Start()
 	collectorOn.Store(true)
 	startRetentionLocked()
+	priceSyncConfig = syncConfig
+	startPriceSyncLocked()
+	if _, err := db.LoadEmbeddedSnapshot(unixMilliNow()); err != nil {
+		log.WithError(err).Error("usagedb: embedded price load failed, sync fills prices later")
+	}
 	log.WithField("path", db.Path()).Info("usagedb: usage database open")
 }
 
@@ -119,6 +143,10 @@ func Shutdown(timeout time.Duration) {
 
 // stopLocked flushes the writer and closes the database. Callers hold mu.
 func stopLocked(timeout time.Duration) {
+	if priceSyncStop != nil {
+		close(priceSyncStop)
+		priceSyncStop = nil
+	}
 	if retentionStop != nil {
 		close(retentionStop)
 		retentionStop = nil

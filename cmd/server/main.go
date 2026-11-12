@@ -658,10 +658,15 @@ func main() {
 		cfg.AuthDir = resolvedAuthDir
 	}
 	usagedb.Configure(usagedb.Options{
-		Enabled:       cfg.UsageDB.Enabled,
-		Path:          cfg.EffectiveUsageDBPath(),
-		RetentionDays: cfg.UsageDB.RetentionDays,
-		BufferSize:    cfg.UsageDB.BufferSize,
+		Enabled:          cfg.UsageDB.Enabled,
+		Path:             cfg.EffectiveUsageDBPath(),
+		RetentionDays:    cfg.UsageDB.RetentionDays,
+		BufferSize:       cfg.UsageDB.BufferSize,
+		HomeEnabled:      configLoadedFromHome || (cfg != nil && cfg.Home.Enabled),
+		PriceSyncEnabled: cfg.UsageDB.PriceSync.Enabled,
+		PriceSyncURL:     cfg.UsageDB.PriceSync.URL,
+		PriceSyncHours:   cfg.UsageDB.PriceSync.IntervalHours,
+		ProxyURL:         cfg.SDKConfig.ProxyURL,
 	})
 	githubauth.SetToken(cfg.GitHubToken)
 

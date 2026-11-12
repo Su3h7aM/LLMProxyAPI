@@ -15,4 +15,8 @@ const (
 	DefaultUsageDBRetentionDays = 90
 	// DefaultUsageDBBufferSize bounds the in-process usage writer channel.
 	DefaultUsageDBBufferSize = 4096
+	// DefaultPriceSyncURL is the public price source for the usage price book.
+	DefaultPriceSyncURL = "https://models.dev/api.json"
+	// DefaultPriceSyncIntervalHours re-syncs the price book once a day.
+	DefaultPriceSyncIntervalHours = 24
 )

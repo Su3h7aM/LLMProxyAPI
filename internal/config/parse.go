@@ -31,6 +31,7 @@ func ParseConfigBytes(data []byte) (*Config, error) {
 	cfg.UsageDB.Enabled = true
 	cfg.UsageDB.RetentionDays = DefaultUsageDBRetentionDays
 	cfg.UsageDB.BufferSize = DefaultUsageDBBufferSize
+	cfg.UsageDB.PriceSync.Enabled = true
 	cfg.DisableCooling = false
 	cfg.SaveCooldownStatus = false
 	cfg.TransientErrorCooldownSeconds = 0

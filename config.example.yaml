@@ -1305,6 +1305,16 @@ observability:
     retention-days: 90
     # In-process writer channel size. A size change needs a restart to take effect.
     # buffer-size: 4096
+    # Price book sync with models.dev (USD per 1M tokens). The first sync runs
+    # 30 s after start, then on the cadence below. A failed sync keeps the old
+    # prices and records the error. A manual price is never replaced by a sync.
+    price-sync:
+      # When true, sync prices. Default: true.
+      enabled: true
+      # Price source URL. Default: https://models.dev/api.json
+      # url: ""
+      # Sync cadence in hours. Default: 24.
+      # interval-hours: 24
 
   # Enable pprof HTTP debug server (host:port). Keep it bound to localhost for safety.
   pprof:
