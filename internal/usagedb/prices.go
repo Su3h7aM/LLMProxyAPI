@@ -19,10 +19,10 @@ const (
 
 // Cost sources stored in usage_events.cost_source.
 const (
-	CostSourceUpstream     = "upstream"
-	CostSourcePriceBook    = "price-book"
+	CostSourceUpstream      = "upstream"
+	CostSourcePriceBook     = "price-book"
 	CostSourcePriceBookLate = "price-book-late"
-	CostSourceNone         = "none"
+	CostSourceNone          = "none"
 )
 
 // Price tier kinds stored in model_price_tiers.kind.
@@ -31,10 +31,10 @@ const (
 	PriceTierService = "service"
 )
 
-// microPerMillion converts USD per 1M tokens to integer micro-USD per 1M
+// MicroPerMillion converts USD per 1M tokens to integer micro-USD per 1M
 // tokens. Floats are rounded half up; NaN and negative values become 0.
 // The integer form keeps cost math exact until the final per-event rounding.
-func microPerMillion(usdPerMillion float64) int64 {
+func MicroPerMillion(usdPerMillion float64) int64 {
 	if math.IsNaN(usdPerMillion) || math.IsInf(usdPerMillion, 0) || usdPerMillion <= 0 {
 		return 0
 	}
@@ -57,20 +57,20 @@ type PriceTier struct {
 // ValidToMs is nil for the current version. Reasoning is nil when reasoning
 // tokens are priced at the output rate.
 type Price struct {
-	ID           int64
-	ProviderKey  string
-	ModelID      string
-	ValidFromMs  int64
-	ValidToMs    *int64
-	Input        int64
-	Output       int64
-	CacheRead    int64
-	CacheWrite   int64
-	Reasoning    *int64
-	Source       string
-	SyncedAtMs   int64
-	Note         string
-	Tiers        []PriceTier
+	ID          int64
+	ProviderKey string
+	ModelID     string
+	ValidFromMs int64
+	ValidToMs   *int64
+	Input       int64
+	Output      int64
+	CacheRead   int64
+	CacheWrite  int64
+	Reasoning   *int64
+	Source      string
+	SyncedAtMs  int64
+	Note        string
+	Tiers       []PriceTier
 }
 
 // ratesFor resolves the rate set for one event: a service-tier override wins
@@ -432,8 +432,8 @@ func (s *Store) priceVersionCount() (int64, error) {
 	return count, nil
 }
 
-// pricesBySource counts current versions by source.
-func (s *Store) pricesBySource() (map[string]int64, error) {
+// PricesBySource counts current versions by source.
+func (s *Store) PricesBySource() (map[string]int64, error) {
 	counts := map[string]int64{}
 	rows, err := s.readDB.Query(`SELECT source, COUNT(*) FROM model_prices
 		WHERE valid_to_ms IS NULL GROUP BY source`)
@@ -559,6 +559,14 @@ func (s *Store) AddPriceVersion(price Price) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+// PriceVersion reads one price version with its tiers by id.
+func (s *Store) PriceVersion(id int64) (Price, error) {
+	if s == nil {
+		return Price{}, fmt.Errorf("usagedb: nil store")
+	}
+	return priceVersionRow(nil, s.readDB, id)
 }
 
 // priceVersionRow reads one price version with its tiers by id.

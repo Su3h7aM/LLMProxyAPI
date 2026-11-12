@@ -66,3 +66,29 @@ func TestParseConfigBytes_UsageDBDefaults(t *testing.T) {
 		t.Fatalf("nil EffectiveUsageDBPath() = %q, want %q", got, wantDefault)
 	}
 }
+
+func TestParseConfigBytes_UsageDBPriceSync(t *testing.T) {
+	v8YAML := []byte("config-version: 8\nobservability:\n  usage-db:\n    price-sync:\n      enabled: false\n      url: http://localhost:9999/prices\n      interval-hours: 6\n")
+	if errValidate := ValidateV8Config(v8YAML); errValidate != nil {
+		t.Fatalf("ValidateV8Config() error = %v", errValidate)
+	}
+	cfg, errParse := ParseConfigBytes(v8YAML)
+	if errParse != nil {
+		t.Fatalf("ParseConfigBytes(v8) error = %v", errParse)
+	}
+	sync := cfg.UsageDB.PriceSync
+	if sync.Enabled || sync.URL != "http://localhost:9999/prices" || sync.IntervalHours != 6 {
+		t.Fatalf("PriceSync = %+v, want {false http://localhost:9999/prices 6}", sync)
+	}
+}
+
+func TestParseConfigBytes_UsageDBPriceSyncDefaults(t *testing.T) {
+	cfg, errParse := ParseConfigBytes([]byte("config-version: 8\nserver:\n  port: 8317\n"))
+	if errParse != nil {
+		t.Fatalf("ParseConfigBytes(omitted) error = %v", errParse)
+	}
+	sync := cfg.UsageDB.PriceSync
+	if !sync.Enabled || sync.URL != DefaultPriceSyncURL || sync.IntervalHours != DefaultPriceSyncIntervalHours {
+		t.Fatalf("PriceSync = %+v, want enabled with models.dev default and 24h", sync)
+	}
+}

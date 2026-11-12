@@ -112,6 +112,13 @@ retain the corresponding business operation's fields.
 | `/observability/usage/api-keys` | GET | Get API-key usage. |
 | `/observability/usage/queue` | GET | Get queued usage events. |
 | `/observability/usage/status` | GET | Get embedded usage database status. |
+| `/observability/usage/prices` | GET, PUT | List current price versions; add a manual price version. |
+| `/observability/usage/prices/history?provider=&model=` | GET | List every price version of one model. |
+| `/observability/usage/prices/manual?provider=&model=` | DELETE | Close the manual price version (synced price applies again). |
+| `/observability/usage/prices/sync` | POST | Sync prices from models.dev now. |
+| `/observability/usage/prices/status` | GET | Get price sync state and models with no price. |
+| `/observability/usage/prices/price-unpriced` | POST | Fill cost for events with no cost. |
+| `/observability/usage/prices/correct` | POST | Audited cost correction for a date range. |
 | `/credentials` | GET, POST, DELETE | List, upload, or delete credential files. |
 | `/credentials/models` | GET | Get credential models. |
 | `/credentials/download` | GET | Download a credential file. |

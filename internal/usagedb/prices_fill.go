@@ -107,15 +107,15 @@ func (s *Store) fillBatch(afterID int64, scope FillScope, keyOnly *[2]string, so
 		return result, lastID, fmt.Errorf("usagedb: page unpriced events: %w", err)
 	}
 	type candidate struct {
-		id                                                    int64
-		tsMs                                                  int64
-		provider, model, alias, executor, serviceTier         string
+		id                                                     int64
+		tsMs                                                   int64
+		provider, model, alias, executor, serviceTier          string
 		input, output, reasoning, cacheRead, cacheWrite, total int64
-		hourMs                                                int64
-		authID, apiKeyID, statusClass                         string
-		stream                                                int64
-		price                                                 *Price
-		cost                                                  int64
+		hourMs                                                 int64
+		authID, apiKeyID, statusClass                          string
+		stream                                                 int64
+		price                                                  *Price
+		cost                                                   int64
 	}
 	var priced []candidate
 	defer func() { _ = rows.Close() }()
@@ -309,16 +309,16 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 	}
 	defer func() { _ = rows.Close() }()
 	type correction struct {
-		id                                                    int64
-		tsMs                                                  int64
-		provider, model, alias, executor, serviceTier         string
+		id                                                     int64
+		tsMs                                                   int64
+		provider, model, alias, executor, serviceTier          string
 		input, output, reasoning, cacheRead, cacheWrite, total int64
-		oldCost                                               sql.NullInt64
-		hourMs                                                int64
-		authID, apiKeyID, statusClass                         string
-		stream                                                int64
-		newCost                                               int64
-		priceID                                               int64
+		oldCost                                                sql.NullInt64
+		hourMs                                                 int64
+		authID, apiKeyID, statusClass                          string
+		stream                                                 int64
+		newCost                                                int64
+		priceID                                                int64
 	}
 	var events []correction
 	for rows.Next() {

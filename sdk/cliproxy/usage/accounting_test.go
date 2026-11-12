@@ -220,3 +220,27 @@ func TestNewSeparateReasoningTokenBreakdown_RejectsArithmeticOverflow(t *testing
 		t.Fatalf("uncached tokens negative: %d", b.Input.UncachedTokens)
 	}
 }
+
+func TestPricedBucketsSubsetAvoidsDoubleCount(t *testing.T) {
+	detail := Detail{
+		InputTokens:         100,
+		CacheReadTokens:     40,
+		CacheCreationTokens: 10,
+		OutputTokens:        30,
+		ReasoningTokens:     12,
+		TotalTokens:         130,
+	}
+	input, read, write, output, reasoning := detail.PricedBuckets("codex", "codex")
+	if input != 50 || read != 40 || write != 10 || output != 18 || reasoning != 12 {
+		t.Fatalf("buckets = (%d, %d, %d, %d, %d), want (50, 40, 10, 18, 12)",
+			input, read, write, output, reasoning)
+	}
+}
+
+func TestPricedBucketsUnknownProviderPricedAsInput(t *testing.T) {
+	detail := Detail{InputTokens: 7, OutputTokens: 5, TotalTokens: 12}
+	input, _, _, output, _ := detail.PricedBuckets("mystery", "mystery")
+	if input != 12 || output != 0 {
+		t.Fatalf("buckets = (%d, %d), want (12, 0)", input, output)
+	}
+}

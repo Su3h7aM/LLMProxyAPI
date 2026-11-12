@@ -33,15 +33,15 @@ func (Collector) HandleUsage(_ context.Context, record coreusage.Record) {
 
 // Options configures the package-level collector state.
 type Options struct {
-	Enabled            bool
-	Path               string
-	RetentionDays      int
-	BufferSize         int
-	HomeEnabled        bool
-	PriceSyncEnabled   bool
-	PriceSyncURL       string
-	PriceSyncHours     int
-	ProxyURL           string
+	Enabled          bool
+	Path             string
+	RetentionDays    int
+	BufferSize       int
+	HomeEnabled      bool
+	PriceSyncEnabled bool
+	PriceSyncURL     string
+	PriceSyncHours   int
+	ProxyURL         string
 }
 
 var (

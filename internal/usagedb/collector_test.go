@@ -113,3 +113,18 @@ func TestPruneOnce(t *testing.T) {
 		t.Fatal("last prune timestamp is 0")
 	}
 }
+
+func TestCollectorHomeModeDisablesPersistence(t *testing.T) {
+	Shutdown(5 * time.Second)
+	path := ""
+	Configure(Options{Enabled: true, Path: path, RetentionDays: 90, BufferSize: 64, HomeEnabled: true})
+	t.Cleanup(func() { Shutdown(5 * time.Second) })
+	if Enabled() {
+		t.Fatal("collector enabled in Home mode, want disabled (usage forwards to Home)")
+	}
+	Collector{}.HandleUsage(t.Context(), testRecord())
+	time.Sleep(200 * time.Millisecond)
+	if status := Status(); status.Events != 0 {
+		t.Fatalf("events = %d, want 0 in Home mode", status.Events)
+	}
+}

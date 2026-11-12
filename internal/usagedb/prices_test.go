@@ -21,17 +21,17 @@ func TestMicroPerMillionRoundsHalfUp(t *testing.T) {
 		{-1, 0},
 	}
 	for _, test := range cases {
-		if got := microPerMillion(test.usd); got != test.want {
-			t.Errorf("microPerMillion(%v) = %d, want %d", test.usd, got, test.want)
+		if got := MicroPerMillion(test.usd); got != test.want {
+			t.Errorf("MicroPerMillion(%v) = %d, want %d", test.usd, got, test.want)
 		}
 	}
 }
 
 func TestComputeCostBuckets(t *testing.T) {
 	price := Price{
-		Input:     1000000, // 1 USD per 1M
-		Output:    2000000,
-		CacheRead: 100000,
+		Input:      1000000, // 1 USD per 1M
+		Output:     2000000,
+		CacheRead:  100000,
 		CacheWrite: 200000,
 	}
 	// 1M uncached input + 1M output = 3 USD = 3000000 micro.
@@ -222,4 +222,3 @@ func TestPriceAppendOnlyGuard(t *testing.T) {
 		t.Fatalf("first version valid_to = %+v, want 2000 (closed exactly once)", validTo)
 	}
 }
-

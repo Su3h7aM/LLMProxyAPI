@@ -93,13 +93,13 @@ type modelsDevTier struct {
 // are USD per 1M tokens. Audio rates are parsed but not stored: usage rows
 // carry no audio token buckets.
 type modelsDevCost struct {
-	Input          *float64        `json:"input"`
-	Output         *float64        `json:"output"`
-	CacheRead      *float64        `json:"cache_read"`
-	CacheWrite     *float64        `json:"cache_write"`
-	Reasoning      *float64        `json:"reasoning"`
-	Tiers          []modelsDevTier `json:"tiers"`
-	ContextOver200k *modelsDevTier `json:"context_over_200k"`
+	Input           *float64        `json:"input"`
+	Output          *float64        `json:"output"`
+	CacheRead       *float64        `json:"cache_read"`
+	CacheWrite      *float64        `json:"cache_write"`
+	Reasoning       *float64        `json:"reasoning"`
+	Tiers           []modelsDevTier `json:"tiers"`
+	ContextOver200k *modelsDevTier  `json:"context_over_200k"`
 }
 
 // modelsDevModel is one entry of a models.dev provider models map.
@@ -149,13 +149,13 @@ func ParseModelsDev(data []byte) ([]syncedModel, error) {
 			price := Price{
 				ProviderKey: provider,
 				ModelID:     id,
-				Input:       microPerMillion(*cost.Input),
-				Output:      microPerMillion(*cost.Output),
-				CacheRead:   microPerMillion(orZero(cost.CacheRead)),
-				CacheWrite:  microPerMillion(orZero(cost.CacheWrite)),
+				Input:       MicroPerMillion(*cost.Input),
+				Output:      MicroPerMillion(*cost.Output),
+				CacheRead:   MicroPerMillion(orZero(cost.CacheRead)),
+				CacheWrite:  MicroPerMillion(orZero(cost.CacheWrite)),
 			}
 			if cost.Reasoning != nil {
-				price.Reasoning = int64PtrCopy(microPerMillion(*cost.Reasoning))
+				price.Reasoning = int64PtrCopy(MicroPerMillion(*cost.Reasoning))
 			}
 			for _, tier := range cost.Tiers {
 				converted, ok := convertModelsDevTier(tier)
@@ -214,16 +214,16 @@ func convertModelsDevTier(tier modelsDevTier) (PriceTier, bool) {
 	}
 	converted := PriceTier{Kind: PriceTierContext, Threshold: *tier.Tier.Size}
 	if tier.Input != nil {
-		converted.Input = int64PtrCopy(microPerMillion(*tier.Input))
+		converted.Input = int64PtrCopy(MicroPerMillion(*tier.Input))
 	}
 	if tier.Output != nil {
-		converted.Output = int64PtrCopy(microPerMillion(*tier.Output))
+		converted.Output = int64PtrCopy(MicroPerMillion(*tier.Output))
 	}
 	if tier.CacheRead != nil {
-		converted.CacheRead = int64PtrCopy(microPerMillion(*tier.CacheRead))
+		converted.CacheRead = int64PtrCopy(MicroPerMillion(*tier.CacheRead))
 	}
 	if tier.CacheWrite != nil {
-		converted.CacheWrite = int64PtrCopy(microPerMillion(*tier.CacheWrite))
+		converted.CacheWrite = int64PtrCopy(MicroPerMillion(*tier.CacheWrite))
 	}
 	if converted.Input == nil && converted.Output == nil &&
 		converted.CacheRead == nil && converted.CacheWrite == nil {
