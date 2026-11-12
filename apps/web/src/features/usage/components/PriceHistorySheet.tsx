@@ -57,7 +57,7 @@ export function PriceHistoryTable({
             <TableCell>
               {version.valid_from_ms > 0
                 ? formatDateTimeValue(version.valid_from_ms, locale)
-                : t('usage_prices.sync.never')}
+                : t('usage_prices.history.start_of_time')}
             </TableCell>
             <TableCell>
               {version.valid_to_ms === null

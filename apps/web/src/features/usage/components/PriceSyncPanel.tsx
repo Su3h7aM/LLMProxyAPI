@@ -66,7 +66,7 @@ export function PriceSyncPanel({
           <div className={styles.summaryLabel}>{t('usage_prices.sync.counts')}</div>
           <div className={styles.summaryValue}>
             {counts.length === 0
-              ? t('usage_prices.table.empty_title')
+              ? t('usage_prices.sync.counts_empty')
               : counts
                   .map(([source, count]) =>
                     t('usage_prices.sync.counts_value', { source, count })

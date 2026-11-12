@@ -161,7 +161,7 @@ export function PricesTable({
                 <TableCell>
                   {price.valid_from_ms > 0
                     ? formatDateTimeValue(price.valid_from_ms, locale)
-                    : t('usage_prices.sync.never')}
+                    : t('usage_prices.table.start_of_time')}
                 </TableCell>
                 <TableCell>
                   {price.synced_at_ms > 0

@@ -30,7 +30,8 @@
       "config_disabled": "已禁用",
       "config_interval": "每 {{hours}} 小时",
       "config_url": "来源：{{url}}",
-      "config_readonly": "此处只读。请在配置中更改。"
+      "config_readonly": "此处只读。请在配置中更改。",
+      "counts_empty": "暂无当前版本"
     },
     "filters": {
       "provider": "提供方",
@@ -61,7 +62,8 @@
       "page": "第 {{page}} / {{pages}} 页",
       "previous": "上一页",
       "next": "下一页",
-      "loading": "正在加载价格..."
+      "loading": "正在加载价格...",
+      "start_of_time": "从最初开始"
     },
     "actions": {
       "edit": "编辑",
@@ -119,7 +121,8 @@
       "reasoning": "推理",
       "empty": "暂无版本",
       "error": "无法加载历史。",
-      "loading": "正在加载历史..."
+      "loading": "正在加载历史...",
+      "start_of_time": "从最初开始"
     },
     "unmatched": {
       "title": "无价格的模型",

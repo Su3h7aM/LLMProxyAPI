@@ -30,7 +30,8 @@
       "config_disabled": "Disabled",
       "config_interval": "Every {{hours}} hours",
       "config_url": "Source: {{url}}",
-      "config_readonly": "Read-only here. Change it in Config."
+      "config_readonly": "Read-only here. Change it in Config.",
+      "counts_empty": "No current versions"
     },
     "filters": {
       "provider": "Provider",
@@ -61,7 +62,8 @@
       "page": "Page {{page}} of {{pages}}",
       "previous": "Previous",
       "next": "Next",
-      "loading": "Loading prices..."
+      "loading": "Loading prices...",
+      "start_of_time": "From the start"
     },
     "actions": {
       "edit": "Edit",
@@ -119,7 +121,8 @@
       "reasoning": "Reasoning",
       "empty": "No versions",
       "error": "Could not load the history.",
-      "loading": "Loading history..."
+      "loading": "Loading history...",
+      "start_of_time": "From the start"
     },
     "unmatched": {
       "title": "Models with no price",

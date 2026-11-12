@@ -30,7 +30,8 @@
       "config_disabled": "已停用",
       "config_interval": "每 {{hours}} 小時",
       "config_url": "來源：{{url}}",
-      "config_readonly": "此處唯讀。請在設定中變更。"
+      "config_readonly": "此處唯讀。請在設定中變更。",
+      "counts_empty": "尚無目前版本"
     },
     "filters": {
       "provider": "提供者",
@@ -61,7 +62,8 @@
       "page": "第 {{page}} / {{pages}} 頁",
       "previous": "上一頁",
       "next": "下一頁",
-      "loading": "正在載入價格..."
+      "loading": "正在載入價格...",
+      "start_of_time": "從最初開始"
     },
     "actions": {
       "edit": "編輯",
@@ -119,7 +121,8 @@
       "reasoning": "推理",
       "empty": "尚無版本",
       "error": "無法載入歷史。",
-      "loading": "正在載入歷史..."
+      "loading": "正在載入歷史...",
+      "start_of_time": "從最初開始"
     },
     "unmatched": {
       "title": "無價格的模型",
