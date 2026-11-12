@@ -152,17 +152,17 @@ func (h *Handler) GetUsageSummary(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"range":        gin.H{"from_ms": filter.FromMs, "to_ms": filter.ToMs},
-		"totals":       toCountersJSON(summary.Totals),
-		"previous":     toCountersJSON(summary.Previous),
-		"latency":      gin.H{"p50_ms": summary.P50Ms, "p95_ms": summary.P95Ms, "source": summary.LatencySource},
+		"range":          gin.H{"from_ms": filter.FromMs, "to_ms": filter.ToMs},
+		"totals":         toCountersJSON(summary.Totals),
+		"previous":       toCountersJSON(summary.Previous),
+		"latency":        gin.H{"p50_ms": summary.P50Ms, "p95_ms": summary.P95Ms, "source": summary.LatencySource},
 		"first_event_ms": summary.FirstEventMs,
 	})
 }
 
 // usagePointJSON is one bucket with counters.
 type usagePointJSON struct {
-	TsMs     int64              `json:"ts_ms"`
+	TsMs     int64             `json:"ts_ms"`
 	Counters usageCountersJSON `json:"counters"`
 }
 
@@ -329,39 +329,39 @@ func (h *Handler) usageGroupMeta(store *usagedb.Store, filter usagedb.UsageFilte
 
 // usageEventJSON is one event for lists, detail, failures, and export.
 type usageEventJSON struct {
-	ID               int64   `json:"id"`
-	RequestID        string  `json:"request_id"`
-	TraceID          string  `json:"trace_id"`
-	TsMs             int64   `json:"ts_ms"`
-	Provider         string  `json:"provider"`
-	Model            string  `json:"model"`
-	Alias            string  `json:"alias"`
-	Executor         string  `json:"executor"`
-	AuthID           string  `json:"auth_id"`
-	AuthType         string  `json:"auth_type"`
-	AccountLabel     string  `json:"account_label"`
-	APIKeyID         string  `json:"api_key_id"`
-	APIKeyLabel      string  `json:"api_key_label"`
-	Stream           bool    `json:"stream"`
-	StatusClass      string  `json:"status_class"`
-	Failed           bool    `json:"failed"`
-	FailCode         string  `json:"fail_code"`
-	FailSummary      string  `json:"fail_summary,omitempty"`
-	LatencyMs        int64   `json:"latency_ms"`
-	TTFTMs           int64   `json:"ttft_ms"`
-	InputTokens      int64   `json:"input_tokens"`
-	OutputTokens     int64   `json:"output_tokens"`
-	ReasoningTokens  int64   `json:"reasoning_tokens"`
-	CacheReadTokens  int64   `json:"cache_read_tokens"`
-	CacheWriteTokens int64   `json:"cache_write_tokens"`
-	TotalTokens      int64   `json:"total_tokens"`
-	ServiceTier      string  `json:"service_tier"`
-	ReasoningEffort  string  `json:"reasoning_effort"`
-	CostMicroUSD     *int64  `json:"cost_micro_usd"`
-	CostSource       string  `json:"cost_source"`
-	SessionID        string  `json:"session_id,omitempty"`
-	AuthIndex        string  `json:"auth_index,omitempty"`
-	AccessProvider   string  `json:"access_provider,omitempty"`
+	ID               int64  `json:"id"`
+	RequestID        string `json:"request_id"`
+	TraceID          string `json:"trace_id"`
+	TsMs             int64  `json:"ts_ms"`
+	Provider         string `json:"provider"`
+	Model            string `json:"model"`
+	Alias            string `json:"alias"`
+	Executor         string `json:"executor"`
+	AuthID           string `json:"auth_id"`
+	AuthType         string `json:"auth_type"`
+	AccountLabel     string `json:"account_label"`
+	APIKeyID         string `json:"api_key_id"`
+	APIKeyLabel      string `json:"api_key_label"`
+	Stream           bool   `json:"stream"`
+	StatusClass      string `json:"status_class"`
+	Failed           bool   `json:"failed"`
+	FailCode         string `json:"fail_code"`
+	FailSummary      string `json:"fail_summary,omitempty"`
+	LatencyMs        int64  `json:"latency_ms"`
+	TTFTMs           int64  `json:"ttft_ms"`
+	InputTokens      int64  `json:"input_tokens"`
+	OutputTokens     int64  `json:"output_tokens"`
+	ReasoningTokens  int64  `json:"reasoning_tokens"`
+	CacheReadTokens  int64  `json:"cache_read_tokens"`
+	CacheWriteTokens int64  `json:"cache_write_tokens"`
+	TotalTokens      int64  `json:"total_tokens"`
+	ServiceTier      string `json:"service_tier"`
+	ReasoningEffort  string `json:"reasoning_effort"`
+	CostMicroUSD     *int64 `json:"cost_micro_usd"`
+	CostSource       string `json:"cost_source"`
+	SessionID        string `json:"session_id,omitempty"`
+	AuthIndex        string `json:"auth_index,omitempty"`
+	AccessProvider   string `json:"access_provider,omitempty"`
 }
 
 func toEventJSON(event usagedb.UsageEvent, keyLabel string) usageEventJSON {
@@ -462,7 +462,7 @@ func (h *Handler) GetUsageEvent(c *gin.Context) {
 		"fail_code": item.FailCode, "fail_summary": item.FailSummary,
 		"latency_ms": item.LatencyMs, "ttft_ms": item.TTFTMs,
 		"input_tokens": item.InputTokens, "output_tokens": item.OutputTokens,
-		"reasoning_tokens": item.ReasoningTokens,
+		"reasoning_tokens":  item.ReasoningTokens,
 		"cache_read_tokens": item.CacheReadTokens, "cache_write_tokens": item.CacheWriteTokens,
 		"total_tokens": item.TotalTokens,
 		"service_tier": item.ServiceTier, "reasoning_effort": item.ReasoningEffort,

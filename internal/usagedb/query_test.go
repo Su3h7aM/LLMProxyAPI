@@ -32,7 +32,7 @@ func mustFilterErr(t *testing.T, raw string, nowMs int64) {
 	}
 }
 
-func intPtr(value int64) *int64 { return &value }
+func intPtr(value int64) *int64   { return &value }
 func strPtr(value string) *string { return &value }
 
 func seedRow(id string, ts int64) UsageRow {
@@ -44,7 +44,7 @@ func seedRow(id string, ts int64) UsageRow {
 		LatencyMs: 100, TTFTMs: 30,
 		InputTokens: 10, OutputTokens: 20, ReasoningTokens: 0,
 		CacheReadTokens: 0, CacheWriteTokens: 0, TotalTokens: 30,
-		ServiceTier: "default",
+		ServiceTier:          "default",
 		UpstreamCostMicroUSD: intPtr(100),
 	}
 }
@@ -506,7 +506,7 @@ func TestQueryDayBucketsDST(t *testing.T) {
 	// start and no row is lost.
 	cases := map[string]string{
 		"America/Sao_Paulo": "2024-11-03",
-		"Europe/Berlin":    "2024-10-27",
+		"Europe/Berlin":     "2024-10-27",
 	}
 	for tz, day := range cases {
 		loc, err := time.LoadLocation(tz)

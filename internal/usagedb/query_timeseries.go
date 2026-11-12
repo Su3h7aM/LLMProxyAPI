@@ -110,13 +110,13 @@ func bucketOfHour(kind string, loc *time.Location, hourMs int64) int64 {
 
 // hourlyAggRow is one grouped hourly row before bucketing.
 type hourlyAggRow struct {
-	hourMs                                            int64
-	group                                             string
-	requests, failures                                int64
-	input, output, reasoning                          int64
-	cacheRead, cacheWrite                              int64
-	cost, estimated, unpriced                         int64
-	latencySum, latencyMax, ttftSum, ttftCount        int64
+	hourMs                                     int64
+	group                                      string
+	requests, failures                         int64
+	input, output, reasoning                   int64
+	cacheRead, cacheWrite                      int64
+	cost, estimated, unpriced                  int64
+	latencySum, latencyMax, ttftSum, ttftCount int64
 }
 
 // fetchHourlyAgg reads grouped hourly sums for the filter. groupBy is "" for
@@ -378,7 +378,7 @@ func (s *Store) QueryTimeseries(f UsageFilter, bucket, groupBy string, top int) 
 
 // BreakdownItem is one group with its counters and its share of requests.
 type BreakdownItem struct {
-	Key  string
+	Key   string
 	Share float64
 	UsageCounters
 }
@@ -583,7 +583,6 @@ func (s *Store) QuerySummary(f UsageFilter) (SummaryResult, error) {
 	previous := f
 	previous.FromMs = f.FromMs - span
 	previous.ToMs = f.FromMs
-	previous.Q = ""
 	previousTotals, err := s.countersFromHourly(previous)
 	if err != nil {
 		return result, err

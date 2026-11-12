@@ -177,21 +177,19 @@ func (s *Store) PruneOlderThan(cutoffMs int64) (int64, error) {
 	}
 }
 
-// PruneNow runs retention on the active store now. Retention 0 or below
-// keeps all rows and deletes nothing. It returns the deleted row count.
-func PruneNow(nowMs int64) (int64, error) {
-	mu.Lock()
-	db := collectorDB
-	mu.Unlock()
-	if db == nil {
-		return 0, fmt.Errorf("usagedb: usage database is disabled")
+// PruneRetention runs retention on this store now: raw events older than the
+// retention window go in batches, rollups stay. Retention 0 or below keeps
+// all rows. It records the prune time and returns the deleted row count.
+func (s *Store) PruneRetention(nowMs int64) (int64, error) {
+	if s == nil {
+		return 0, fmt.Errorf("usagedb: nil store")
 	}
 	days := collectorDays.Load()
 	if days <= 0 {
 		return 0, nil
 	}
 	const dayMs = int64(24 * 60 * 60 * 1000)
-	deleted, err := db.PruneOlderThan(nowMs - days*dayMs)
+	deleted, err := s.PruneOlderThan(nowMs - days*dayMs)
 	if err != nil {
 		return deleted, err
 	}
