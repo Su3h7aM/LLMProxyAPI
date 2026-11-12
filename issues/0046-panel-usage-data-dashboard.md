@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0046-panel-usage-data-dashboard
 type: panel
 agent: deepseek-v4.1-flash
@@ -60,6 +60,16 @@ Do NOT do in this issue: the Usage page (0047), the prices page, maintenance UI 
 3. At the end: `status: done`, fill `## Result` (what landed, how to use the client and hooks, known gaps), commit, report. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- 2026-11-11: Branch `issue/0046-panel-usage-data-dashboard`
+  created from `main` at `6f2a837d`. Working from
+  `docs/usage-api-contract.md` with mocked responses; the Go routes of
+  issue 0045 are not in this checkout. Read the existing v8 shapes of
+  `/observability/usage/status` and the price routes in the Go handlers
+  (`usage_db_status.go`, `usage_prices.go`) so the types match what the
+  backend serves now.
+- 2026-11-11: The `/usage` route is absent from `MainRoutes.tsx`, so the
+  dashboard section has no Usage page link. Listed under Follow-ups.
 
 ## Follow-ups
 
