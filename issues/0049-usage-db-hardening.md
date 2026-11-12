@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0049-usage-db-hardening
 type: backend (Go, security and performance)
 agent: muse-spark-1.3-contributor
@@ -64,7 +64,9 @@ Fix four findings from the review of issues 0043 to 0045 before the usage DB shi
 
 - Smoke in `/tmp/smoke0049` (binary from this branch, stub upstream on 18993 with short key `stub-upstream-key`, server on 18318, temp auth dir, fresh DB): 2x `POST /v1/chat/completions` model `stub-ok` (200) + 1x `stub-fail` (500, error body echoes an `sk-` token, a `Bearer` token, and an `api_key` query value). Status: schema 5, 3 events, buffer flushed. Summary totals 3 requests / 1 failure match the events page. `account_label` is empty on all rows (the 0045 short-key leak is fixed at the source). Failed row is `5xx`, never `2xx`. Detail `fail_summary` shows `[redacted]` for all three secrets and no raw key. Byte scan (`grep -a -c`) over `usage.db`, `usage.db-wal`, `usage.db-shm`: 0 hits for the client key, the short upstream key, the `sk-` token, the `Bearer` token, and the query secret; `[redacted]` present in the WAL. First stub draft echoed the bare short key in the body (`for stub-upstream-key`); the scrubber per the issue pattern list cannot redact a bare short word (indistinguishable from prose), so the stub drops it: the body echoes only token-shaped secrets, and the short key is covered through the Source path. Both processes stopped after (`pgrep` confirms none left).
 
-- Open question for the coordinator (no decision taken): summary-120d at around 1M events cannot meet 300 ms with exact percentiles (two 1M-row sorts in pure-Go SQLite). Options: (a) skip exact percentiles for wide ranges (e.g. span over 7 days returns null/`hourly` without counting), (b) accept the boundary cost (above 1M the gate already returns null fast; below it the cost is bounded by the match count). The contract percentile row only promises 7d/1M under 1s and null above the limit.
+- Coordinator decision on the open question (option a): exact percentiles run only when the matching events are at most 250,000 (`maxExactPercentileRows`, documented in code and contract). Above that, `p50_ms`/`p95_ms` are null with `source:"hourly"`; the bounded-cost rule stays. Changed the constant (1,000,000 to 250,000), the contract summary text, and the performance table row. No unit test pinned the old limit (all percentile fixtures are far below it; over-limit branches use shrunk limits). Rerun numbers (warm, day-aligned 120d): uniform summary 120d 21ms (was 3.33s; gate skips count and sorts), summary 7d exact 223ms; realistic summary 120d 14ms (was 6.49s), summary 7d exact 351ms. All other rerun rows unchanged within noise (timeseries ~35/23ms, breakdown ~34/22ms, events ~8/5ms, failures ~16/17ms, heatmap ~60/18ms). Every target now holds on both profiles.
+
+- Open question for the coordinator, resolved by the decision above (kept for history): summary-120d at around 1M events could not meet 300 ms with exact percentiles (two 1M-row sorts in pure-Go SQLite). Options were: (a) skip exact percentiles for wide ranges, (b) accept the boundary cost. The contract percentile row only promised 7d/1M under 1s and null above the limit.
 
 ## Follow-ups
 
@@ -88,14 +90,14 @@ Benchmark numbers (warm; targets: summary/timeseries/breakdown 300 ms no percent
 
 | Route | Uniform (365k hourly) | Realistic (86k hourly) |
 |---|---|---|
-| summary 120d | 3.33s MISS | 6.49s MISS |
-| summary 7d percentiles | 223ms PASS | 378ms PASS |
-| timeseries day grouped | 35ms PASS | 22ms PASS |
+| summary 120d | 21ms PASS | 14ms PASS |
+| summary 7d percentiles | 223ms PASS | 351ms PASS |
+| timeseries day grouped | 35ms PASS | 23ms PASS |
 | breakdown model | 34ms PASS | 22ms PASS |
-| events page | 7ms PASS | 4ms PASS |
-| failures 30d | ~15ms PASS | ~17ms PASS |
-| heatmap 30d | ~63ms PASS | ~18ms PASS |
+| events page | 8ms PASS | 5ms PASS |
+| failures 30d | ~16ms PASS | ~17ms PASS |
+| heatmap 30d | ~60ms PASS | ~18ms PASS |
 
-The two summary misses share one cause: exact P50/P95 at exactly 1M events needs two 1M-row sorts (~3s uniform, ~6.5s realistic). Above 1M the gate returns null fast; the boundary pays the sorts. See the open question in the Log.
+Coordinator decision after the first run (option a): exact percentiles only up to 250,000 matching events; above, null with `source:"hourly"`. The 120d fixture holds 1M events, so the gate now skips the count and both sorts. Every target holds on both profiles.
 
-Known gaps: summary-120d exact percentiles at the 1M boundary (question above); the uniform worst case is reported only per the issue; panel status lists may need the new `error` class (Follow-ups).
+Known gaps: none in the listed scope. The uniform worst case is reported only per the issue; panel status lists may need the new `error` class (Follow-ups).
