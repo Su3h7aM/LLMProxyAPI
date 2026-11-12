@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0047-panel-usage-page
 type: panel
 agent: muse-spark-1.3-contributor
@@ -81,6 +81,41 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
   lint, area tests, `tokens:check` pass. Full `verify` has one failure
   in `versionFailure.test.ts` that also fails on clean `main`
   (pre-existing full-run flake, unrelated).
+- 2026-11-12: Steps 6 and 7 land in one commit (failures groups and
+  recent list; heatmap with metric switch and ARIA grid), plus the
+  event drawer both sections share. Price-block rates are micro-USD
+  per 1M tokens (confirmed in `internal/usagedb/prices.go`), so the
+  drawer shows them as `$X / 1M`. Gate: type-check, lint, area tests
+  pass.
+- 2026-11-12: Step 8 lands (events table with cursor paging, debounced
+  search, export; `mergeEventsPages` and `displayKeyLabel` pure and
+  tested; detail view render covered). Timer lengths use named
+  duration tokens (`ts-inline-timer` guard). Gate: type-check, lint,
+  area tests, `tokens:check` pass.
+- 2026-11-12: Manual check vs the real server (commit `9c1b4bb0`
+  context below). No proxy capture wiring exists in this checkout
+  (collector is configured but no request path records yet; 0045/0049
+  territory), so traffic was seeded by hand: 3 raw events plus
+  matching hourly rows, one manual price, one key label. Commands:
+  `/usr/bin/go build -o /tmp/usage0047/llmproxy ./cmd/server` from the
+  repo root; `bun run build` plus copy to `dist/management.html`;
+  server with a temp config and auth dir in `/tmp/usage0047`;
+  `curl` with the management key against every route. Results: status,
+  summary (zero and seeded totals with estimate and unpriced marks,
+  p50/p95 with `source:"events"`), timeseries (auto bucket `hour`,
+  zero-filled gaps, top-5 groups), breakdown (model, provider,
+  credential, api_key, status_class with share and meta), events list,
+  event detail (all fields, fail summary, price version, cost source),
+  failures (groups and recent with `fail_summary`), heatmap, JSONL
+  export with `Content-Disposition` filename, key labels GET and PUT,
+  panel asset `200` (3.5 MB), unknown route `404`. All shapes match
+  `docs/usage-api-contract.md`. Two notes: (1) seeded `price_id: 1`
+  resolves to an embedded-snapshot row of another model, so the drawer
+  showed a foreign price block; production rows point at their own
+  version, and the panel only displays what the API sends. (2) Keyless
+  traffic is labeled `key-` by the backend; the panel now shows a dash
+  there (`displayKeyLabel`, commit `9c1b4bb0`). No server process left
+  running; seed data lives only in `/tmp/usage0047`.
 - 2026-11-12: Step 5 lands (breakdown tabs with contract sort keys,
   limit and offset paging, row-click filters, inline key-label edit
   with optimistic update and rollback). Found and fixed a duplicate
@@ -93,5 +128,37 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
   One refresh generation reloads every section.
 
 ## Follow-ups
+
+- Visual check not done: no browser is available to this agent. The
+  page renders (build passes, SSR render tests cover every section),
+  but spacing, the heatmap grid, the drawer, and the 360 px layout
+  need a human look before merge.
+- Optional: show stale dashboard usage data with an inline error on
+  poll failure (carried over from 0046).
+- The `versionFailure.test.ts` full-run flake fails on clean `main`
+  too; it is unrelated to this issue but blocks a clean `verify`.
+
+## Result
+
+The Usage page is complete at route `/usage` with a sidebar item and a
+dashboard link. One filter bar (range presets 1h to 90d plus custom
+date-time range, provider, model, credential, API key, status, stream,
+chips, reset) shares `useUsageFilterStore` with the dashboard. Below
+it: six summary cards, a timeline with metric switch and top-5-plus
+grouping, breakdown tabs with sort and paging and inline key-label
+edit, failures with row-click filters and recent list, an hour-of-week
+heatmap, and an events table with search, load more, export, and a
+detail drawer. States: skeletons, empty, disabled (503 with the
+`observability.usage-db.enabled` pointer), error with retry, and
+per-section errors that never blank the page. Locales `en`, `zh-CN`,
+`zh-TW`, `ru` hold the `usage_page` namespace; no raw key is ever
+rendered. Removed: the old `src/pages/UsagePage`, its request guard,
+`types/usage`, `utils/usageStats`, and `getStatisticsEnabled`.
+
+Gate: `type-check`, `lint`, `build`, `tokens:check` pass; 2167 tests
+pass with one pre-existing full-run flake (`versionFailure`, also red
+on clean `main`). Manual check ran against the real server with
+hand-seeded rows (see Log): every route shape matches
+`docs/usage-api-contract.md`, and the panel asset serves.
 
 ## Result
