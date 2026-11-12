@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0044-usage-prices-cost
 type: backend (Go)
 agent: muse-spark-1.3-contributor
@@ -56,6 +56,8 @@ Add cost to the usage DB (issue 0043 is merged). Read `docs/usage-statistics-des
 3. At the end: `status: done`, fill `## Result` (what landed, schema, config, route JSON examples, known gaps, list of models seen in the registry with no price match), commit, report. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- 2026-11-12: Read issue, design doc, `store.go`, `insert.go`, `writer.go`, `collector.go`, `redact.go`, `detail.go`. Rebased onto `main` (775b5908, late pricing rule). Created branch `issue/0044-usage-prices-cost`. Status in-progress.
 
 ## Follow-ups
 
