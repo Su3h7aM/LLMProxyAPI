@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0048-panel-prices-maintenance
 type: panel
 agent: deepseek-v4.1-flash
