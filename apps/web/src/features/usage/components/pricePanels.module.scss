@@ -1,0 +1,129 @@
+@use '../../../styles/mixins' as *;
+
+.panel {
+  min-width: 0;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($size-160, 1fr));
+  gap: $space-16;
+}
+
+.summaryItem {
+  min-width: 0;
+}
+
+.summaryLabel {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+.summaryValue {
+  color: var(--text-primary);
+  font-size: $font-size-14;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: $font-family-mono;
+  font-size: $font-size-12;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-8;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($size-200, 1fr));
+  gap: $space-12;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.hint {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+}
+
+.errorText {
+  color: var(--error-color);
+  font-size: $font-size-12;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-8;
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+
+  > :first-child {
+    flex: 0 0 auto;
+    color: var(--warning-color);
+  }
+}
+
+.inlineList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  border-top: $border-width-1 solid var(--border-color);
+}
+
+.listRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-12;
+  padding: $space-10 0;
+  border-bottom: $border-width-1 solid var(--border-color);
+}
+
+.listPrimary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 $size-200;
+}
+
+.listModel {
+  font-family: $font-family-mono;
+  font-size: $font-size-13;
+  overflow-wrap: anywhere;
+}
+
+.listMeta {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+.cellStack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.cellMain {
+  font-variant-numeric: tabular-nums;
+}
+
+.cellSub {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+

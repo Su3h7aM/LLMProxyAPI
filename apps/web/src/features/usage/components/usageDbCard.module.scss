@@ -1,0 +1,75 @@
+@use '../../../styles/mixins' as *;
+
+.card {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+  line-height: $line-height-1-5;
+  margin: 0 0 $space-12;
+}
+
+.disabled {
+  border: $border-width-1 solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: $space-16;
+  background: var(--bg-secondary);
+}
+
+.disabledTitle {
+  font-size: $font-size-14;
+  font-weight: $font-weight-600;
+  margin-bottom: $space-6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($size-160, 1fr));
+  gap: $space-16;
+  margin: $space-8 0 $space-16;
+}
+
+.item {
+  min-width: 0;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+.value {
+  color: var(--text-primary);
+  font-size: $font-size-13;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-8;
+}
+
+.errorText {
+  color: var(--error-color);
+  font-size: $font-size-13;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-8;
+  padding-top: $space-12;
+  border-top: $border-width-1 solid var(--border-color);
+}
+
+.result {
+  color: var(--text-secondary);
+  font-size: $font-size-13;
+  margin-top: $space-8;
+}

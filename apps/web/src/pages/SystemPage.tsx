@@ -48,6 +48,7 @@ import iconDeepseek from '@/assets/icons/deepseek.svg';
 import iconMinimax from '@/assets/icons/minimax.svg';
 import styles from './SystemPage.module.scss';
 import { iconSize } from '@/design-system';
+import { UsageDbCard } from '@/features/usage/components/UsageDbCard';
 
 const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: string }> = {
   devin: { light: iconDevinLight, dark: iconDevinDark },
@@ -551,6 +552,8 @@ export function SystemPage() {
             </div>
           )}
         </Card>
+
+        <UsageDbCard />
 
         <Card title={t('system_info.clear_login_title')}>
           <p className={styles.sectionDescription}>{t('system_info.clear_login_desc')}</p>

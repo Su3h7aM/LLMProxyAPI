@@ -234,6 +234,12 @@ export interface UsageMaintenanceResponse {
   action: UsageMaintenanceAction;
   duration_ms: number;
   deleted?: number;
+  /** `checkpoint` only. */
+  busy?: number;
+  /** `checkpoint` only: WAL frames in the log before the checkpoint. */
+  log_frames?: number;
+  /** `checkpoint` only: WAL frames written back. */
+  checkpointed?: number;
 }
 
 /** `GET /observability/usage/status` (issue 0043). */
