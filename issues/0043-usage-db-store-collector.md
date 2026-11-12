@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0043-usage-db-store-collector
 type: backend (Go)
 agent: muse-spark-1.3-contributor
@@ -55,6 +55,53 @@ Persist every usage record in an embedded SQLite DB, in process. This is the bas
 
 ## Log
 
+- Set `status: in-progress`. Created branch `issue/0043-usage-db-store-collector`.
+- Step 1: `go get modernc.org/sqlite@v1.46.1`, `go mod tidy`, removed stray
+  `apps/manager-server/go.mod` and its `go.work` line. `CGO_ENABLED=0 go build ./...`
+  passes (needs gitignored `apps/web/dist/management.html` placeholder; baseline
+  needs it too, pre-existing).
+- Steps 2-5, 7: new package `internal/usagedb` (store, redact, writer,
+  collector, retention). Pragmas `journal_mode=WAL`, `synchronous=NORMAL`,
+  `busy_timeout=5000`, `foreign_keys=ON`; one writer conn plus 4-reader pool;
+  ordered migrations with newer-schema refusal; `RecordToRow` redaction;
+  batch writer (200 rows / 250 ms, drop-oldest, retry 5 with backoff max 30 s,
+  flush on stop); `usage.Plugin` registered as `usage-db`; retention once
+  after 1 min then daily, batches of 5000.
+- Step 6: `observability.usage-db` config (`enabled` default true, `path`
+  default `<auth-dir>/usage.db`, `retention-days` default 90, `buffer-size`
+  default 4096), v8 tree mapping, example YAML, hot reload in
+  `server_reload.go`, startup in `cmd/server/main.go`, flush in service
+  shutdown. `internal/config` tests pass (v8 round-trip incl. example).
+- Step 8: `GET /v8/management/observability/usage/status` in the v8 group
+  (same auth), handler plus route test, docs row.
+- Gate: `go build ./...` ok, `go vet ./...` ok, `gofmt -l .` empty,
+  `go test -race ./internal/usagedb/...` ok, `go test ./...` ok.
+- Smoke: built to `/tmp/usage0043/llmproxy`, stub upstream 500 on 18099,
+  temp config port 18317 with auth-dir `/tmp/usage0043/auth`. `POST
+  /v1/chat/completions` model `stub-model` gave upstream 500; status route
+  then showed `events:1`, same oldest/newest ts, `dropped:0`,
+  `write_errors:0`. Raw keys absent from `usage.db` and WAL bytes;
+  `account_label` masked (`m:sk-u...fake`), `api_key_id` 16 hex,
+  `status_class` 5xx. Server and stub stopped after.
+- Question: in Home mode the usage manager still dispatches to the
+  collector, so the local DB keeps local attempt rows while usage is also
+  forwarded to Home. Keep per-config behavior, or skip Home mode? No code
+  change made for this; coordinator decides.
+
 ## Follow-ups
 
+- Home-mode collector behavior (see Log question).
+- Price book and cost at insert (issue 0044); query routes (issue 0045).
+
 ## Result
+
+Landed: embedded usage DB (`internal/usagedb`), `observability.usage-db`
+config, and `GET /v8/management/observability/usage/status`.
+Schema v1: `usage_events` (33 columns incl. nullable `cost_micro_usd`,
+`cost_source` for 0044), `usage_hourly` keyed on hour/provider/model/alias/
+auth/api-key/status/stream, `settings`, `schema_migrations`. Dedup on
+`request_id`; hourly UPSERT in the same transaction. Redaction: hashed key
+id, masked source/label, 4096 B fail cap with key removal, no bodies or
+headers. Retention: 90-day default raw prune, rollups stay.
+Known gaps: no price/cost logic (0044), no query routes (0045), retention
+first prune runs 1 min after start, Home-mode behavior open (see Log).
