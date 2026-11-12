@@ -29,6 +29,7 @@ import { UsageTimeline } from './components/UsageTimeline';
 import { UsageBreakdown } from './components/UsageBreakdown';
 import { UsageFailures } from './components/UsageFailures';
 import { UsageHeatmap } from './components/UsageHeatmap';
+import { UsageEvents } from './components/UsageEvents';
 import type { UsageSectionProps } from './components/usageSection';
 import styles from './UsagePage.module.scss';
 
@@ -214,6 +215,7 @@ export function UsagePage() {
           <UsageBreakdown {...sections} />
           <UsageFailures {...sections} />
           <UsageHeatmap {...sections} />
+          <UsageEvents {...sections} />
         </>
       )}
     </div>

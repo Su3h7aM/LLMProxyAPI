@@ -443,3 +443,15 @@
   position: absolute;
   inset: 0;
 }
+
+.mono {
+  font-family: $font-family-mono;
+  font-size: $font-size-12-5;
+}
+
+.copiedMark {
+  color: var(--success-color);
+  font-size: $font-size-12;
+  line-height: $line-height-1-5;
+  white-space: nowrap;
+}
