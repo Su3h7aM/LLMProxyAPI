@@ -91,6 +91,17 @@ export function fallbackKeyLabel(apiKeyId: string): string {
   return `key-${apiKeyId.slice(0, 6)}`;
 }
 
+/**
+ * Key cell text: the stored label, the `key-<first 6>` fallback, or an
+ * em dash when there is no key at all. The backend labels keyless traffic
+ * `key-` (empty fallback); the panel shows a dash instead of that stub.
+ */
+export function displayKeyLabel(apiKeyId: string, apiKeyLabel: string): string {
+  if (apiKeyLabel && (apiKeyId || apiKeyLabel !== 'key-')) return apiKeyLabel;
+  if (apiKeyId) return fallbackKeyLabel(apiKeyId);
+  return '—';
+}
+
 export interface KeyLabelSave {
   read: (key: string) => string | undefined;
   write: (key: string, label: string) => void;

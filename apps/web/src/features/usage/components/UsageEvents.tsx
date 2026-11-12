@@ -22,7 +22,7 @@ import {
   formatMicroUsdExact,
   formatTokenCount,
 } from '@/features/usage/logic/format';
-import { fallbackKeyLabel } from '@/features/usage/logic/breakdown';
+import { displayKeyLabel } from '@/features/usage/logic/breakdown';
 import { formatDateTimeValue } from '@/utils/format';
 import type {
   UsageEventListItem,
@@ -159,7 +159,7 @@ export function UsageEventsTable({
               <TableCell>{item.provider || '—'}</TableCell>
               <TableCell>{item.account_label || item.auth_id || '—'}</TableCell>
               <TableCell>
-                {item.api_key_label || (item.api_key_id ? fallbackKeyLabel(item.api_key_id) : '—')}
+                {displayKeyLabel(item.api_key_id, item.api_key_label)}
               </TableCell>
               <TableCell>
                 <span title={item.status_class || undefined}>

@@ -18,7 +18,7 @@ import {
   formatTokenCount,
 } from '@/features/usage/logic/format';
 import { formatDateTimeValue } from '@/utils/format';
-import { fallbackKeyLabel } from '@/features/usage/logic/breakdown';
+import { displayKeyLabel } from '@/features/usage/logic/breakdown';
 import type { UsageEventDetail } from '@/types/usageStats';
 import styles from '../UsagePage.module.scss';
 
@@ -63,7 +63,7 @@ export function EventDetailBody({ event }: { event: UsageEventDetail }) {
       />
       <Field
         label={t('usage_page.col_key')}
-        value={event.api_key_label || (event.api_key_id ? fallbackKeyLabel(event.api_key_id) : '—')}
+        value={displayKeyLabel(event.api_key_id, event.api_key_label)}
       />
       <Field
         label={t('usage_page.filter_stream')}

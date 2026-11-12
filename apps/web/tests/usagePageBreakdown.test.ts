@@ -7,6 +7,7 @@ import {
   BREAKDOWN_PAGE_LIMIT,
   breakdownFilterPatch,
   breakdownQueryFor,
+  displayKeyLabel,
   fallbackKeyLabel,
   saveUsageKeyLabel,
 } from '@/features/usage/logic/breakdown';
@@ -96,6 +97,13 @@ describe('breakdown filter patch', () => {
 describe('key label save', () => {
   test('an empty label is a clear, never a raw id', () => {
     expect(fallbackKeyLabel('9f2c4a0e11d3b7aa')).toBe('key-9f2c4a');
+  });
+
+  test('keyless traffic shows a dash instead of the empty fallback stub', () => {
+    expect(displayKeyLabel('9f2c4a0e11d3b7aa', 'my-harness')).toBe('my-harness');
+    expect(displayKeyLabel('9f2c4a0e11d3b7aa', '')).toBe('key-9f2c4a');
+    expect(displayKeyLabel('', '')).toBe('—');
+    expect(displayKeyLabel('', 'key-')).toBe('—');
   });
 
   test('applies the draft optimistically and keeps it on success', async () => {
