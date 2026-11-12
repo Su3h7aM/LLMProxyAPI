@@ -30,6 +30,7 @@ import (
 	"github.com/Su3h7aM/LLMProxyAPI/internal/pluginhost"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/redisqueue"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/usagedb"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/safemode"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/store"
 	_ "github.com/Su3h7aM/LLMProxyAPI/internal/translator"
@@ -656,6 +657,12 @@ func main() {
 	} else {
 		cfg.AuthDir = resolvedAuthDir
 	}
+	usagedb.Configure(usagedb.Options{
+		Enabled:       cfg.UsageDB.Enabled,
+		Path:          cfg.EffectiveUsageDBPath(),
+		RetentionDays: cfg.UsageDB.RetentionDays,
+		BufferSize:    cfg.UsageDB.BufferSize,
+	})
 	githubauth.SetToken(cfg.GitHubToken)
 
 	// Create login options to be used in authentication flows.

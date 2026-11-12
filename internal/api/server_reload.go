@@ -13,6 +13,7 @@ import (
 	"github.com/Su3h7aM/LLMProxyAPI/internal/logging"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/redisqueue"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/usagedb"
 	responsesclaude "github.com/Su3h7aM/LLMProxyAPI/internal/translator/claude/openai/responses"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/util"
 	"github.com/Su3h7aM/LLMProxyAPI/sdk/api/handlers/openai"
@@ -98,6 +99,19 @@ func (s *Server) UpdateClientsContext(ctx context.Context, cfg *config.Config) b
 
 	if oldCfg == nil || oldCfg.RedisUsageQueueRetentionSeconds != cfg.RedisUsageQueueRetentionSeconds {
 		redisqueue.SetRetentionSeconds(cfg.RedisUsageQueueRetentionSeconds)
+	}
+
+	if oldCfg == nil || oldCfg.UsageDB != cfg.UsageDB {
+		usagedb.Configure(usagedb.Options{
+			Enabled:       cfg.UsageDB.Enabled,
+			Path:          cfg.EffectiveUsageDBPath(),
+			RetentionDays: cfg.UsageDB.RetentionDays,
+			BufferSize:    cfg.UsageDB.BufferSize,
+		})
+		if oldCfg != nil && (oldCfg.EffectiveUsageDBPath() != cfg.EffectiveUsageDBPath() ||
+			oldCfg.UsageDB.BufferSize != cfg.UsageDB.BufferSize) {
+			log.Info("usagedb: path or buffer size changed; the writer restarted on the new database")
+		}
 	}
 
 	if s.requestLogger != nil && (oldCfg == nil || oldCfg.ErrorLogsMaxFiles != cfg.ErrorLogsMaxFiles) {

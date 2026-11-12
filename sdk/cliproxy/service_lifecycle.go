@@ -11,6 +11,7 @@ import (
 	"github.com/Su3h7aM/LLMProxyAPI/internal/home"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/redisqueue"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/registry"
+	"github.com/Su3h7aM/LLMProxyAPI/internal/usagedb"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/runtime/executor/helps"
 	sdkaccess "github.com/Su3h7aM/LLMProxyAPI/sdk/access"
@@ -406,6 +407,7 @@ func (s *Service) Shutdown(ctx context.Context) error {
 
 		helps.RetireProxyPoolPublisher(s.proxyPoolPublisher)
 		usage.StopDefault()
+		usagedb.Shutdown(10 * time.Second)
 	})
 	return shutdownErr
 }
