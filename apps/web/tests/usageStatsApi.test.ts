@@ -202,7 +202,8 @@ describe('usage disabled state', () => {
 
   test('a 400 keeps its original message and is not reported as disabled', async () => {
     const bad = Object.assign(new Error('from_ms must be before to_ms'), { status: 400 });
-    spyOn(apiClient, 'get').mockRejectedValue(bad);
+    const get = spyOn(apiClient, 'get').mockRejectedValue(bad);
+    restore.push(() => get.mockRestore());
     const error = await usageApi.getSummary().catch((cause: unknown) => cause);
     expect(error).toBe(bad);
     expect(isUsageDisabledError(error)).toBe(false);
@@ -243,5 +244,18 @@ describe('usage export', () => {
     const raw = spyOn(apiClient, 'getRaw').mockResolvedValue({ data: blob, headers: {} } as never);
     restore.push(() => raw.mockRestore());
     expect((await usageApi.exportUsage({ format: 'csv' })).filename).toBe('usage.csv');
+  });
+});
+
+describe('usage test hygiene', () => {
+  test('leaves no mock on the shared client for later files', () => {
+    // A leaked spyOn(apiClient, 'get') makes a later spy record one call
+    // twice, so an unrelated file fails on call counts. This last test in
+    // the file pins the afterEach restore above.
+    expect((apiClient.get as unknown as { mock?: unknown }).mock).toBeUndefined();
+    expect((apiClient.put as unknown as { mock?: unknown }).mock).toBeUndefined();
+    expect((apiClient.post as unknown as { mock?: unknown }).mock).toBeUndefined();
+    expect((apiClient.delete as unknown as { mock?: unknown }).mock).toBeUndefined();
+    expect((apiClient.getRaw as unknown as { mock?: unknown }).mock).toBeUndefined();
   });
 });

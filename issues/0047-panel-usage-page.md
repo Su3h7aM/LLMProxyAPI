@@ -126,6 +126,19 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
   with deltas and marks; timeline with metric switch, auto buckets,
   top-5-plus-other grouping). Gate: type-check, lint, area tests pass.
   One refresh generation reloads every section.
+- 2026-11-12 (follow-up): the `versionFailure` failure is not a flake
+  and not only on `main`. Root cause: the `400` test in
+  `tests/usageStatsApi.test.ts` (issue 0046) spied on `apiClient.get`
+  and never restored it. A later `spyOn` on the still-mocked method
+  records one call twice under bun, so `versionFailure` fails on call
+  counts. Full-suite alphabetical order hides it (some later file
+  re-spies and restores); the pair order and the branch order expose
+  it deterministically. Fix: the spy joins the file's `restore` list;
+  a `usage test hygiene` test pins that the shared client carries no
+  mock after the suite. Earlier Log lines calling it a pre-existing
+  flake are corrected by this note. Proof: pair order passes,
+  `verify` passes with 0 fail, `tokens:check` passes, full suite
+  passes 3 times.
 
 ## Follow-ups
 
