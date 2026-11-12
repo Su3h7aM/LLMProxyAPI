@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0041-triage-cpamp-usage-inventory
 type: triage (read-only, no code changes)
 agent: muse-spark-1.3-contributor
@@ -42,6 +42,8 @@ The fork needs a built-in usage DB and statistics dashboard as robust as CPA-Man
 3. At the end set `status: done`, fill `## Result`, commit, and report to the coordinator. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- 2026-11-12: Work on assigned worktree branch `t3/triage-cpamp-usage-inventory` (no new branch; coordinator owns merge). Reference pin confirmed `a67ed883`. Read collector, event, queue, resp, cpa client, migrate, config, all HTTP controllers, pricing, automation, auth, web routes, perf doc. Write `issues/0041-cpamp-inventory.md` next.
 
 ## Follow-ups
 
