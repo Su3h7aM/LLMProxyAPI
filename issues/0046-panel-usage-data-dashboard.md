@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0046-panel-usage-data-dashboard
 type: panel
 agent: deepseek-v4.1-flash
@@ -70,7 +70,85 @@ Do NOT do in this issue: the Usage page (0047), the prices page, maintenance UI 
   backend serves now.
 - 2026-11-11: The `/usage` route is absent from `MainRoutes.tsx`, so the
   dashboard section has no Usage page link. Listed under Follow-ups.
+- 2026-11-11: Data layer. `types/usageStats.ts` covers every contract
+  response plus `/status` (issue 0043) and the price routes (issue 0044).
+  The price JSON shape is not in `docs/usage-prices.md`; I read
+  `internal/api/handlers/management/usage_prices.go` for the field names.
+  `services/api/usage.ts` has one call per route. Multi-value filters
+  repeat as `provider=a&provider=b`. A 503 becomes `UsageDisabledError`.
+  `getStatisticsEnabled` stays because the unrouted Usage page still calls
+  it; issue 0047 removes that page.
+- 2026-11-11: Observation, not a blocker: the current price handlers answer
+  503 with `{"error":"usage database is disabled"}`, while
+  `docs/usage-api-contract.md` says `usage db disabled`. The client keys on
+  the status code, so both texts work. Issue 0045 may align the text.
+- 2026-11-11: Pure helpers. `features/usage/logic` has the currency,
+  token, duration, rate, delta, range, filter, and flag helpers.
+  `utils/usageQuery.ts` builds the stable query string, so the service does
+  not import a feature module. Custom ranges above 366 days are rejected
+  locally, matching the API cap.
+- 2026-11-11: Hook and store. `useUsageQuery` has a React-free controller
+  with abort-on-new-query, abort-on-unmount, latest-response-wins, timeout,
+  manual refresh, and optional polling. The zustand store keeps the shared
+  filters in `sessionStorage` only and validates them on read.
+- 2026-11-11: Dashboard. `UsagePanel` uses summary, timeseries, and
+  breakdown in one load (30 s poll). Cards: requests, tokens, cost, failure
+  rate, each with the previous-period delta. The sparkline uses hour
+  buckets for 24h and day buckets for 7d and 30d. Top five models come from
+  `breakdown` (`group_by=model`, `limit=5`). Cost marks: estimate when
+  `estimated_cost_micro_usd > 0`, unpriced count when
+  `unpriced_requests > 0`. States: loading, error with retry, empty, and
+  disabled (503). The local range selector offers 24h, 7d, 30d; the shared
+  filter store is ready for the 0047 page.
+- 2026-11-11: Tests. `dashboardUsage.test.ts` and one old
+  `dashboardRendering.test.ts` case pinned the removed snapshot format, so
+  they are replaced by tests of the new view model. No other test was
+  weakened. New files: `usageStatsApi`, `usageStatsFormat`,
+  `usageStatsRange`, `usageQueryController`, `usageFilterStore`,
+  `dashboardUsageSection`.
+- 2026-11-11: Gate. `bun install --frozen-lockfile`, `bun run verify`
+  (2143 tests pass, lint, type-check, build) and `bun run tokens:check`
+  pass. No Go change.
 
 ## Follow-ups
 
+- 0047: add the Usage page and a dashboard link to `/usage` when the route
+  exists.
+- 0047: remove the old `pages/UsagePage.tsx`, its request guard, its
+  `getStatisticsEnabled` caller, and the tests that pin them.
+- 0047: use `useUsageFilterStore` for the Usage page filters, and
+  `usageFiltersToQuery` with `useUsageQuery`.
+- 0048: use the price and maintenance client calls and their types.
+- 0045: align the 503 error text with the contract (`usage db disabled`),
+  or change the contract. The panel does not depend on the text.
+- Optional: show stale dashboard usage data with an inline error instead of
+  replacing the cards on a poll failure.
+
 ## Result
+
+Landed the panel usage data layer and the dashboard usage section.
+
+- Types: `apps/web/src/types/usageStats.ts` (counters, summary,
+  timeseries, breakdown, events and detail, failures, heatmap, key labels,
+  maintenance, status, prices, query parameters).
+- Client: `apps/web/src/services/api/usage.ts`. Use
+  `usageApi.getSummary(query, { signal })` and the matching calls for
+  timeseries, breakdown, events, event detail, failures, heatmap, export,
+  key labels, maintenance, status, and prices. All calls throw
+  `UsageDisabledError` on 503; `isUsageDisabledError(error)` is the guard.
+- Helpers: `apps/web/src/features/usage/logic/` (format, delta, range,
+  filters, flags) and `apps/web/src/utils/usageQuery.ts` (query string,
+  cursor paging).
+- Hook: `useUsageQuery({ load, queryKey, enabled, intervalMs })` returns
+  `{ data, error, loading, receivedAt, refresh }`. A new `queryKey` aborts
+  the old request; only the newest response commits.
+- Store: `useUsageFilterStore` (session storage only) with range, custom
+  range, provider, model, credential, API key, status, and stream.
+- Dashboard: `UsagePanel` shows cards, sparkline, top five models, range
+  selector, and the loading, error, empty, and disabled states. It renders
+  after the request flow and quota sections when connected.
+- Locales: 35 new `dashboard.usage_*` keys in `en`, `zh-CN`, `zh-TW`, `ru`.
+
+Known gaps: no `/usage` link (route arrives in 0047); the dashboard range
+is local to the section; the backend was not run in this checkout (mocked
+responses, as the issue allows).
