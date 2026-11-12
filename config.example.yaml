@@ -1017,6 +1017,7 @@ oauth:
   # Authentication directory (supports ~ for home directory).
   # Empty defaults to $XDG_DATA_HOME/llm-proxy-api (~/.local/share/llm-proxy-api);
   # a pre-XDG ~/.llm-proxy-api is moved there automatically on startup.
+  # It also holds kv.db and usage.db (embedded usage statistics).
   auth-dir: ""
 
   # Core auth auto-refresh and manual refresh-all worker pool size (OAuth/file-based auth token refresh).
