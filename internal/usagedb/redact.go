@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"math"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -199,12 +200,48 @@ func safeOrUnknown(value string) string {
 }
 
 // failSummary cuts failure text to 4096 bytes and removes the raw client key.
+// Upstream error text can echo secrets, so scrubFailText runs after the key
+// cut and the head 4096 bytes are kept after scrubbing.
 func failSummary(body, apiKey string) string {
 	trimmed := strings.TrimSpace(body)
 	if apiKey != "" && strings.Contains(trimmed, apiKey) {
 		trimmed = strings.ReplaceAll(trimmed, apiKey, "[redacted]")
 	}
-	return truncateUTF8Bytes(strings.TrimSpace(trimmed), maxFailSummaryBytes)
+	return truncateUTF8Bytes(scrubFailText(trimmed), maxFailSummaryBytes)
+}
+
+const redactedMarker = "[redacted]"
+
+var (
+	// Bearer <token>: the whole scheme plus token goes.
+	failBearerRe = regexp.MustCompile(`(?i)\bbearer\s+[A-Za-z0-9\-._~+/=]+`)
+	// Authorization: <value> header lines and pairs.
+	failAuthRe = regexp.MustCompile(`(?i)\bauthorization\s*[:=]\s*[^\s,;\"'}]+`)
+	// Known key prefixes.
+	failPrefixedKeyRe = regexp.MustCompile(`\b(?:sk-[A-Za-z0-9\-_]+|AIza[A-Za-z0-9\-_]{10,}|ghp_[A-Za-z0-9]+|gho_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+)`)
+	// JWT shape: three base64url parts.
+	failJWTRe = regexp.MustCompile(`\b[A-Za-z0-9\-_]{8,}\.[A-Za-z0-9\-_]{8,}\.[A-Za-z0-9\-_]{8,}\b`)
+	// Query pairs: ?key=SECRET& keeps the name, loses the value.
+	failQuerySecretRe = regexp.MustCompile(`(?i)\b(api[_-]?key|access[_-]?token|client[_-]?secret|secret|password|passwd|token|key)\s*=\s*[^\s&;\"'}]+`)
+	// JSON pairs: "key": "SECRET" keeps the name, loses the value.
+	failJSONSecretRe = regexp.MustCompile(`(?i)"(api[_-]?key|access[_-]?token|client[_-]?secret|secret|password|passwd|token|key)"\s*:\s*"[^"]*"`)
+	// Any long token-shaped run: 32 or more base64/hex characters.
+	failLongRunRe = regexp.MustCompile(`[A-Za-z0-9_\-+/=]{32,}`)
+)
+
+// scrubFailText replaces secret-shaped substrings with [redacted]. Names of
+// query and JSON fields stay so the error stays readable.
+func scrubFailText(body string) string {
+	if body == "" {
+		return ""
+	}
+	out := failBearerRe.ReplaceAllString(body, redactedMarker)
+	out = failAuthRe.ReplaceAllString(out, redactedMarker)
+	out = failPrefixedKeyRe.ReplaceAllString(out, redactedMarker)
+	out = failJWTRe.ReplaceAllString(out, redactedMarker)
+	out = failQuerySecretRe.ReplaceAllString(out, "${1}="+redactedMarker)
+	out = failJSONSecretRe.ReplaceAllString(out, `"$1":"`+redactedMarker+`"`)
+	return failLongRunRe.ReplaceAllString(out, redactedMarker)
 }
 
 func truncateUTF8Bytes(value string, maxBytes int) string {

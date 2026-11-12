@@ -154,6 +154,8 @@ Parameters: common (with `q`), plus `limit` (default 50, max 200), `cursor` (opa
 
 All list fields plus `fail_summary`, `session_id`, `access_provider`, `auth_index`, `price_id`, `price` (the price version used: `provider`, `model`, `valid_from_ms`, `input`, `output`, `cache_read`, `cache_write`, `source`; null if none).
 
+`fail_summary` is scrubbed of secrets (tokens, keys, JWT shapes, secret query and JSON values become `[redacted]`) and capped at 4096 bytes.
+
 ## GET /failures
 
 Parameters: common (with `q`), `limit` (groups, default 20, max 100), `recent` (recent failures, default 20, max 100).

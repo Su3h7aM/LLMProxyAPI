@@ -3,6 +3,7 @@ package usagedb
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"math/rand"
 	"strconv"
 	"strings"
 	"testing"
@@ -132,6 +133,96 @@ func TestSafeFieldTable(t *testing.T) {
 	}
 	if got := safeOrUnknown("Bearer x"); got != "" {
 		t.Fatalf("safeOrUnknown hostile = %q, want empty", got)
+	}
+}
+
+func TestFailSummaryScrubRealisticBodies(t *testing.T) {
+	openAIKey := "sk-proj-ABCDEF1234567890abcdef1234567890abcdef12"
+	googleKey := "AIzaSyD-EXAMPLEKEY0123456789abcdefg"
+	githubToken := "github_pat_ABCDEF1234567890abcdef1234567890ABCD12"
+	bearerToken := "sess-ABCDEF1234567890abcdef1234567890"
+	jwt := "eyJhbGciOiJSUzI1NiJ9." + strings.Repeat("YWIxMjM=", 20) + ".c2lnLWFiYzEyMw"
+	bodies := []struct {
+		name   string
+		body   string
+		secret []string
+	}{
+		{"openai", `{"error":{"message":"Incorrect API key provided: ` + openAIKey + `","type":"invalid_request_error","code":"invalid_api_key"}}`, []string{openAIKey}},
+		{"anthropic", `{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key: ` + openAIKey + `"}}`, []string{openAIKey}},
+		{"google", `{"error":{"code":400,"message":"API key not valid: ` + googleKey + `","status":"INVALID_ARGUMENT"}}`, []string{googleKey}},
+		{"github", `{"message":"Bad credentials for token ` + githubToken + `"}`, []string{githubToken}},
+		{"bearer", `upstream 401: Bearer ` + bearerToken + ` rejected`, []string{bearerToken}},
+		{"auth header", `call failed, Authorization: Bearer ` + bearerToken + ` expired`, []string{bearerToken}},
+		{"jwt", `token expired: ` + jwt, []string{jwt}},
+		{"url query", `Get "https://api.example.com/v1/chat?api_key=` + openAIKey + `&model=x": status 401`, []string{openAIKey}},
+		{"go error query", `post failed: https://proxy.local/complete?token=` + bearerToken + `&a=1: 403`, []string{bearerToken}},
+		{"json password", `login failed: {"user":"bob","password":"hunter2-hunter2-hunter2-hunter2"}`, []string{"hunter2-hunter2-hunter2-hunter2"}},
+		{"long hex", `bad key 0123456789abcdef0123456789abcdef rejected`, []string{"0123456789abcdef0123456789abcdef"}},
+	}
+	for _, tc := range bodies {
+		t.Run(tc.name, func(t *testing.T) {
+			record := testRecord()
+			record.APIKey = "client-key-not-in-body"
+			record.Failed = true
+			record.Fail = coreusage.Failure{StatusCode: 401, Body: tc.body}
+			got := RecordToRow(record).FailSummary
+			for _, secret := range tc.secret {
+				if strings.Contains(got, secret) {
+					t.Fatalf("body %s keeps secret: %q", tc.name, got)
+				}
+			}
+			if len(got) > maxFailSummaryBytes {
+				t.Fatalf("body %s length = %d, want at most %d", tc.name, len(got), maxFailSummaryBytes)
+			}
+		})
+	}
+}
+
+func TestFailSummaryScrubFuzzShaped(t *testing.T) {
+	rng := rand.New(rand.NewSource(49))
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	randomRun := func(n int) string {
+		var sb strings.Builder
+		for range n {
+			sb.WriteByte(alphabet[rng.Intn(len(alphabet))])
+		}
+		return sb.String()
+	}
+	mkSecret := func() string {
+		switch rng.Intn(5) {
+		case 0:
+			return "sk-test-" + randomRun(24)
+		case 1:
+			return "Bearer " + randomRun(40)
+		case 2:
+			return randomRun(12) + "." + randomRun(40) + "." + randomRun(20)
+		case 3:
+			return "?api_key=" + randomRun(36)
+		default:
+			return randomRun(48)
+		}
+	}
+	for range 200 {
+		secret := mkSecret()
+		prefix := randomRun(rng.Intn(20))
+		suffix := randomRun(rng.Intn(20))
+		body := "error " + prefix + " " + secret + " " + suffix + " done"
+		record := testRecord()
+		record.APIKey = "client-key-not-in-body"
+		record.Failed = true
+		record.Fail = coreusage.Failure{StatusCode: 500, Body: body}
+		got := RecordToRow(record).FailSummary
+		// The secret core (stripped of scheme and punctuation) must not survive.
+		core := secret
+		for _, cut := range []string{"Bearer ", "?api_key=", "?token="} {
+			core = strings.TrimPrefix(core, cut)
+		}
+		if core != "" && strings.Contains(got, core) {
+			t.Fatalf("secret survived: %q in %q", secret, got)
+		}
+		if strings.Contains(got, "Bearer "+core) {
+			t.Fatalf("bearer survived: %q in %q", secret, got)
+		}
 	}
 }
 
