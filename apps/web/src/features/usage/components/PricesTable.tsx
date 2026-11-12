@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/Select';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
   formatPriceRate,
+  priceSourceTone,
   PRICE_SOURCES,
   type PriceFilters,
 } from '@/features/usage/logic/prices';
@@ -35,6 +36,14 @@ interface PricesTableProps {
   onHistory: (price: UsagePriceItem) => void;
   onRemoveManual: (price: UsagePriceItem) => void;
 }
+
+/** Badge tone per source: a manual override stands out, a synced price looks healthy. */
+const sourceToneClass = (source: string): string => {
+  const tone = priceSourceTone(source);
+  if (tone === 'manual') return styles.sourceManual;
+  if (tone === 'synced') return styles.sourceSynced;
+  return '';
+};
 
 export function PricesTable({
   prices,
@@ -156,7 +165,9 @@ export function PricesTable({
                   {price.reasoning === null ? '—' : formatPriceRate(price.reasoning, locale)}
                 </TableCell>
                 <TableCell>
-                  <span className="pill">{price.source}</span>
+                  <span className={`${styles.sourceBadge} ${sourceToneClass(price.source)}`}>
+                    {price.source}
+                  </span>
                 </TableCell>
                 <TableCell>
                   {price.valid_from_ms > 0

@@ -127,3 +127,26 @@
   font-size: $font-size-12;
 }
 
+
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-4 $space-10;
+  border-radius: $radius-9999;
+  border: $border-width-1 solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: $font-size-12;
+}
+
+.sourceSynced {
+  color: var(--success-color);
+  border-color: color-mix(in srgb, var(--success-color) $tint-0-35, transparent);
+  background: color-mix(in srgb, var(--success-color) $tint-0-08, transparent);
+}
+
+.sourceManual {
+  color: var(--warning-color);
+  border-color: color-mix(in srgb, var(--warning-color) $tint-0-35, transparent);
+  background: color-mix(in srgb, var(--warning-color) $tint-0-08, transparent);
+}
