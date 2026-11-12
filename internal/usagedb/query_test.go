@@ -3,6 +3,7 @@ package usagedb
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -496,6 +497,106 @@ func TestExportEventsCancel(t *testing.T) {
 	emitErr := store.ExportEvents(cancelled, filter, func(UsageEvent) error { return nil })
 	if emitErr == nil {
 		t.Fatal("cancelled export succeeded")
+	}
+}
+
+func TestQueryDayBucketsDST(t *testing.T) {
+	// Spring forward in Sao Paulo (2024-11-03, 00:00 skipped) and fall back
+	// in Berlin (2024-10-27, 02:00 twice): every row lands on the day of its
+	// start and no row is lost.
+	cases := map[string]string{
+		"America/Sao_Paulo": "2024-11-03",
+		"Europe/Berlin":    "2024-10-27",
+	}
+	for tz, day := range cases {
+		loc, err := time.LoadLocation(tz)
+		if err != nil {
+			t.Fatalf("load %s: %v", tz, err)
+		}
+		midnight, err := time.ParseInLocation("2006-01-02", day, loc)
+		if err != nil {
+			t.Fatalf("parse day: %v", err)
+		}
+		store := openTestStore(t)
+		var rows []UsageRow
+		start := midnight.Add(-12 * time.Hour).UnixMilli()
+		for i := range 48 {
+			row := testRow(tz+"-"+strconv.Itoa(i), start+int64(i)*30*60*1000)
+			rows = append(rows, row)
+		}
+		if _, err := store.InsertBatch(rows); err != nil {
+			t.Fatalf("InsertBatch %s: %v", tz, err)
+		}
+		filter := mustFilter(t, "tz="+url.QueryEscape(tz), start+48*30*60*1000)
+		filter.FromMs = start
+		filter.ToMs = start + 48*30*60*1000
+		series, err := store.QueryTimeseries(filter, "day", "", 0)
+		if err != nil {
+			t.Fatalf("day series %s: %v", tz, err)
+		}
+		var total int64
+		for _, point := range series.Points {
+			total += point.Requests
+		}
+		if total != 48 {
+			t.Fatalf("%s day total = %d, want 48", tz, total)
+		}
+		heat, err := store.QueryHeatmap(filter, "requests")
+		if err != nil {
+			t.Fatalf("heatmap %s: %v", tz, err)
+		}
+		var heatTotal int64
+		for weekday := range 7 {
+			for hour := range 24 {
+				heatTotal += heat.Matrix[weekday][hour]
+			}
+		}
+		if heatTotal != 48 {
+			t.Fatalf("%s heatmap total = %d, want 48", tz, heatTotal)
+		}
+	}
+}
+
+func TestQueryGroupPaths(t *testing.T) {
+	base := int64(1719997200000)
+	store := seedQueryStore(t, base)
+	filter := mustFilter(t, "", base+48*60*60*1000)
+	filter.FromMs = base
+	filter.ToMs = base + 48*60*60*1000
+	// Stream groups use the integer column path.
+	streamed, total, err := store.QueryBreakdown(filter, "stream", "requests", "desc", 20, 0)
+	if err != nil {
+		t.Fatalf("stream breakdown: %v", err)
+	}
+	if total != 2 {
+		t.Fatalf("stream groups = %d, want 2", total)
+	}
+	if streamed[0].Key != "false" || streamed[0].Requests != 4 {
+		t.Fatalf("stream first = %q/%d", streamed[0].Key, streamed[0].Requests)
+	}
+	// Credential groups key on auth_id.
+	creds, _, err := store.QueryBreakdown(filter, "credential", "requests", "desc", 20, 0)
+	if err != nil || len(creds) != 1 || creds[0].Key != "codex-1.json" {
+		t.Fatalf("credential breakdown = %+v, %v", creds, err)
+	}
+	series, err := store.QueryTimeseries(filter, "day", "credential", 5)
+	if err != nil {
+		t.Fatalf("credential series: %v", err)
+	}
+	if len(series.Groups) != 1 || series.Groups[0].Key != "codex-1.json" {
+		t.Fatalf("credential groups = %+v", series.Groups)
+	}
+	// Ascending event paging with a cursor.
+	asc, err := store.QueryEvents(filter, 2, "", "asc")
+	if err != nil || len(asc.Items) != 2 {
+		t.Fatalf("asc page = %+v, %v", asc.Items, err)
+	}
+	asc2, err := store.QueryEvents(filter, 10, asc.NextCursor, "asc")
+	if err != nil {
+		t.Fatalf("asc page 2: %v", err)
+	}
+	if len(asc2.Items) != 3 || asc2.Items[0].RequestID != "q-e3" {
+		t.Fatalf("asc page 2 = %+v", asc2.Items)
 	}
 }
 

@@ -112,6 +112,16 @@ retain the corresponding business operation's fields.
 | `/observability/usage/api-keys` | GET | Get API-key usage. |
 | `/observability/usage/queue` | GET | Get queued usage events. |
 | `/observability/usage/status` | GET | Get embedded usage database status. |
+| `/observability/usage/summary` | GET | Totals, previous period, latency percentiles. See `usage-api-contract.md`. |
+| `/observability/usage/timeseries` | GET | Bucketed counters, optional grouping. See `usage-api-contract.md`. |
+| `/observability/usage/breakdown` | GET | Grouped counters with sort and paging. See `usage-api-contract.md`. |
+| `/observability/usage/events` | GET | Raw event page. See `usage-api-contract.md`. |
+| `/observability/usage/events/<id>` | GET | One event with failure text and price. See `usage-api-contract.md`. |
+| `/observability/usage/failures` | GET | Failure groups and recent failures. See `usage-api-contract.md`. |
+| `/observability/usage/heatmap` | GET | Hour-of-week matrix. See `usage-api-contract.md`. |
+| `/observability/usage/export` | GET | JSONL or CSV stream. See `usage-api-contract.md`. |
+| `/observability/usage/key-labels` | GET, PUT | Read or set API-key labels. See `usage-api-contract.md`. |
+| `/observability/usage/maintenance` | POST | Prune, vacuum, or checkpoint. See `usage-api-contract.md`. |
 | `/observability/usage/prices` | GET, PUT | List current price versions; add a manual price version. |
 | `/observability/usage/prices/history?provider=&model=` | GET | List every price version of one model. |
 | `/observability/usage/prices/manual?provider=&model=` | DELETE | Close the manual price version (synced price applies again). |
