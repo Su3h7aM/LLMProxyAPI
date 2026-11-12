@@ -2,7 +2,6 @@ go 1.27.3
 
 use (
 	.
-	./apps/manager-server
 	./examples/plugin/auth/go
 	./examples/plugin/claude-web-search-router/go
 	./examples/plugin/cli/go
