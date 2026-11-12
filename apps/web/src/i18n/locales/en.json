@@ -148,6 +148,7 @@
       "error_range_too_long": "The range must not exceed 366 days."
     },
     "correction": {
+      "form_label": "Open the correction form",
       "title": "Correct costs (advanced)",
       "description": "Rewrites the stored cost of events in a range with the price versions valid at each event time, and fixes the hourly rollups in the same transaction.",
       "warning": "History is frozen. This action changes cost already stored for this range and writes an audit entry. It cannot be undone from the panel.",
