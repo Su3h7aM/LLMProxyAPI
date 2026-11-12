@@ -284,3 +284,75 @@
   font-size: $font-size-12;
   line-height: $line-height-1-5;
 }
+
+.rowFilter {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--info-color);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.rowFilter:hover {
+  text-decoration: underline;
+}
+
+.shareCell {
+  display: flex;
+  align-items: center;
+  gap: $space-8;
+  min-width: $size-120;
+}
+
+.share {
+  display: block;
+  flex: 1 1 auto;
+  height: $size-6;
+  min-width: $size-48;
+  overflow: hidden;
+  border-radius: $radius-6;
+  background: var(--bg-tertiary);
+}
+
+.shareFill {
+  display: block;
+  height: 100%;
+  border-radius: $radius-6;
+  background: var(--chart-1);
+}
+
+.labelCell {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-6;
+  max-width: 100%;
+}
+
+.labelText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: $size-24;
+  min-height: $size-24;
+  padding: 0;
+  border: none;
+  border-radius: $radius-6;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}

@@ -3114,7 +3114,7 @@
     "col_tokens": "權杖",
     "col_cost": "費用",
     "col_failure_rate": "失敗率",
-    "col_latency": "平均延遲",
+    "col_avg_latency": "平均延遲",
     "col_code": "錯誤碼",
     "col_class": "分類",
     "col_count": "次數",

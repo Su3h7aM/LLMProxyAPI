@@ -3107,7 +3107,7 @@
     "col_tokens": "Tokens",
     "col_cost": "Cost",
     "col_failure_rate": "Failure rate",
-    "col_latency": "Avg latency",
+    "col_avg_latency": "Avg latency",
     "col_code": "Code",
     "col_class": "Class",
     "col_count": "Count",

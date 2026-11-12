@@ -3154,7 +3154,7 @@
     "col_tokens": "Токены",
     "col_cost": "Стоимость",
     "col_failure_rate": "Доля ошибок",
-    "col_latency": "Средняя задержка",
+    "col_avg_latency": "Средняя задержка",
     "col_code": "Код",
     "col_class": "Класс",
     "col_count": "Количество",

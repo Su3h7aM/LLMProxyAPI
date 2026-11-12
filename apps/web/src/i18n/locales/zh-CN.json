@@ -3086,7 +3086,7 @@
     "col_tokens": "令牌",
     "col_cost": "费用",
     "col_failure_rate": "失败率",
-    "col_latency": "平均延迟",
+    "col_avg_latency": "平均延迟",
     "col_code": "错误码",
     "col_class": "分类",
     "col_count": "次数",
