@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0049-usage-db-hardening
 type: backend (Go, security and performance)
 agent: muse-spark-1.3-contributor
@@ -48,6 +48,9 @@ Fix four findings from the review of issues 0043 to 0045 before the usage DB shi
 3. At the end: `status: done`, fill `## Result` (what landed, schema changes, benchmark numbers for both profiles, known gaps), commit, report. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- Set `status: in-progress`. Work on branch `issue/0049-usage-db-hardening` (cut from local `main` at 364747cb, which already holds 0043-0045).
+- Context read: `redact.go`, `insert.go`, `store.go` (schema 3), `query.go`, `query_events.go`, `query_timeseries.go`, `query_perf_test.go`, `redact_test.go`, `query_test.go`, `store_test.go`, contract, design doc, 0045 Result/Log (perf 8.1s cold uniform, smoke `account_label` leak, question 1), `resolveUsageSource` (email, vertex project, account info, metadata email, auth api_key attr, else raw client key).
 
 ## Follow-ups
 
