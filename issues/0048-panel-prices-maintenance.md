@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0048-panel-prices-maintenance
 type: panel
 agent: deepseek-v4.1-flash
@@ -64,6 +64,51 @@ Do NOT do in this issue: the Usage page (issue 0047), Go changes.
 
 ## Log
 
+- 2026-11-12: Read `AGENTS.md`, `apps/web/AGENTS.md`, this issue, `docs/usage-api-contract.md`, `docs/usage-prices.md`, the 0044 Result, the price Go handlers, and the 0043 status handler. Branch `issue/0048-panel-prices-maintenance` on `main` (bc037809). Status in-progress.
+- 2026-11-12: Data layer (0046) reused: `usageApi` gained the seven price calls and `postMaintenance`. No second client.
+- 2026-11-12: Logic in `features/usage/logic/prices.ts` (rate conversion, list query and paging, form validators, correction and unpriced validators, read-only sync config, source tone) and `logic/usageDb.ts` (card state). Tests in `tests/pricesLogic.test.ts` and `tests/usageDbLogic.test.ts`.
+- 2026-11-12: `PricesPage` at `/usage/prices`, with `PriceSyncPanel`, `PricesTable`, `UnmatchedPrices`, `PriceFormSheet`, `PriceHistorySheet`, `PriceUnpricedPanel`, `CorrectionPanel`. Sidebar item in the `observe` group. `UsageDbCard` on `SystemPage`.
+- 2026-11-12: Locale keys `usage_prices` and `usage_db` in the four locales, inserted as text.
+- 2026-11-12: Removed a leftover `tests/versionFailure.test.ts` edit from an earlier session: the full suite passes without it, so the original test stands unchanged.
+- 2026-11-12: Correction form is a collapsed `Collapsible` ("advanced") inside its card. Source badge has a tone per source (manual warning, synced success, else neutral).
+- 2026-11-12: Gate green: `bun install --frozen-lockfile`, `bun run verify` (2183 tests, 0 fail; lint; type-check; build), `bun run tokens:check`.
+- 2026-11-12: Manual check on the real server, see Result. All processes stopped, ports free.
+- Note for the coordinator: the "link on the Usage page header" belongs to issue 0047, so this issue adds only the sidebar entry (same `observe` group) plus this page. No conflict expected.
+
 ## Follow-ups
 
+- No DOM test harness in `apps/web` (tests render static markup), so the remove-manual confirm, the sync button, and the maintenance buttons are covered at logic and render level only, not by a click test.
+- The `unmatched` list was not seen with real events: the temp server had no upstream credential, so no event was stored. Route shape (empty list) checked. Needs a stub upstream to see the list and the background fill toast.
+- Visual layout and the two sheets were not checked in a browser.
+- Price tiers (`context` and `service`) are received in the list but not shown; no route adds them yet.
+
 ## Result
+
+Landed on `issue/0048-panel-prices-maintenance` (no merge to `main`).
+
+- `src/features/usage/PricesPage.tsx` + `PricesPage.module.scss`: route `/usage/prices`; sync and status header, price table with provider/source/text filters and paging, unmatched list, price-unpriced panel, collapsed advanced correction panel, add/edit/history/remove-manual actions.
+- `src/features/usage/components/`: `PricesTable`, `PriceSyncPanel`, `UnmatchedPrices`, `PriceFormSheet`, `PriceHistorySheet`, `PriceUnpricedPanel`, `CorrectionPanel`, `UsageDbCard`, `pricePanels.module.scss`, `usageDbCard.module.scss`.
+- `src/features/usage/logic/prices.ts`, `logic/usageDb.ts`: one place for the micro-USD list rates and the USD PUT rates, form validators, correction and unpriced validators, read-only `observability.usage-db.price-sync` state, card state.
+- `src/services/api/usage.ts`: list, history, put, delete manual, sync, status, price-unpriced, correct, maintenance. `src/types/usageStats.ts`: price and maintenance shapes.
+- `MainRoutes.tsx`: `/usage/prices`. `MainLayout.tsx`: sidebar item in `observe`. `SystemPage.tsx`: `UsageDbCard`.
+- Locales: `usage_prices` and `usage_db` in `en`, `zh-CN`, `zh-TW`, `ru`.
+
+Manual check (`/tmp/lpamc-0048`; fixture `api.json` with `stubprovider`; server on 18318, price source on 18991):
+
+```
+/usr/bin/go build -o /tmp/lpamc-0048/llmproxy ./cmd/server
+curl -X POST .../prices/sync        -> {"added":2,...,"error":""}
+GET .../prices/status               -> {"counts_by_source":{"embedded":323,"models.dev":2},"unmatched":[]}
+GET .../prices?provider=stubprovider&q=stub -> input 2000000, output 8000000, source models.dev
+PUT .../prices {"input":3,"output":9,"cache_read":0.75} -> input 3000000, output 9000000, source manual
+GET .../prices/history?provider=stubprovider&model=stub-model -> 2 versions, synced closed
+DELETE .../prices/manual -> {"restored":true}; new models.dev version open
+POST .../prices/price-unpriced {}   -> {"priced":0,"skipped_no_price":0}
+POST .../prices/correct (400 days)  -> 400; without confirm -> {"error":"confirm must be true"}
+POST .../prices/correct (valid)     -> {"correction_id":1,"events_updated":0,...}
+POST .../maintenance prune|checkpoint|vacuum -> action, duration_ms, and per-action counts
+```
+
+Disabled state: second instance with `observability.usage-db.enabled: false` gave `status` 200 with `enabled:false` and `prices` 503, which the page shows as the disabled card. `/management.html` answered 200 and the built `dist/index.html` holds the page and the route. Units on the wire: list rates in micro-USD per 1M (2 USD = 2,000,000), PUT body in USD per 1M.
+
+Known gaps: see Follow-ups.
