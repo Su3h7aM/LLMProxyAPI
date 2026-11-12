@@ -20,7 +20,7 @@ import (
 const (
 	// SchemaVersion is the current migration version. Open refuses a database
 	// file with a newer version.
-	SchemaVersion = 2
+	SchemaVersion = 3
 
 	// readPoolSize bounds the read connection pool. Writes use one connection.
 	readPoolSize = 4
@@ -262,9 +262,50 @@ var migrations = []migration{
 			`ALTER TABLE usage_events ADD COLUMN price_id INTEGER NULL`,
 		},
 	},
+	{
+		version: 3,
+		stmts: []string{
+			// late_cost_micro_usd is the part of cost_micro_usd that comes
+			// from late pricing (cost_source='price-book-late'). It is
+			// included in cost_micro_usd.
+			`ALTER TABLE usage_hourly ADD COLUMN late_cost_micro_usd INTEGER NOT NULL DEFAULT 0`,
+			// Backfill from events priced late before this migration.
+			// The hour key derives from ts_ms with integer division, the
+			// same truncation the writer uses.
+			`UPDATE usage_hourly SET late_cost_micro_usd = COALESCE((
+				SELECT SUM(e.cost_micro_usd) FROM usage_events e
+				WHERE e.cost_source = 'price-book-late'
+				AND e.ts_ms / 3600000 * 3600000 = usage_hourly.hour_ms
+				AND e.provider = usage_hourly.provider
+				AND e.model = usage_hourly.model
+				AND e.alias = usage_hourly.alias
+				AND e.auth_id = usage_hourly.auth_id
+				AND e.api_key_id = usage_hourly.api_key_id
+				AND e.status_class = usage_hourly.status_class
+				AND e.stream = usage_hourly.stream
+			), 0)`,
+			`CREATE TABLE IF NOT EXISTS api_key_labels (
+				api_key_id TEXT PRIMARY KEY,
+				label TEXT NOT NULL,
+				updated_at_ms INTEGER NOT NULL
+			)`,
+			// Each index below serves a query of the usage query routes:
+			// range plus provider filter (breakdown, timeseries, events),
+			// range plus failed flag (events, failures), range plus status
+			// class (hourly status filter maps here; events detail also
+			// filters it). Verified with EXPLAIN QUERY PLAN (see Log).
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_provider_ts ON usage_events(provider, ts_ms)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_failed_ts ON usage_events(failed, ts_ms)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_status_ts ON usage_events(status_class, ts_ms)`,
+		},
+	},
 }
 
-func migrate(db *sql.DB) error {
+func migrate(db *sql.DB) error { return migrateTo(db, SchemaVersion) }
+
+// migrateTo applies pending migrations up to target. Tests use a target
+// below SchemaVersion to build an older database file first.
+func migrateTo(db *sql.DB, target int) error {
 	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
 		version INTEGER PRIMARY KEY,
 		applied_at_ms INTEGER NOT NULL
@@ -278,12 +319,18 @@ func migrate(db *sql.DB) error {
 	if current > SchemaVersion {
 		return fmt.Errorf("usagedb: database schema version %d is newer than supported %d", current, SchemaVersion)
 	}
+	if target > SchemaVersion {
+		return fmt.Errorf("usagedb: migration target %d is newer than supported %d", target, SchemaVersion)
+	}
 	for _, step := range migrations {
 		if step.version <= current {
 			continue
 		}
 		if step.version > SchemaVersion {
 			return fmt.Errorf("usagedb: migration %d is newer than supported %d", step.version, SchemaVersion)
+		}
+		if step.version > target {
+			continue
 		}
 		if err := applyMigration(db, step); err != nil {
 			return err

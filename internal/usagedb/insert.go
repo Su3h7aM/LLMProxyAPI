@@ -26,8 +26,8 @@ const upsertHourlySQL = `INSERT INTO usage_hourly (
 	hour_ms, provider, model, alias, auth_id, api_key_id, status_class, stream,
 	requests, failures, input_tokens, output_tokens, reasoning_tokens,
 	cache_read_tokens, cache_write_tokens, cost_micro_usd, unpriced_requests,
-	latency_sum_ms, latency_max_ms, ttft_sum_ms, ttft_count
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	latency_sum_ms, latency_max_ms, ttft_sum_ms, ttft_count, late_cost_micro_usd
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(hour_ms, provider, model, alias, auth_id, api_key_id, status_class, stream)
 DO UPDATE SET
 	requests = usage_hourly.requests + 1,
@@ -156,7 +156,7 @@ func (s *Store) InsertBatch(rows []UsageRow) (int64, error) {
 			row.HourMs, row.Provider, row.Model, row.Alias, row.AuthID, row.APIKeyID, row.StatusClass, boolInt(row.Stream),
 			failures, row.InputTokens, row.OutputTokens, row.ReasoningTokens,
 			row.CacheReadTokens, row.CacheWriteTokens, cost, unpriced,
-			row.LatencyMs, row.LatencyMs, ttftSum, ttftCount,
+			row.LatencyMs, row.LatencyMs, ttftSum, ttftCount, 0,
 		); err != nil {
 			return inserted, fmt.Errorf("usagedb: upsert hourly: %w", err)
 		}

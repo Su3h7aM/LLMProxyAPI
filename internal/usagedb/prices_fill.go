@@ -191,10 +191,11 @@ func (s *Store) fillBatch(afterID int64, scope FillScope, keyOnly *[2]string, so
 		}
 		if _, err := tx.Exec(`UPDATE usage_hourly
 			SET cost_micro_usd = cost_micro_usd + ?,
+				late_cost_micro_usd = late_cost_micro_usd + ?,
 				unpriced_requests = CASE WHEN unpriced_requests > 0 THEN unpriced_requests - 1 ELSE 0 END
 			WHERE hour_ms = ? AND provider = ? AND model = ? AND alias = ?
 				AND auth_id = ? AND api_key_id = ? AND status_class = ? AND stream = ?`,
-			event.cost, event.hourMs, event.provider, event.model, event.alias,
+			event.cost, event.cost, event.hourMs, event.provider, event.model, event.alias,
 			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
 			return result, lastID, fmt.Errorf("usagedb: fill hourly: %w", err)
 		}
@@ -300,7 +301,7 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 	defer func() { _ = tx.Rollback() }()
 	rows, err := tx.Query(`SELECT id, ts_ms, provider, model, alias, executor, service_tier,
 		input_tokens, output_tokens, reasoning_tokens,
-		cache_read_tokens, cache_write_tokens, total_tokens, cost_micro_usd,
+		cache_read_tokens, cache_write_tokens, total_tokens, cost_micro_usd, cost_source,
 		auth_id, api_key_id, status_class, stream
 		FROM usage_events WHERE ts_ms >= ? AND ts_ms <= ? ORDER BY id`,
 		*scope.FromMs, *scope.ToMs)
@@ -314,6 +315,7 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 		provider, model, alias, executor, serviceTier          string
 		input, output, reasoning, cacheRead, cacheWrite, total int64
 		oldCost                                                sql.NullInt64
+		oldSource                                              sql.NullString
 		hourMs                                                 int64
 		authID, apiKeyID, statusClass                          string
 		stream                                                 int64
@@ -327,7 +329,7 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 		if err := rows.Scan(&event.id, &event.tsMs, &event.provider, &event.model,
 			&event.alias, &event.executor, &event.serviceTier, &event.input, &event.output,
 			&event.reasoning, &event.cacheRead, &event.cacheWrite, &event.total,
-			&event.oldCost, &event.authID, &event.apiKeyID,
+			&event.oldCost, &event.oldSource, &event.authID, &event.apiKeyID,
 			&event.statusClass, &stream); err != nil {
 			return 0, 0, 0, 0, fmt.Errorf("usagedb: scan correction event: %w", err)
 		}
@@ -376,13 +378,21 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 		if !event.oldCost.Valid {
 			unpricedDelta = -1
 		}
+		// The correction stores cost_source=price-book, so a late estimate
+		// stops being late: remove its old cost from the late part.
+		lateDelta := int64(0)
+		if event.oldSource.Valid && event.oldSource.String == CostSourcePriceBookLate {
+			lateDelta = -old
+		}
 		if _, err := tx.Exec(`UPDATE usage_hourly
 			SET cost_micro_usd = cost_micro_usd + ?,
+				late_cost_micro_usd = CASE WHEN late_cost_micro_usd + ? < 0 THEN 0
+					ELSE late_cost_micro_usd + ? END,
 				unpriced_requests = CASE WHEN unpriced_requests + ? < 0 THEN 0
 					ELSE unpriced_requests + ? END
 			WHERE hour_ms = ? AND provider = ? AND model = ? AND alias = ?
 				AND auth_id = ? AND api_key_id = ? AND status_class = ? AND stream = ?`,
-			delta, unpricedDelta, unpricedDelta,
+			delta, lateDelta, lateDelta, unpricedDelta, unpricedDelta,
 			event.hourMs, event.provider, event.model, event.alias,
 			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
 			return 0, 0, 0, 0, fmt.Errorf("usagedb: correct hourly: %w", err)
