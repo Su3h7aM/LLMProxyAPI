@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0044-usage-prices-cost
 type: backend (Go)
 agent: muse-spark-1.3-contributor
@@ -58,7 +58,51 @@ Add cost to the usage DB (issue 0043 is merged). Read `docs/usage-statistics-des
 ## Log
 
 - 2026-11-12: Read issue, design doc, `store.go`, `insert.go`, `writer.go`, `collector.go`, `redact.go`, `detail.go`. Rebased onto `main` (775b5908, late pricing rule). Created branch `issue/0044-usage-prices-cost`. Status in-progress.
+- 2026-11-12: Fetched one copy of `https://models.dev/api.json` to `/tmp/models.dev.api.json` (6 MB) to read the real `tiers` and `context_over_200k` shapes. All `tiers[].tier.type` values are `context`; `context_over_200k` carries `input`/`output`/`cache_read`/`cache_write`. Keys kept for tiers: input, output, cache_read, cache_write, reasoning (rare).
+- 2026-11-12: Read CPAMP pricing ideas only (`model_price_rules.go`, `service/pricing/cost.go`): context tier selected by total input tokens, strictly-greater-than threshold; tier is a whole-request rate set. Own implementation, no code copied.
+- 2026-11-12: Commits: price book schema + index + cost at insert; late pricing + correction; sync + snapshot + config + wiring; routes + docs. Gate: `go build ./...` (with gitignored `apps/web/dist` stub; dist is gitignored and built via `mise run build-web`, so a fresh checkout fails this step without it), `go vet` clean, `go test -race ./internal/usagedb/...` pass, `go test ./...` pass, `gofmt -l` empty, `CGO_ENABLED=0 go build ./cmd/server` pass (`/tmp/llmproxy-0044`).
+- 2026-11-12: Smoke test in `/tmp/smoke` (temp config, temp auth-dir, fixture price server on 18991, stub OpenAI upstream on 18992, server on 18317, binary `/tmp/llmproxy-0044`). `POST prices/sync` returned `added 1`; `GET prices?provider=openai&model=stub-model` returned the synced version (input 2000000); `POST /v1/chat/completions` with model `stub-model` stored one event with `cost_micro_usd=6000000`, `cost_source=price-book`, hourly sums right, unpriced 0. `PUT` manual closed the synced version and appended a manual one (history shows both). `POST correct` without `confirm` rejected; with a range over 366 days rejected; valid range wrote audit row 1 and kept cost (time-valid version unchanged). `DELETE manual` restored synced rates (`restored true`). All server and stub processes stopped after; none left running.
+- Questions for the coordinator (implemented with documented defaults, change on decision):
+  1. `CostDetails.CostInUSDTicks` is ignored (unit not defined). Upstream precedence used: `Cost`, then `UpstreamInferenceCost`, then prompt+completions sum. Keep or define a ticks conversion?
+  2. Events with an unknown provider resolve to an unclassified token total, priced at the input rate. Keep or leave unpriced?
+  3. `(provider_key, model_id, valid_from_ms)` has one UNIQUE index only (serves lookups); no second identical index. Keep?
+  4. models.dev context tiers apply as whole-request rates (CPAMP convention). Keep?
+  5. Correction audit `actor` is the fixed string `management-api`. Keep?
 
 ## Follow-ups
 
+- Audio token pricing: usage rows carry no audio buckets, so `input_audio`/`output_audio` rates are parsed but never applied. Needs token buckets first.
+- `PUT /observability/usage/prices` stores base rates only; no API for service-tier overrides yet (tier matching code exists, sync never emits service tiers).
+- Price `display_name` is not stored (schema has no column); panel lists show `model_id` only. Snapshot file keeps names if the panel wants them.
+- Registry models below stay unmatched even after a full sync (virtual aliases, suffixed variants, image models). Panel shows them in `unmatched`.
+
 ## Result
+
+Landed on branch `issue/0044-usage-prices-cost` (no merge to `main`).
+
+Schema (migration 2, `SchemaVersion=2`): `model_prices` (versioned, append-only; unique `(provider_key, model_id, valid_from_ms)`), `model_price_tiers` (`context`/`service` rows, NULL rate falls back to base), `cost_corrections` (audit), `usage_events.price_id` NULL. Code never UPDATEs a price except `valid_to_ms` once, never DELETEs. Conversion: micro-USD per 1M = round half up of USD per 1M; one rounding per event.
+
+Cost at insert (writer transaction): upstream cost wins (`upstream`, `price_id` NULL); else time-valid version prices the non-overlapping buckets from `Detail.PricedBuckets` (subset protocols never double count; reasoning falls back to output; unknown protocols price the total at input) with `price-book`; else NULL/`none` + hourly `unpriced_requests`.
+
+Late pricing: a new version triggers a background fill of NULL-cost events of that key (batches of 5000, 50 ms pause), each event at its own time, pre-first events take the first version, marked `price-book-late`, hourly cost added and unpriced decremented in the same transaction. Never touches priced events; idempotent.
+
+Sync: fetch with shared HTTP rules (proxy, 30 s timeout, 32 MB cap, ETag/`If-None-Match`, generic User-Agent). First version starts at 0, changed versions close/reopen at sync time, manual versions skip (`skipped_overrides`), failures keep data and record `last_error`. Scheduler: first run 30 s after start, then cadence. Embedded snapshot (`internal/usagedb/snapshot.json.gz`, 5.7 KB, 16 providers, 323 models, built by `scripts/gen-price-snapshot.sh`) loads at first start when the table is empty; sync replaces `embedded` like `models.dev`.
+
+Config: `observability.usage-db.price-sync` (`enabled` default true, `url` default models.dev, `interval-hours` default 24), example YAML, v8 tree automatic, hot reload via `UsageDB` compare. Home mode: collector disabled with one info log.
+
+Routes (v8, additive, same auth as other management routes):
+
+- `GET /observability/usage/prices?provider=&model=&source=&q=&limit=&offset=` returns `{"prices":[{"id":324,"provider":"openai","model":"stub-model","valid_from_ms":0,"valid_to_ms":null,"input":2000000,"output":8000000,"cache_read":500000,"cache_write":0,"reasoning":null,"source":"models.dev","synced_at_ms":1794450947548,"note":"","tiers":[]}],"total":1,"limit":100,"offset":0}`. Rates are micro-USD per 1M.
+- `GET /observability/usage/prices/history?provider=&model=` returns `{"provider":"openai","model":"stub-model","versions":[...]}` oldest first.
+- `PUT /observability/usage/prices` body `{"provider","model","input","output","cache_read?","cache_write?","reasoning?","effective_from_ms?","note?"}` (USD per 1M) closes current at `effective_from_ms` (default now), appends `manual`, returns the version. Past dates allowed; stored cost never changes.
+- `DELETE /observability/usage/prices/manual?provider=&model=` closes the manual version; restores last synced rates when present. Returns `{"provider":"openai","model":"stub-model","restored":true}`.
+- `POST /observability/usage/prices/sync` returns `{"added":1,"updated":0,"unchanged":0,"skipped_overrides":0,"error":"","duration_ms":3}`.
+- `GET /observability/usage/prices/status` returns `{"last_sync_ms":1794450947548,"last_attempt_ms":1794450947548,"last_error":"","counts_by_source":{"embedded":323,"models.dev":1},"unmatched":[{"provider":"codex","model":"gpt-5u","events":1}]}`.
+- `POST /observability/usage/prices/price-unpriced` body `{"from_ms?","to_ms?","provider?","model?"}` returns `{"priced":1,"skipped_no_price":0,"duration_ms":12}`.
+- `POST /observability/usage/prices/correct` body `{"from_ms","to_ms","provider?","model?","confirm":true,"reason"}` returns `{"correction_id":1,"events_updated":1,"old_cost_micro_usd":6000000,"new_cost_micro_usd":6000000}`; rejects missing confirm, missing reason, and ranges over 366 days with 400.
+
+Tests: price math, tiers, rounding, lookup (provider map, alias, date suffix both ways, cross-provider, time validity, manual wins), append-only guard, parser fixture, sync first/unchanged/changed/manual-skip/failure/ETag, embedded load once, insert cost states, upstream conversion, late pricing (per-time versions, keeps priced, no mix, nearest, idempotent), correction, all routes, Home mode, buckets. `go test -race ./internal/usagedb/...` and full `go test ./...` pass.
+
+Docs: `docs/usage-prices.md` (source, frozen history, unpriced, overrides, corrections); route rows in `docs/management-api-v8.md`.
+
+Known gaps: audio rates not applied; no service-tier API; no `display_name` column. Registry models with no price match even after full sync: claude (5 dated: `claude-opus-4-1-20250805`, `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, `claude-3-7-sonnet-20250219`, `claude-3-5-haiku-20241022`), gemini/aistudio/gemini-cli (`gemini-3-pro-preview`, `gemini-3.1-flash-image-preview`, `gemini-3-pro-image-preview`, `gemini-omni-1.2-flash`), vertex (plus `gemini-3-pro`, `gemini-3-flash`, `gemini-3.1-pro`, `imagen-*`), codex channels (`gpt-6-chat-thinking`, `codex-auto-review`), kimi (`kimi-k2`, `kimi-k2-thinking`, `kimi-k2.5`, `kimi-k2.8`, `kimi-k2.8-code`, `kimi-k3-256k`), antigravity (`-high`/`-medium` variants, `claude-opus-4-6-thinking`, `gpt-oss-120b-medium`), xai (`grok-4.7-build-fast`, `grok-3-mini*`, `grok-composer-2.5-fast`, image variants), meta (`muse-wonder-*`).
