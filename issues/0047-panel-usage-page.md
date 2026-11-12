@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0047-panel-usage-page
 type: panel
 agent: muse-spark-1.3-contributor
@@ -67,6 +67,15 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
 3. At the end: `status: done`, fill `## Result` (what landed, how it looks, known gaps, a manual check against the real server with the commands you ran), commit, report. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- 2026-11-12: Branch `issue/0047-panel-usage-page` cut from `main` at
+  `bc037809`. Read `AGENTS.md`, `apps/web/AGENTS.md`,
+  `docs/usage-api-contract.md`, issues 0046 and 0042, the data layer of
+  0046 (types, client, hooks, store, logic), UI blocks (Table, Sheet,
+  SegmentedControl, Select, TimeSeriesChart), the BumpyClock reference
+  (`nav.usage_statistics`, `/usage` route, `IconSidebarUsage`), and the
+  old page with its callers. Plan: shell first, then sections in small
+  commits.
 
 ## Follow-ups
 
