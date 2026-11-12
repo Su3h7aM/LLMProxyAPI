@@ -13,8 +13,8 @@ import type { SourceStatus } from '../logic/freshness';
 import { usePolledResource, type PolledResource } from './usePolledResource';
 
 /**
- * Sources the dashboard polls. The usage source is hidden until a v8 route serves
- * aggregate usage data; its id stays in `DashboardSourceId` for the stale logic.
+ * Sources this hook polls. The usage section has its own query
+ * (`useDashboardUsage`); its id stays in `DashboardSourceId` for the stale logic.
  */
 export type DashboardPolledSourceId = Exclude<DashboardSourceId, 'usage'>;
 
