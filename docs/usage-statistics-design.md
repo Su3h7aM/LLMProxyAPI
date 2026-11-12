@@ -73,7 +73,7 @@ BumpyClock design system only. No raw colors or sizes (token guard).
 
 - Dashboard: usage section (requests, tokens, cost, failure rate, sparkline, top models).
 - Usage page: summary cards, timeline, model and provider share, credential and key tables, failure sources, hour-of-week heatmap, filter bar, events table with detail drawer, export.
-- Prices page: price table, add and edit, import, recompute.
+- Prices page: price table with price history per model, add and edit (new version), import, sync now, price unpriced events, audited correction.
 - System page: DB status and maintenance.
 
 ## Work plan
