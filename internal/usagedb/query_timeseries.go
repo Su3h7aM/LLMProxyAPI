@@ -226,12 +226,12 @@ func (s *Store) QueryTimeseries(f UsageFilter, bucket, groupBy string, top int) 
 		if _, err := groupColumn(groupBy); err != nil {
 			return result, err
 		}
-		if top <= 0 {
-			top = 5
-		}
-		if top > 20 {
-			return result, &QueryError{Msg: "invalid top"}
-		}
+	}
+	if top <= 0 {
+		top = 5
+	}
+	if top > 20 {
+		return result, &QueryError{Msg: "invalid top"}
 	}
 	rows, err := s.fetchHourlyAgg(f, groupBy)
 	if err != nil {

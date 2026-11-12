@@ -60,22 +60,22 @@ func ParseUsageFilter(values url.Values, nowMs int64) (UsageFilter, error) {
 	if raw := strings.TrimSpace(values.Get("from_ms")); raw != "" {
 		value, err := strconv.ParseInt(raw, 10, 64)
 		if err != nil || value < 0 {
-			return filter, fmt.Errorf("usagedb: invalid from_ms")
+			return filter, &QueryError{Msg: "invalid from_ms"}
 		}
 		filter.FromMs = value
 	}
 	if raw := strings.TrimSpace(values.Get("to_ms")); raw != "" {
 		value, err := strconv.ParseInt(raw, 10, 64)
 		if err != nil || value < 0 {
-			return filter, fmt.Errorf("usagedb: invalid to_ms")
+			return filter, &QueryError{Msg: "invalid to_ms"}
 		}
 		filter.ToMs = value
 	}
 	if filter.ToMs <= filter.FromMs {
-		return filter, fmt.Errorf("usagedb: to_ms must be after from_ms")
+		return filter, &QueryError{Msg: "to_ms must be after from_ms"}
 	}
 	if filter.ToMs-filter.FromMs > maxUsageRangeMs {
-		return filter, fmt.Errorf("usagedb: range exceeds 366 days")
+		return filter, &QueryError{Msg: "range exceeds 366 days"}
 	}
 	filter.TZ = strings.TrimSpace(values.Get("tz"))
 	if filter.TZ == "" {
@@ -83,7 +83,7 @@ func ParseUsageFilter(values url.Values, nowMs int64) (UsageFilter, error) {
 	}
 	loc, err := time.LoadLocation(filter.TZ)
 	if err != nil {
-		return filter, fmt.Errorf("usagedb: invalid tz")
+		return filter, &QueryError{Msg: "invalid tz"}
 	}
 	filter.Loc = loc
 	collect := func(key string) []string {
@@ -110,7 +110,7 @@ func ParseUsageFilter(values url.Values, nowMs int64) (UsageFilter, error) {
 	switch filter.Status {
 	case "", "ok", "failed":
 	default:
-		return filter, fmt.Errorf("usagedb: invalid status")
+		return filter, &QueryError{Msg: "invalid status"}
 	}
 	if raw := strings.TrimSpace(values.Get("stream")); raw != "" {
 		switch raw {
@@ -121,7 +121,7 @@ func ParseUsageFilter(values url.Values, nowMs int64) (UsageFilter, error) {
 			value := false
 			filter.Stream = &value
 		default:
-			return filter, fmt.Errorf("usagedb: invalid stream")
+			return filter, &QueryError{Msg: "invalid stream"}
 		}
 	}
 	filter.Q = strings.TrimSpace(values.Get("q"))
