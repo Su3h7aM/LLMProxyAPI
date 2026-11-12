@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0041-triage-cpamp-usage-inventory
 type: triage (read-only, no code changes)
 agent: muse-spark-1.3-contributor
@@ -44,7 +44,23 @@ The fork needs a built-in usage DB and statistics dashboard as robust as CPA-Man
 ## Log
 
 - 2026-11-12: Work on assigned worktree branch `t3/triage-cpamp-usage-inventory` (no new branch; coordinator owns merge). Reference pin confirmed `a67ed883`. Read collector, event, queue, resp, cpa client, migrate, config, all HTTP controllers, pricing, automation, auth, web routes, perf doc. Write `issues/0041-cpamp-inventory.md` next.
+- 2026-11-12: Inventory done. Wrote `issues/0041-cpamp-inventory.md` (8 sections, all evidence with file and line). No code changed.
 
 ## Follow-ups
 
 ## Result
+
+Full inventory: `issues/0041-cpamp-inventory.md`. Read-only triage. No code changed.
+
+| # | Area | Key fact for design (issue 0042) |
+|---|---|---|
+| 1 | Ingest | Drain of CPA Redis queue over RESP (`LPOP`/`RPOP`), HTTP (`GET usage-queue`), or subscribe. Default batch 100, poll 500 ms. Dedup by `event_hash`. No local cursor; gap safety depends on CPA retention. |
+| 2 | Storage | One SQLite file (modernc driver, WAL). Raw `usage_events` + identity ledger + ~10 rollup families with checkpoint resume. No time-based delete; archive workflow prunes. ~1.66 kB per event synthetic; index +1.25%. |
+| 3 | Query API | 30+ endpoints in 12 groups (dashboard, monitoring x4, usage x8 incl. import and archives, prices x5, aliases, quota, cooldowns, candidates, inspection, setup, config, updates). All listed with method, path, params. |
+| 4 | Cost | USD per 1M. 5 price fields + context tiers + service tiers + legacy long-context and tier multipliers. Unknown model = 0 cost (except gpt-5.6 built-ins). Sources: models.dev, LiteLLM, OpenRouter. |
+| 5 | UI | 11 usage routes; core = dashboard, usage analytics (19 include flags), monitoring center (3 tabs), model prices. |
+| 6 | Automation | Quota auto-disable + recover, auth-issue queue (+auto-disable), Codex inspection, quota writer, rollups, retention (off by default), update check. No webhooks found. |
+| 7 | Deploy | One binary, port 18317, `/data` volume. Separate-only parts: CPA link, CPA proxy, extra admin key, setup flow. Price and release sources stay external. |
+| 8 | Limits | 120-day P95 ~25 s; caps 50k rows, 200 accounts, 400 windows; poll (no live tail); retention off by default; unpriced models cost 0. |
+
+Proposals for coordinator: reuse `event_hash` dedup and ledger idea; reuse rollup checkpoint pattern; reuse price book shape with configured flags; keep archive-before-delete. Open: confirm CPA queue durability in CPA source (see unconfirmed table in inventory).
