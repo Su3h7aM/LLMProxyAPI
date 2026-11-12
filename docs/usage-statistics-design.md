@@ -25,7 +25,7 @@ The proxy keeps its own usage database and serves its own statistics dashboard. 
 | 6 | Aggregates | Raw table plus ONE hourly rollup table, updated in the same transaction as the insert (UPSERT). Dimensions: hour, provider, model, alias, auth id, api key id, status class, stream. No checkpoint families. | CPAMP needs 10 families because it reads a queue later. We write both at once. |
 | 7 | Retention | Raw events: 90 days by default (config `retention-days`, 0 = keep). A daily job deletes older raw rows in batches. Rollups stay. | CPAMP default is off and the file grows without limit. |
 | 8 | Cost | Price book table (USD per 1M tokens: input, output, cache read, cache write, reasoning; optional context tiers and service tiers). Cost is computed at insert and stored as integer micro-USD. Upstream cost, when present, wins. Unknown model stores NULL cost and counts as "unpriced", not 0. A "recompute" action fills history after a price change. | Frozen history is correct. NULL avoids false zero cost. |
-| 9 | Price source | Embedded default price file in the binary, editable in the panel, plus manual import of a file. No automatic fetch from external sites in the first version. | Server runs offline or locked down. No new outbound calls. |
+| 9 | Price source | Sync with `https://models.dev/api.json` (public JSON, about 6 MB, USD per 1M tokens: `input`, `output`, `cache_read`, `cache_write`, `reasoning`, `tiers`, `context_over_200k`; 8993 models in 235 providers on 2026-11-12, 394 without cost). The binary embeds a snapshot as a fallback so the first start works offline. Sync runs at start-up and every 24 h (config: `price-sync.enabled`, `url`, `interval-hours`), and on demand from the panel. The fetch uses the configured proxy-url and the shared HTTP client rules. A user edit (override) is never replaced by a sync. A failed sync keeps the old prices and records the error. Price rows keep their source (`models.dev`, `manual`) and `synced_at`. | Developer order: prices must sync with models.dev. Embedded fallback and overrides keep the server useful offline. |
 | 10 | API | Additive v8 routes under `/v8/management/observability/usage/...`. Released routes do not change. v0 gets nothing new. | Contract rule. |
 | 11 | Config | New section `observability.usage-db`: `enabled` (default true), `path`, `retention-days`, `buffer-size`. The flag `usage-statistics-enabled` stays for the Redis queue only. | Keeps released behavior. |
 | 12 | Scope phase 1 | Dashboard usage section, Usage analytics page, request history table, model prices page, maintenance (retention, vacuum, stats, export). | Core and useful rows of CPAMP. |
@@ -57,6 +57,7 @@ All are GET unless noted. Query parameters: `from`, `to` (RFC 3339 or epoch ms),
 | `/observability/usage/heatmap` | Hour-of-week counts |
 | `/observability/usage/export` | JSONL or CSV stream for a range |
 | `/observability/usage/prices` (GET, PUT, POST import) | Price book |
+| `/observability/usage/prices/sync` (POST) | Sync now from models.dev; returns counts (added, updated, unchanged, skipped overrides) and the error if any |
 | `/observability/usage/prices/recompute` (POST) | Refill cost for a range |
 | `/observability/usage/maintenance` (POST) | Actions: prune now, vacuum |
 | `/observability/usage/key-labels` (GET, PUT) | Label per `api_key_id` |
@@ -77,7 +78,7 @@ BumpyClock design system only. No raw colors or sizes (token guard).
 | Issue | Area | Depends on |
 |---|---|---|
 | 0043 | Go: SQLite store, schema and migrations, writer, collector plugin, redaction, retention, config, status route | none |
-| 0044 | Go: price book, cost at insert, recompute, prices routes | 0043 |
+| 0044 | Go: price book, models.dev sync (embedded fallback, overrides, schedule), cost at insert, recompute, prices routes | 0043 |
 | 0045 | Go: summary, timeseries, breakdown, events, failures, heatmap, export routes, route tests, contract note | 0043, 0044 |
 | 0046 | Panel: services, store, dashboard section | 0045 contract |
 | 0047 | Panel: Usage page | 0046 |

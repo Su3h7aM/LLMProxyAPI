@@ -9,10 +9,12 @@ Format: date, context, decision, reason. Newest first.
   and one batch writer (no Redis queue); raw API keys never stored (hashed
   id); raw table plus one hourly rollup written in the same transaction;
   raw retention 90 days by default; prices in a price book, cost stored at
-  insert, unknown model is NULL (not 0); no automatic price fetch; additive
+  insert, unknown model is NULL (not 0); prices sync with models.dev
+  (embedded snapshot fallback, manual overrides never replaced); additive
   v8 routes only; config section `observability.usage-db`. Not in phase 1:
   auto-disable, auth-issue queue, Codex inspection, CPAMP import, Home mode
-  capture. Full design: `docs/usage-statistics-design.md`. Reason:
+  capture. Update 2026-11-12: developer asked for the models.dev sync (first
+  draft had no fetch). Full design: `docs/usage-statistics-design.md`. Reason:
   developer order; fork runs as one unit on a server.
 
 - 2026-11-11: Panel migration done and merged to `main` (issues 0018 to
