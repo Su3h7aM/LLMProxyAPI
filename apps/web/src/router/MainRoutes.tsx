@@ -14,6 +14,7 @@ import { ConfigPage } from '@/features/config/ConfigPage';
 import { PricesPage } from '@/features/usage/PricesPage';
 import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
+import { UsagePage } from '@/features/usage/UsagePage';
 
 const mainRoutes = [
   { path: '/', element: <DashboardPage /> },
@@ -30,6 +31,7 @@ const mainRoutes = [
   { path: '/oauth', element: <OAuthPage /> },
   { path: '/routing', element: <RoutingPage /> },
   { path: '/quota', element: <QuotaPage /> },
+  { path: '/usage', element: <UsagePage /> },
   { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourcePage /> },
   { path: '/plugins', element: <PluginsPage /> },
   { path: '/plugin-store', element: <PluginStorePage /> },

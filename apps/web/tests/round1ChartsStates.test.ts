@@ -8,7 +8,6 @@ import { TimeSeriesChart } from '@/components/ui/TimeSeriesChart';
 import { EmptyRequestFlow, ThroughputChart } from '@/features/dashboard/components/ThroughputChart';
 import { QuotaHeader } from '@/features/quota/components/QuotaHeader';
 import type { TrafficWindow } from '@/features/dashboard/types';
-import { UsagePageContent } from '@/pages/UsagePage';
 import { createTestI18n } from './helpers/locales';
 
 const i18n = await createTestI18n();
@@ -118,30 +117,6 @@ describe('round 1 chart states', () => {
     expect(chart).toContain('layoutTimeAxis(');
   });
 
-  test('unreported daily history is a compact status, labeled unreported, with its explanation', () => {
-    const markup = render(
-      createElement(UsagePageContent, {
-        payload: {
-          usage: { total_requests: 3, total_tokens: 30, success_count: 3, failure_count: 0 },
-        },
-        enabled: true,
-        loading: false,
-        error: null,
-        lastUpdated: 1_000,
-        now: 1_000,
-        onRefresh: () => {},
-      })
-    );
-    // Round 2: both series unreported collapse into one notice after Top Models.
-    expect(markup.match(/data-daily-history="unreported"/g)).toHaveLength(1);
-    expect(markup.match(/>Not reported</g)).toHaveLength(1);
-    expect(markup).toContain('missing dates are never filled with zeros');
-    expect(markup.indexOf('usage-models-title')).toBeLessThan(markup.indexOf('usage-daily-title'));
-    expect(markup).not.toContain('View data table');
-    expect(markup).not.toContain('aria-pressed');
-    expect(markup).not.toContain('<strong>0</strong>');
-  });
-
   test('page refresh actions use the shared labeled RefreshButton with visible scope', () => {
     const quota = render(
       createElement(QuotaHeader, {
@@ -161,7 +136,7 @@ describe('round 1 chart states', () => {
       'src/features/dashboard/DashboardPage.tsx',
       'src/features/dashboard/components/QuotaSummaryChart.tsx',
       'src/features/quota/components/QuotaHeader.tsx',
-      'src/pages/UsagePage.tsx',
+      'src/features/usage/UsagePage.tsx',
     ]) {
       expect(source(path)).toContain('<RefreshButton');
     }

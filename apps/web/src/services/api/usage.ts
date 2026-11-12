@@ -38,8 +38,6 @@ import type {
   UsageTimeseriesResponse,
 } from '@/types/usageStats';
 
-const USAGE_FLAG_TIMEOUT_MS = 15 * 1000;
-const USAGE_FLAG_PATH = '/config/observability/usage/usage-statistics-enabled';
 const USAGE_TIMEOUT_MS = 30 * 1000;
 
 export interface UsageRequestOptions {
@@ -95,25 +93,6 @@ export interface UsageExportFile {
 }
 
 export const usageApi = {
-  /**
-   * Whether the server records per-request usage statistics. Null when the backend
-   * does not expose the flag. The flag lives in the v8 config tree; there is no
-   * flat usage endpoint on v8.
-   *
-   * The unrouted Usage page still reads this until issue 0047 replaces it.
-   */
-  getStatisticsEnabled: async (): Promise<boolean | null> => {
-    try {
-      const payload = await apiClient.get<unknown>(USAGE_FLAG_PATH, {
-        timeout: USAGE_FLAG_TIMEOUT_MS,
-      });
-      return typeof payload === 'boolean' ? payload : null;
-    } catch (error: unknown) {
-      if (statusOf(error) === 404) return null;
-      throw error;
-    }
-  },
-
   /** `GET /observability/usage/status`. */
   getStatus: (options?: UsageRequestOptions): Promise<UsageDbStatus> =>
     guardUsageErrors(() =>

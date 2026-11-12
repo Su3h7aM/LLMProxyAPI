@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { UsageBreakdownItem, UsageTimeseriesResponse } from '@/types/usageStats';
 import {
@@ -234,6 +235,9 @@ export function UsagePanelContent({
           <p className={styles.description}>
             {t('dashboard.usage_description', { range: rangeLabel })}
           </p>
+          <Link to="/usage" className={styles.openUsage}>
+            {t('usage_page.open_usage')} <span aria-hidden="true">→</span>
+          </Link>
         </div>
         <div className={styles.ranges} role="group" aria-label={t('dashboard.usage_range_label')}>
           {DASHBOARD_USAGE_RANGES.map((option) => (

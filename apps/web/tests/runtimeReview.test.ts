@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { findActiveRoute } from '../src/components/layout/routeLabel';
-import { usageSessionRequestState } from '../src/pages/usage-page-request-guard';
 
 const source = (path: string) => readFileSync(path, 'utf8');
 
@@ -17,23 +16,6 @@ describe('route labels', () => {
     expect(findActiveRoute(items, '/')?.label).toBe('Dashboard');
     expect(findActiveRoute(items, '/auth-files/oauth')?.label).toBe('Auth files');
     expect(findActiveRoute(items, '/logs-extra')).toBeUndefined();
-  });
-});
-
-describe('usage request eligibility', () => {
-  test('connecting waits while error, disconnected and unauthenticated states stop', () => {
-    expect(
-      usageSessionRequestState({ isAuthenticated: true, connectionStatus: 'connecting' })
-    ).toBe('connecting');
-    for (const connectionStatus of ['error', 'disconnected']) {
-      expect(usageSessionRequestState({ isAuthenticated: true, connectionStatus })).toBe('stopped');
-    }
-    expect(
-      usageSessionRequestState({ isAuthenticated: false, connectionStatus: 'connected' })
-    ).toBe('stopped');
-    expect(usageSessionRequestState({ isAuthenticated: true, connectionStatus: 'connected' })).toBe(
-      'ready'
-    );
   });
 });
 

@@ -67,6 +67,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   routing: <IconSidebarRouting size={iconSize['18']} />,
   quota: <IconSidebarQuota size={iconSize['18']} />,
   usagePrices: <IconSidebarUsage size={iconSize['18']} />,
+  usage: <IconSidebarUsage size={iconSize['18']} />,
   plugins: <IconSidebarPlugins size={iconSize['18']} />,
   pluginStore: <IconSidebarStore size={iconSize['18']} />,
   config: <IconSidebarConfig size={iconSize['18']} />,
@@ -428,6 +429,12 @@ export function MainLayout() {
           labelKey: 'nav.quota_management',
           metaKey: 'nav_meta.quota_management',
           icon: sidebarIcons.quota,
+        },
+        {
+          path: '/usage',
+          labelKey: 'usage_page.nav_title',
+          metaKey: 'usage_page.nav_meta',
+          icon: sidebarIcons.usage,
         },
         {
           path: '/logs',

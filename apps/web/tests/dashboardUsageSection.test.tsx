@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router-dom';
 import i18n from '@/i18n/index';
 import { UsagePanelContent } from '@/features/dashboard/components/UsagePanel';
 import type { DashboardUsageData } from '@/features/dashboard/hooks/useDashboardUsage';
@@ -75,7 +76,9 @@ const data = (overrides: Partial<DashboardUsageData> = {}): DashboardUsageData =
 });
 
 const render = (props: Parameters<typeof UsagePanelContent>[0]) =>
-  renderToStaticMarkup(createElement(UsagePanelContent, props));
+  renderToStaticMarkup(
+    createElement(MemoryRouter, null, createElement(UsagePanelContent, props))
+  );
 
 const baseProps = {
   range: '24h' as const,
