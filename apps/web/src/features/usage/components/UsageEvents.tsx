@@ -11,11 +11,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { IconCheck } from '@/components/ui/icons';
-import { iconSize, size } from '@/design-system';
-import { usageApi, isUsageDisabledError } from '@/services/api/usage';
+import { duration, iconSize, size } from '@/design-system';
+import { usageApi } from '@/services/api/usage';
 import { useUsageQuery } from '@/features/usage/hooks/useUsageQuery';
-import { nextUsageCursor } from '@/utils/usageQuery';
-import { eventsExportQuery, eventsResetKey } from '@/features/usage/logic/events';
+import { eventsExportQuery, eventsResetKey, mergeEventsPages } from '@/features/usage/logic/events';
+import type { EventsPage } from '@/features/usage/logic/events';
 import {
   formatDurationMs,
   formatMicroUsd,
@@ -35,13 +35,10 @@ import styles from '../UsagePage.module.scss';
 
 const PAGE_LIMIT = 50;
 const SEARCH_DEBOUNCE_MS = 300;
-
-interface EventsPage {
-  id: string;
-  items: UsageEventListItem[];
-  next: string | null;
-  first: boolean;
-}
+// Download links revoke their blob URL after this business timeout.
+const BLOB_URL_REVOKE_TIMEOUT_MS = 5000;
+// How long the copied confirmation stays visible.
+const COPIED_FEEDBACK_MS = duration['1500'];
 
 interface EventsTotal {
   estimate: number;
@@ -56,7 +53,7 @@ function downloadBlob(blob: Blob, filename: string) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  window.setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_TIMEOUT_MS);
 }
 
 function CostCell({ item }: { item: UsageEventListItem }) {
@@ -263,25 +260,12 @@ export function UsageEvents({ query, queryKey, enabled }: UsageSectionProps) {
     if (!page.data) return;
     const data = page.data;
     const id = `${resetKey}|${cursor ?? 'first'}`;
-    setPages((previous) => {
-      const index = previous.findIndex((entry) => entry.id === id);
-      const entry: EventsPage = {
-        id,
-        items: data.items,
-        next: nextUsageCursor(data),
-        first: cursor === null,
-      };
-      if (index === -1) return [...previous, entry];
-      const next = [...previous];
-      next[index] = entry;
-      return next;
-    });
+    setPages((previous) => mergeEventsPages(previous, id, data));
     if (cursor === null) {
       setTotal({ estimate: data.total_estimate, exact: data.total_exact !== false });
     }
   }, [page.data, resetKey, cursor]);
 
-  const disabled = page.error ? isUsageDisabledError(page.error) : false;
   const items = pages.flatMap((entry) => entry.items);
   const last = pages.length > 0 ? pages[pages.length - 1] : null;
   const hasMore = last ? last.next !== null : false;
@@ -302,7 +286,7 @@ export function UsageEvents({ query, queryKey, enabled }: UsageSectionProps) {
             setCopiedId(item.id);
             window.setTimeout(
               () => setCopiedId((current) => (current === item.id ? null : current)),
-              1500
+              COPIED_FEEDBACK_MS
             );
           })
           .catch(() => undefined);
@@ -327,7 +311,7 @@ export function UsageEvents({ query, queryKey, enabled }: UsageSectionProps) {
     body = (
       <Skeleton height={size['240']} role="status" aria-label={t('usage_page.state_loading')} />
     );
-  } else if (page.error && pages.length === 0 && !disabled) {
+  } else if (page.error && pages.length === 0) {
     body = (
       <div className={styles.notice} role="alert">
         <p className={styles.noticeText}>{page.error.message}</p>
@@ -343,7 +327,7 @@ export function UsageEvents({ query, queryKey, enabled }: UsageSectionProps) {
       </div>
     );
   } else if (items.length === 0) {
-    body = disabled ? null : (
+    body = (
       <EmptyState
         title={t('usage_page.events_empty')}
         description={t('usage_page.events_empty_hint')}

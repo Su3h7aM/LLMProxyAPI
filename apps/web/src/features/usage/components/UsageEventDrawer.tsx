@@ -8,7 +8,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sheet } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { size } from '@/design-system';
+import { size, duration } from '@/design-system';
 import { usageApi } from '@/services/api/usage';
 import { useUsageQuery } from '@/features/usage/hooks/useUsageQuery';
 import {
@@ -22,6 +22,9 @@ import { fallbackKeyLabel } from '@/features/usage/logic/breakdown';
 import type { UsageEventDetail } from '@/types/usageStats';
 import styles from '../UsagePage.module.scss';
 
+// How long the copied confirmation stays visible.
+const COPIED_FEEDBACK_MS = duration['1500'];
+
 function Field({ label, value, title }: { label: string; value: ReactNode; title?: string }) {
   return (
     <>
@@ -33,7 +36,7 @@ function Field({ label, value, title }: { label: string; value: ReactNode; title
   );
 }
 
-function EventDetailBody({ event }: { event: UsageEventDetail }) {
+export function EventDetailBody({ event }: { event: UsageEventDetail }) {
   const { t, i18n } = useTranslation();
   const cost =
     event.cost_micro_usd === null
@@ -92,7 +95,7 @@ function EventDetailBody({ event }: { event: UsageEventDetail }) {
   );
 }
 
-function EventPrice({ event }: { event: UsageEventDetail }) {
+export function EventPrice({ event }: { event: UsageEventDetail }) {
   const { t, i18n } = useTranslation();
   if (!event.price) {
     return <p className={styles.sectionNote}>{t('usage_page.detail_no_price')}</p>;
@@ -153,7 +156,7 @@ export function UsageEventDrawer({
     try {
       await navigator.clipboard.writeText(requestId);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      window.setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
     } catch {
       // Clipboard is unavailable; the id stays selectable text.
     }

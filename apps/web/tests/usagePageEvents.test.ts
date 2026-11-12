@@ -3,9 +3,10 @@ import { createElement, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nextProvider } from 'react-i18next';
 import { createTestI18n, type TestLanguage } from './helpers/locales';
-import { eventsExportQuery, eventsResetKey } from '@/features/usage/logic/events';
+import { eventsExportQuery, eventsResetKey, mergeEventsPages } from '@/features/usage/logic/events';
 import { UsageEventsTable } from '@/features/usage/components/UsageEvents';
-import type { UsageEventListItem } from '@/types/usageStats';
+import { EventDetailBody, EventPrice } from '@/features/usage/components/UsageEventDrawer';
+import type { UsageEventDetail, UsageEventListItem } from '@/types/usageStats';
 
 const LOCALES: TestLanguage[] = ['en', 'zh-CN', 'zh-TW', 'ru'];
 const noop = () => {};
@@ -69,6 +70,25 @@ describe('events helpers', () => {
     expect(eventsResetKey(query, 'q')).not.toBe(eventsResetKey({ ...query, provider: ['b'] }, 'q'));
   });
 
+  test('pages append by cursor and replace on refetch', () => {
+    const first = { items: [event()], next_cursor: 'c1', total_estimate: 3, total_exact: true };
+    const second = { items: [event({ id: 8 })], next_cursor: '', total_estimate: 3, total_exact: true };
+    const one = mergeEventsPages([], 'q|first', first);
+    expect(one).toHaveLength(1);
+    expect(one[0].next).toBe('c1');
+    const two = mergeEventsPages(one, 'q|c1', second);
+    expect(two).toHaveLength(2);
+    expect(two.flatMap((page) => page.items.map((item) => item.id))).toEqual([7, 8]);
+    const refetched = mergeEventsPages(two, 'q|c1', {
+      ...second,
+      items: [event({ id: 9 })],
+    });
+    expect(refetched).toHaveLength(2);
+    expect(refetched[1].items.map((item) => item.id)).toEqual([9]);
+    const emptyCursor = mergeEventsPages([], 'q|first', { ...first, next_cursor: '  ' });
+    expect(emptyCursor[0].next).toBeNull();
+  });
+
   test('the export query carries the filters, search, and format', () => {
     expect(eventsExportQuery({ from_ms: 1, to_ms: 2, tz: 'UTC' }, 'hi', 'csv')).toEqual({
       from_ms: 1,
@@ -81,6 +101,55 @@ describe('events helpers', () => {
       from_ms: 1,
       format: 'jsonl',
     });
+  });
+});
+
+describe('event detail render', () => {
+  const detail = (overrides: Partial<UsageEventDetail> = {}): UsageEventDetail => ({
+    ...event(),
+    fail_summary: 'Upstream rate limit',
+    session_id: 's1',
+    access_provider: 'claude',
+    auth_index: '0',
+    price_id: 3,
+    price: {
+      provider: 'claude',
+      model: 'claude-sonnet-5-5',
+      valid_from_ms: Date.parse('2026-11-01T00:00:00.000Z'),
+      input: 3_000_000,
+      output: 15_000_000,
+      cache_read: 300_000,
+      cache_write: 3_750_000,
+      source: 'manual',
+    },
+    ...overrides,
+  });
+
+  test('shows all fields, the fail summary, and the per-million price', async () => {
+    const markup = await render(createElement(EventDetailBody, { event: detail() }));
+    expect(markup).toContain('0b1c2d3e4f5a');
+    expect(markup).toContain('Upstream rate limit');
+    expect(markup).toContain('ab***@example.com');
+    const price = await render(createElement(EventPrice, { event: detail() }));
+    expect(price).toContain('Price used');
+    expect(price).toContain('$3.00 / 1M');
+    expect(price).toContain('manual');
+  });
+
+  test('a missing price says so without raw numbers', async () => {
+    const markup = await render(
+      createElement(EventPrice, { event: detail({ price: null, price_id: null }) })
+    );
+    expect(markup).toContain('No price matched this event.');
+  });
+
+  test('every locale renders without raw keys', async () => {
+    for (const language of LOCALES) {
+      const markup = await render(createElement(EventDetailBody, { event: detail() }), language);
+      expect(markup).not.toContain('usage_page.');
+      const price = await render(createElement(EventPrice, { event: detail() }), language);
+      expect(price).not.toContain('usage_page.');
+    }
   });
 });
 

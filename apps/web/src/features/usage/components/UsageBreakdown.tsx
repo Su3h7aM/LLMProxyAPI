@@ -17,7 +17,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { IconCheck, IconPencil, IconX } from '@/components/ui/icons';
 import { iconSize, size } from '@/design-system';
-import { usageApi, isUsageDisabledError } from '@/services/api/usage';
+import { usageApi } from '@/services/api/usage';
 import { useUsageQuery } from '@/features/usage/hooks/useUsageQuery';
 import {
   formatDurationMs,
@@ -359,14 +359,13 @@ export function UsageBreakdown({ query, queryKey, enabled }: UsageSectionProps) 
       });
   };
 
-  const disabled = result.error ? isUsageDisabledError(result.error) : false;
 
   let body: ReactNode;
   if (result.loading && !result.data) {
     body = (
       <Skeleton height={size['240']} role="status" aria-label={t('usage_page.state_loading')} />
     );
-  } else if (result.error && !disabled) {
+  } else if (result.error) {
     body = (
       <div className={styles.notice} role="alert">
         <p className={styles.noticeText}>{result.error.message}</p>
@@ -382,8 +381,7 @@ export function UsageBreakdown({ query, queryKey, enabled }: UsageSectionProps) 
       </div>
     );
   } else if (!result.data || result.data.items.length === 0) {
-    // A disabled database blanks every section; the shell already names it.
-    body = disabled ? null : <EmptyState title={t('usage_page.chart_empty')} />;
+    body = <EmptyState title={t('usage_page.chart_empty')} />;
   } else {
     body = (
       <UsageBreakdownTable

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { size } from '@/design-system';
-import { usageApi, isUsageDisabledError } from '@/services/api/usage';
+import { usageApi } from '@/services/api/usage';
 import { useUsageQuery } from '@/features/usage/hooks/useUsageQuery';
 import { breakdownFilterPatch } from '@/features/usage/logic/breakdown';
 import { useUsageFilterStore } from '@/stores/useUsageFilterStore';
@@ -135,8 +135,6 @@ export function UsageFailures({ query, queryKey, enabled }: UsageSectionProps) {
     load: (signal) => usageApi.getFailures({ ...query }, { signal }),
   });
 
-  const disabled = result.error ? isUsageDisabledError(result.error) : false;
-
   const applyGroup = (group: UsageFailureGroup) => {
     const values = useUsageFilterStore.getState();
     if (group.provider) {
@@ -160,7 +158,7 @@ export function UsageFailures({ query, queryKey, enabled }: UsageSectionProps) {
     body = (
       <Skeleton height={size['240']} role="status" aria-label={t('usage_page.state_loading')} />
     );
-  } else if (result.error && !disabled) {
+  } else if (result.error) {
     body = (
       <div className={styles.notice} role="alert">
         <p className={styles.noticeText}>{result.error.message}</p>
@@ -176,8 +174,7 @@ export function UsageFailures({ query, queryKey, enabled }: UsageSectionProps) {
       </div>
     );
   } else if (!result.data || (result.data.groups.length === 0 && result.data.recent.length === 0)) {
-    // A disabled database blanks every section; the shell already names it.
-    body = disabled ? null : <EmptyState title={t('usage_page.groups_empty')} />;
+    body = <EmptyState title={t('usage_page.groups_empty')} />;
   } else {
     body = (
       <>
