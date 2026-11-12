@@ -1,194 +1,128 @@
 import { describe, expect, test } from 'bun:test';
-import { percentile, summarizeUsage } from '../src/features/dashboard/logic/usage';
-import type { UsageSnapshot } from '../src/types/usage';
+import {
+  buildUsageCards,
+  dashboardUsageBucket,
+  dashboardUsageQuery,
+  topUsageModels,
+  usageSparkPoints,
+} from '@/features/dashboard/logic/usage';
+import type { UsageCounters, UsageSummaryResponse } from '@/types/usageStats';
 
-const at = (minute: number) => new Date(Date.UTC(2026, 9, 30, 5, minute)).toISOString();
-const WINDOW_START = Date.UTC(2026, 9, 30, 5, 10);
-const WINDOW_END = Date.UTC(2026, 9, 30, 6, 0);
+const NOW = Date.parse('2026-11-11T12:00:00.000Z');
 
-const snapshot: UsageSnapshot = {
-  total_requests: 7,
-  apis: {
-    'sk-client-secret': {
-      models: {
-        'gpt-5.5': {
-          details: [
-            { timestamp: at(5), latency_ms: 900, tokens: { total_tokens: 10 } },
-            { timestamp: at(12), latency_ms: 1200, tokens: { total_tokens: 100 } },
-            { timestamp: at(20), latency_ms: 800, tokens: { total_tokens: 50 } },
-            {
-              timestamp: at(30),
-              latency_ms: 4000,
-              tokens: { total_tokens: 0 },
-              failed: true,
-              auth_index: '7',
-            },
-          ],
-        },
-        'claude-opus': {
-          details: [
-            { timestamp: at(25), latency_ms: 2000, tokens: { total_tokens: 300 } },
-            { timestamp: at(40), latency_ms: 0, failed: true, auth_index: '' },
-          ],
-        },
-      },
-    },
-  },
-};
+const counters = (overrides: Partial<UsageCounters> = {}): UsageCounters => ({
+  requests: 120,
+  failures: 3,
+  failure_rate: 0.025,
+  input_tokens: 100_000,
+  output_tokens: 40_000,
+  reasoning_tokens: 5_000,
+  cache_read_tokens: 30_000,
+  cache_write_tokens: 2_000,
+  total_tokens: 177_000,
+  cost_micro_usd: 1_250_000,
+  estimated_cost_micro_usd: 0,
+  unpriced_requests: 0,
+  latency_avg_ms: 840,
+  latency_max_ms: 9_100,
+  ttft_avg_ms: 310,
+  ...overrides,
+});
 
-describe('percentile', () => {
-  test('uses nearest rank', () => {
-    expect(percentile([], 0.5)).toBeNull();
-    expect(percentile([10], 0.95)).toBe(10);
-    expect(percentile([1, 2, 3, 4], 0.5)).toBe(2);
-    expect(percentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.95)).toBe(10);
+const summary = (totals: UsageCounters, previous: UsageCounters): UsageSummaryResponse => ({
+  range: { from_ms: NOW - 86_400_000, to_ms: NOW },
+  totals,
+  previous,
+  latency: { p50_ms: 600, p95_ms: 2_100, source: 'events' },
+  first_event_ms: NOW - 86_400_000,
+});
+
+describe('usage cards', () => {
+  test('four cards in reading order with the previous-period delta', () => {
+    const cards = buildUsageCards(
+      summary(
+        counters(),
+        counters({
+          requests: 100,
+          total_tokens: 150_000,
+          cost_micro_usd: 1_000_000,
+          failure_rate: 0.01,
+        })
+      ),
+      'en'
+    );
+    expect(cards.map((card) => card.key)).toEqual(['requests', 'tokens', 'cost', 'failures']);
+    expect(cards[0]).toMatchObject({ value: '120', deltaUnit: 'percent' });
+    expect(cards[0].delta).toEqual({ value: 20, percent: 20, direction: 'up' });
+    expect(cards[1]).toMatchObject({ value: '177K', title: '177,000' });
+    expect(cards[2]).toMatchObject({ value: '$1.25', title: '$1.25' });
+    expect(cards[3]).toMatchObject({ value: '2.5%', deltaUnit: 'points' });
+    expect(cards[3].delta).toEqual({ value: 1.5, percent: null, direction: 'up' });
+  });
+
+  test('no previous period means no delta for counts and rates', () => {
+    const cards = buildUsageCards(
+      summary(
+        counters(),
+        counters({
+          requests: 0,
+          failures: 0,
+          failure_rate: 0,
+          total_tokens: 0,
+          cost_micro_usd: 0,
+        })
+      ),
+      'en'
+    );
+    expect(cards.every((card) => card.delta === null)).toBe(true);
+  });
+
+  test('the cost card carries the estimate and unpriced marks', () => {
+    const marked = buildUsageCards(
+      summary(
+        counters({ estimated_cost_micro_usd: 200_000, unpriced_requests: 4 }),
+        counters()
+      ),
+      'en'
+    );
+    expect(marked[2]).toMatchObject({ estimate: true, unpriced: 4 });
+    const clean = buildUsageCards(summary(counters(), counters()), 'en');
+    expect(clean[2]).toMatchObject({ estimate: false, unpriced: 0 });
   });
 });
 
-describe('summarizeUsage', () => {
-  test('counts only requests inside the window', () => {
-    const summary = summarizeUsage(snapshot, WINDOW_START, WINDOW_END);
-    expect(summary.requests).toBe(5);
-    expect(summary.failed).toBe(2);
-    expect(summary.tokens).toBe(450);
+describe('section series and models', () => {
+  test('the sparkline reads request totals in time order', () => {
+    const points = [
+      { ts_ms: 1, counters: counters({ requests: 2 }) },
+      { ts_ms: 2, counters: counters({ requests: 5 }) },
+    ];
+    expect(
+      usageSparkPoints({ bucket: 'hour', tz: 'UTC', points })
+    ).toEqual([2, 5]);
+    expect(usageSparkPoints(null)).toEqual([]);
   });
 
-  test('excludes requests at and after the window end from every usage aggregate', () => {
-    const summary = summarizeUsage(snapshot, WINDOW_START, Date.parse(at(30)));
-    expect(summary.requests).toBe(3);
-    expect(summary.failed).toBe(0);
-    expect(summary.tokens).toBe(450);
-    expect(summary.coverageStartMs).toBeNull();
-    expect(summarizeUsage(snapshot, Date.parse(at(12)), Date.parse(at(20))).requests).toBe(1);
-    expect(summary.failures).toEqual([]);
-    expect(summary.models.find((model) => model.model === 'gpt-5.5')).toMatchObject({
-      requests: 2,
-      p50: 800,
-      p95: 1200,
+  test('top models keep the API order and the requested limit', () => {
+    const items = [
+      { key: 'a', label: 'a', share: 0.5, counters: counters() },
+      { key: 'b', label: 'b', share: 0.3, counters: counters() },
+      { key: 'c', label: 'c', share: 0.2, counters: counters() },
+    ];
+    expect(
+      topUsageModels({ group_by: 'model', total: 3, items }, 2).map((item) => item.key)
+    ).toEqual(['a', 'b']);
+    expect(topUsageModels(null)).toEqual([]);
+  });
+
+  test('one day uses hour buckets; the longer dashboard ranges use days', () => {
+    expect(dashboardUsageBucket('24h')).toBe('hour');
+    expect(dashboardUsageBucket('7d')).toBe('day');
+    expect(dashboardUsageBucket('30d')).toBe('day');
+    expect(dashboardUsageQuery('24h', NOW, 'UTC')).toEqual({
+      from_ms: NOW - 86_400_000,
+      to_ms: NOW,
+      tz: 'UTC',
     });
-  });
-
-  test('retention beyond the window reports unknown coverage without creating model rows', () => {
-    const summary = summarizeUsage(
-      {
-        apis: {
-          client: {
-            models: { late: { total_requests: 100, details: [{ timestamp: at(40) }] } },
-          },
-        },
-      },
-      WINDOW_START,
-      Date.parse(at(30))
-    );
-    expect(summary.requests).toBe(0);
-    expect(summary.models).toEqual([]);
-    expect(summary.coverageStartMs).toBe(Date.parse(at(30)));
-  });
-
-  test('aggregated model counts remain a floor when another API lost all window samples', () => {
-    const complete = { models: { shared: { details: [{ timestamp: at(20) }] } } };
-    const missing = {
-      models: { shared: { total_requests: 100, details: [{ timestamp: at(40) }] } },
-    };
-    for (const apis of [
-      { complete, missing },
-      { missing, complete },
-    ]) {
-      const summary = summarizeUsage({ apis }, WINDOW_START, Date.parse(at(30)));
-      expect(summary.requests).toBe(1);
-      expect(summary.models).toHaveLength(1);
-      expect(summary.models[0].truncated).toBe(true);
-      expect(summary.coverageStartMs).toBe(Date.parse(at(30)));
-    }
-  });
-
-  test('ranks models by volume with latency percentiles', () => {
-    const summary = summarizeUsage(snapshot, WINDOW_START, WINDOW_END);
-    expect(summary.models).toEqual([
-      {
-        model: 'gpt-5.5',
-        requests: 3,
-        failed: 1,
-        tokens: 150,
-        p50: 1200,
-        p95: 4000,
-        truncated: false,
-      },
-      {
-        model: 'claude-opus',
-        requests: 2,
-        failed: 1,
-        tokens: 300,
-        p50: 2000,
-        p95: 2000,
-        truncated: false,
-      },
-    ]);
-  });
-
-  test('lists failures newest first and skips missing latency', () => {
-    const summary = summarizeUsage(snapshot, WINDOW_START, WINDOW_END);
-    expect(summary.failures).toEqual([
-      { timeMs: Date.parse(at(40)), model: 'claude-opus', authIndex: null, latencyMs: null },
-      { timeMs: Date.parse(at(30)), model: 'gpt-5.5', authIndex: '7', latencyMs: 4000 },
-    ]);
-  });
-
-  test('marks a model whose retained details start inside the window', () => {
-    const busy: UsageSnapshot = {
-      apis: {
-        client: {
-          models: {
-            // 1,001 requests, 1,000 retained: the oldest kept detail is inside the window.
-            busy: {
-              total_requests: 1001,
-              details: Array.from({ length: 1000 }, (_, i) => ({
-                timestamp: new Date(Date.UTC(2026, 9, 30, 5, 30) + i * 1000).toISOString(),
-              })),
-            },
-            // An idle model with an old detail must not hide the busy model's gap.
-            idle: { total_requests: 1, details: [{ timestamp: at(0) }] },
-          },
-        },
-      },
-    };
-    const summary = summarizeUsage(busy, WINDOW_START, WINDOW_END);
-    expect(summary.coverageStartMs).toBe(Date.UTC(2026, 9, 30, 5, 30));
-    expect(summary.models.find((row) => row.model === 'busy')?.truncated).toBe(true);
-  });
-
-  test('does not flag retention when the dropped details are older than the window', () => {
-    const summary = summarizeUsage(
-      {
-        apis: {
-          client: {
-            models: {
-              m: { total_requests: 10, details: [{ timestamp: at(5) }, { timestamp: at(20) }] },
-            },
-          },
-        },
-      },
-      WINDOW_START,
-      WINDOW_END
-    );
-    expect(summary.coverageStartMs).toBeNull();
-    expect(summary.models[0].truncated).toBe(false);
-  });
-
-  test('handles a missing snapshot', () => {
-    expect(summarizeUsage(null, WINDOW_START, WINDOW_END)).toEqual({
-      requests: 0,
-      failed: 0,
-      tokens: 0,
-      models: [],
-      failures: [],
-      coverageStartMs: null,
-    });
-  });
-
-  test('never carries client API keys into the summary', () => {
-    expect(JSON.stringify(summarizeUsage(snapshot, WINDOW_START, WINDOW_END))).not.toContain(
-      'sk-client-secret'
-    );
   });
 });

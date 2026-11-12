@@ -9,10 +9,8 @@ import { AttentionPanel } from '../src/features/dashboard/components/AttentionPa
 import { Meter } from '../src/features/dashboard/components/Meter';
 import { CredentialList } from '../src/features/dashboard/components/CredentialList';
 import { ProviderHealthList } from '../src/features/dashboard/components/ProviderHealthList';
-import { UsagePanel } from '../src/features/dashboard/components/UsagePanel';
 import { buildAttention } from '../src/features/dashboard/logic/attention';
 import { buildFleetModel } from '../src/features/dashboard/logic/fleet';
-import { summarizeUsage } from '../src/features/dashboard/logic/usage';
 import { providerSettingsHref } from '../src/features/dashboard/logic/links';
 import { SourceStamp } from '../src/features/dashboard/components/SourceStamp';
 
@@ -213,32 +211,6 @@ describe('dashboard components render translated, actionable markup', () => {
       const items = buildAttention(fleet.providers, [
         { id: 'credentials', freshness: 'stale', error: null, receivedAt: NOW - 600_000 },
       ]);
-      const credentialsByIndex = new Map(
-        fleet.credentials!.rows.map((row) => [row.authIndex ?? '', row])
-      );
-      const usage = {
-        enabled: true,
-        usage: {
-          total_requests: 2,
-          apis: {
-            client: {
-              models: {
-                'gpt-5.5': {
-                  details: [
-                    { timestamp: new Date(NOW - 60_000).toISOString(), latency_ms: 900 },
-                    {
-                      timestamp: new Date(NOW - 30_000).toISOString(),
-                      latency_ms: 2500,
-                      failed: true,
-                      auth_index: '1',
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      };
       const markup = [
         render(
           createElement(AttentionPanel, {
@@ -254,73 +226,13 @@ describe('dashboard components render translated, actionable markup', () => {
         ),
         render(createElement(ProviderHealthList, { providers: fleet.providers })),
         render(createElement(CredentialList, { credentials: fleet.credentials, now: NOW })),
-        render(
-          createElement(UsagePanel, {
-            usage,
-            summary: summarizeUsage(usage.usage, NOW - 200 * 60_000, NOW),
-            windowLabel: '01:00 UTC to 02:00 UTC',
-            historicalWindow: true,
-            credentialsByIndex,
-          })
-        ),
-        render(
-          createElement(UsagePanel, {
-            usage,
-            summary: {
-              requests: 0,
-              failed: 0,
-              tokens: 0,
-              models: [],
-              failures: [],
-              coverageStartMs: NOW,
-            },
-            windowLabel: '01:00 UTC to 02:00 UTC',
-            historicalWindow: true,
-            credentialsByIndex,
-          })
-        ),
-        render(
-          createElement(UsagePanel, {
-            usage: { enabled: false, usage: null },
-            summary: null,
-            windowLabel: '01:00 UTC to 02:00 UTC',
-            historicalWindow: false,
-            credentialsByIndex,
-          })
-        ),
       ].join('\n');
       expectTranslated(markup);
       expectLabelInName(markup);
       expect(markup).toMatch(/aria-expanded="false"/);
       expect(markup).toContain('ops@example.com');
-      expect(markup).toContain('gpt-5.5');
     });
   }
-
-  test('historical usage with no retained coverage reports unknown counts and its bounds', async () => {
-    await i18n.changeLanguage('en');
-    const markup = render(
-      createElement(UsagePanel, {
-        usage: { enabled: true, usage: {} },
-        summary: {
-          requests: 0,
-          failed: 0,
-          tokens: 0,
-          models: [],
-          failures: [],
-          coverageStartMs: NOW,
-        },
-        windowLabel: '01:00 UTC to 02:00 UTC',
-        historicalWindow: true,
-        credentialsByIndex: new Map(),
-      })
-    );
-    expect(markup).toContain('01:00 UTC to 02:00 UTC');
-    expect(markup).toContain('Historical traffic window');
-    expect(markup).toContain('Request and failure counts are unknown');
-    expect(markup).not.toContain('No requests recorded');
-    expectTranslated(markup);
-  });
 
   test('a success rate is a meter; no rate is text, not indeterminate progress', () => {
     const measured = renderToStaticMarkup(

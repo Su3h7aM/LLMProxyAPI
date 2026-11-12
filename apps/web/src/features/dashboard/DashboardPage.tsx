@@ -39,6 +39,7 @@ import { SourceStamp, type StampEntry } from './components/SourceStamp';
 import { EmptyRequestFlow, ThroughputChart } from './components/ThroughputChart';
 import { HealthStatusRow } from './components/HealthStatusRow';
 import { QuotaSummaryChart } from './components/QuotaSummaryChart';
+import { UsagePanel } from './components/UsagePanel';
 import { VitalsStrip, type Vital } from './components/VitalsStrip';
 import { providerLabel, splitWindowMinutes, toneForSuccessRate } from './utils';
 import styles from './dashboard.module.scss';
@@ -563,6 +564,9 @@ export function DashboardPage() {
       <QuotaSummaryChart files={credentialFiles} filesReady={credentialFilesReady} />
 
       {trafficIdle && requestFlow}
+
+      {/* ---------- Usage (stored usage database) ---------- */}
+      {connected && <UsagePanel enabled={connected} />}
 
       {/* ---------- Providers ---------- */}
       <section className={`${styles.section} ${styles.panel}`} ref={fleetRef}>

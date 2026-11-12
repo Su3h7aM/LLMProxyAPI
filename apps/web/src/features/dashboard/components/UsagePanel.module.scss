@@ -1,52 +1,81 @@
 @use '../../../styles/mixins' as *;
 
-.body,
-.off {
+.panel {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: $space-16;
+  padding: $space-16;
+  border-radius: $radius-8;
+  border: $border-width-1 solid var(--border-color);
+  background: var(--bg-primary);
 }
 
-.off {
-  align-items: flex-start;
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-8 $space-24;
+  padding-bottom: $space-12;
+  border-bottom: $border-width-1 solid var(--border-color);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
   gap: $space-6;
+  min-width: 0;
 }
 
-.offTitle {
+.title {
   margin: 0;
-  font-size: $font-size-14;
+  font-size: $font-size-15;
+  line-height: $line-height-1-4;
   font-weight: $font-weight-600;
+  letter-spacing: (-$letter-spacing-0-02);
   color: var(--text-primary);
 }
 
-.note {
+.description {
   margin: 0;
-  font-size: $font-size-13;
+  max-width: 64ch;
+  font-size: $font-size-12;
   line-height: $line-height-1-5;
   color: var(--text-secondary);
 }
 
-.moreLink {
-  align-self: flex-start;
-
+.ranges {
   display: inline-flex;
-  align-items: center;
-  gap: $space-0-25em;
+  flex: none;
+  gap: $space-2;
+  padding: $space-2;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+}
+
+.range {
   min-height: $size-32;
+  padding: 0 $space-10;
 
   @media (max-width: #{$breakpoint-mobile}), (pointer: coarse) {
     min-height: $size-touch-target;
   }
 
-  font-size: $font-size-13;
+  border: 0;
+  border-radius: $radius-6;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: $font-size-12;
   font-weight: $font-weight-600;
-  color: var(--primary-active);
-  text-decoration: none;
-  border-radius: $radius-4;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      text-decoration: underline;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
     }
   }
 
@@ -54,6 +83,106 @@
     outline: $border-width-2 solid var(--text-primary);
     outline-offset: $space-2;
   }
+}
+
+.rangeActive {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($size-160, 1fr));
+  gap: $space-12;
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+  padding: $space-12;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-8;
+}
+
+.cardLabel {
+  font-size: $font-size-12;
+  line-height: $line-height-1-4;
+  font-weight: $font-weight-600;
+  letter-spacing: $letter-spacing-0-04;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.cardValue {
+  margin: 0;
+  font-size: $font-size-24;
+  line-height: $line-height-1-2;
+  font-weight: $font-weight-600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-4 $space-8;
+  margin: 0;
+  font-size: $font-size-12;
+  line-height: $line-height-1-4;
+  color: var(--text-secondary);
+}
+
+.deltaUp,
+.deltaDown {
+  font-variant-numeric: tabular-nums;
+}
+
+.deltaNone {
+  color: var(--text-tertiary);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  min-height: $size-20;
+  padding: 0 $space-6;
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-999;
+  font-size: $font-size-12;
+  font-weight: $font-weight-600;
+  color: var(--text-secondary);
+}
+
+.trend {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  margin: 0;
+}
+
+.trendHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-4 $space-12;
+  font-size: $font-size-12;
+  color: var(--text-secondary);
+}
+
+.trendRange {
+  font-family: $font-family-mono;
+  font-variant-numeric: tabular-nums;
 }
 
 .table {
@@ -88,18 +217,12 @@
     text-align: left;
   }
 
-  /* Fixed numeric columns keep uppercase headers from colliding in a half-width panel. */
-  thead th:nth-child(2) {
-    width: 21%;
+  thead th:first-child {
+    width: 36%;
   }
 
-  thead th:nth-child(3) {
+  thead th:nth-child(n + 2) {
     width: 16%;
-  }
-
-  thead th:nth-child(4),
-  thead th:nth-child(5) {
-    width: 15%;
   }
 }
 
@@ -116,61 +239,54 @@
   @include text-ellipsis;
 }
 
-.failed {
-  color: var(--failure-badge-text) !important;
-  font-weight: $font-weight-700;
-}
-
-.failures {
-  display: flex;
-  flex-direction: column;
-  gap: $space-8;
-}
-
-.subTitle {
+.note {
   margin: 0;
   font-size: $font-size-13;
-  font-weight: $font-weight-650;
-  color: var(--text-primary);
-}
-
-.failureList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.failure {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: $space-2 $space-10;
-  align-items: baseline;
-  font-size: $font-size-12;
+  line-height: $line-height-1-5;
   color: var(--text-secondary);
 }
 
-.failureTime,
-.failureLatency {
-  font-family: $font-family-mono;
-  font-variant-numeric: tabular-nums;
+.off {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-6;
 }
 
-.failureModel {
-  font-family: $font-family-mono;
+.offTitle {
+  margin: 0;
+  font-size: $font-size-14;
+  font-weight: $font-weight-600;
   color: var(--text-primary);
-  @include text-ellipsis;
 }
 
-.failureWho {
-  grid-column: 2 / 3;
-  grid-row: 2;
-  @include text-ellipsis;
-}
+.retry {
+  display: inline-flex;
+  align-items: center;
+  min-height: $size-32;
+  padding: 0 $space-12;
 
-.failureLatency {
-  grid-column: 3;
-  grid-row: 1;
+  @media (max-width: #{$breakpoint-mobile}), (pointer: coarse) {
+    min-height: $size-touch-target;
+  }
+
+  border: $border-width-1 solid var(--border-color);
+  border-radius: $radius-6;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: $font-size-13;
+  font-weight: $font-weight-600;
+  cursor: pointer;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--bg-secondary);
+    }
+  }
+
+  &:focus-visible {
+    outline: $border-width-2 solid var(--text-primary);
+    outline-offset: $space-2;
+  }
 }

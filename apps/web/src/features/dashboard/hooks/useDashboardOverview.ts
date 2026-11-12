@@ -5,7 +5,6 @@ import { apiKeyUsageApi, authFilesApi, modelsApi } from '@/services/api';
 import { useAuthStore, useConfigStore } from '@/stores';
 import { useApiKeysForModels } from '@/hooks/useApiKeysForModels';
 import type { Config } from '@/types';
-import type { UsageSnapshot } from '@/types/usage';
 import { parseTimestampMs } from '@/utils/timestamp';
 import type { DashboardCounts } from '../types';
 import type { DashboardSourceId } from '../logic/attention';
@@ -46,12 +45,6 @@ export const DASHBOARD_SOURCE_IDS: DashboardPolledSourceId[] = [
 /** True for the ids the dashboard polls; other ids can only arrive from stored data. */
 export const isDashboardPolledSource = (id: DashboardSourceId): id is DashboardPolledSourceId =>
   (DASHBOARD_SOURCE_IDS as DashboardSourceId[]).includes(id);
-
-export interface UsageSourceData {
-  /** null when the backend does not expose usage statistics at all. */
-  enabled: boolean | null;
-  usage: UsageSnapshot | null;
-}
 
 export const getProviderKeyCounts = (config: Config) => ({
   gemini: config.geminiApiKeys?.length ?? 0,

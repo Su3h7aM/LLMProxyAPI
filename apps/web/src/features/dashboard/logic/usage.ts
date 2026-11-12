@@ -1,149 +1,122 @@
-import type { UsageSnapshot } from '@/types/usage';
-import { parseTimestampMs } from '@/utils/timestamp';
-
-export interface UsageModelSummary {
-  model: string;
-  requests: number;
-  failed: number;
-  tokens: number;
-  /** Median and 95th percentile latency in ms, or null without samples. */
-  p50: number | null;
-  p95: number | null;
-  /** Older requests for this model were dropped by retention, so counts are a floor. */
-  truncated: boolean;
-}
-
-export interface UsageFailure {
-  timeMs: number;
-  model: string;
-  authIndex: string | null;
-  latencyMs: number | null;
-}
-
-export interface UsageSummary {
-  requests: number;
-  failed: number;
-  tokens: number;
-  models: UsageModelSummary[];
-  failures: UsageFailure[];
-  /** Complete coverage across API/model sources starts here; the window end means none. */
-  coverageStartMs: number | null;
-}
-
-const numberOf = (value: unknown): number => {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-/** Nearest-rank percentile of an ascending list. */
-export function percentile(sortedAscending: number[], quantile: number): number | null {
-  if (sortedAscending.length === 0) return null;
-  const rank = Math.ceil(quantile * sortedAscending.length);
-  const index = Math.min(sortedAscending.length - 1, Math.max(0, rank - 1));
-  return sortedAscending[index];
-}
-
-interface ModelAccumulator {
-  requests: number;
-  failed: number;
-  tokens: number;
-  latencies: number[];
-  truncated: boolean;
-}
-
 /**
- * Per-model volume, latency, and recent failures inside the half-open window
- * `windowStartMs <= timestamp < windowEndMs`.
+ * View model for the dashboard usage section.
  *
- * Request details are retained in memory up to a backend limit per API and model. When a
- * model's retained details start after the window does, its counts are a floor:
- * the row is marked truncated and `coverageStartMs` reports the latest such start, so the
- * panel can say so instead of under-reporting silently.
+ * The API returns counters, not cards. This module turns one summary into the
+ * four numbers the section shows, with the change against the previous period,
+ * and names the estimate and unpriced marks. It is pure so the render tests do
+ * not need the network.
  */
-export function summarizeUsage(
-  usage: UsageSnapshot | null | undefined,
-  windowStartMs: number,
-  windowEndMs: number,
-  limits: { models?: number; failures?: number } = {}
-): UsageSummary {
-  const modelLimit = limits.models ?? 6;
-  const failureLimit = limits.failures ?? 6;
-  const byModel = new Map<string, ModelAccumulator>();
-  const failures: UsageFailure[] = [];
-  let coverageStartMs: number | null = null;
 
-  const accumulatorFor = (model: string): ModelAccumulator => {
-    let accumulator = byModel.get(model);
-    if (!accumulator) {
-      accumulator = { requests: 0, failed: 0, tokens: 0, latencies: [], truncated: false };
-      byModel.set(model, accumulator);
-    }
-    return accumulator;
-  };
+import type {
+  UsageBreakdownItem,
+  UsageBreakdownResponse,
+  UsageSummaryResponse,
+  UsageTimeseriesResponse,
+} from '@/types/usageStats';
+import {
+  computeUsageDelta,
+  computeUsageRateDelta,
+  type UsageDelta,
+} from '@/features/usage/logic/delta';
+import {
+  formatMicroUsd,
+  formatMicroUsdExact,
+  formatTokenCount,
+  formatUsageRate,
+} from '@/features/usage/logic/format';
+import { hasUnpricedRequests, isCostEstimated } from '@/features/usage/logic/flags';
+import { USAGE_RANGE_MS } from '@/features/usage/logic/range';
 
-  Object.values(usage?.apis ?? {}).forEach((api) => {
-    Object.entries(api?.models ?? {}).forEach(([model, snapshot]) => {
-      const details = snapshot?.details ?? [];
-      let oldestRetainedMs = Number.POSITIVE_INFINITY;
+export type DashboardUsageRange = '24h' | '7d' | '30d';
 
-      details.forEach((detail) => {
-        const timeMs = parseTimestampMs(detail?.timestamp);
-        if (!Number.isFinite(timeMs)) return;
-        oldestRetainedMs = Math.min(oldestRetainedMs, timeMs);
-        if (timeMs < windowStartMs || timeMs >= windowEndMs) return;
+export const DASHBOARD_USAGE_RANGES: readonly DashboardUsageRange[] = ['24h', '7d', '30d'];
 
-        const accumulator = accumulatorFor(model);
-        accumulator.requests += 1;
-        accumulator.tokens += numberOf(detail?.tokens?.total_tokens);
-        const latency = numberOf(detail?.latency_ms);
-        if (latency > 0) accumulator.latencies.push(latency);
-        if (detail?.failed) {
-          accumulator.failed += 1;
-          failures.push({
-            timeMs,
-            model,
-            authIndex:
-              typeof detail.auth_index === 'string' && detail.auth_index ? detail.auth_index : null,
-            latencyMs: latency > 0 ? latency : null,
-          });
-        }
-      });
+/** Hour buckets for one day; day buckets for the longer ranges. */
+export const dashboardUsageBucket = (range: DashboardUsageRange): 'hour' | 'day' =>
+  range === '24h' ? 'hour' : 'day';
 
-      // Retention can remove the entire historical window, not only its first samples.
-      const dropped = numberOf(snapshot?.total_requests) > details.length;
-      if (dropped && oldestRetainedMs > windowStartMs) {
-        accumulatorFor(model).truncated = true;
-        const coverageStart = Math.min(oldestRetainedMs, windowEndMs);
-        coverageStartMs =
-          coverageStartMs === null ? coverageStart : Math.max(coverageStartMs, coverageStart);
-      }
-    });
-  });
+/** Range query for the dashboard, relative to the moment of the request. */
+export const dashboardUsageQuery = (
+  range: DashboardUsageRange,
+  nowMs: number,
+  tz: string
+): { from_ms: number; to_ms: number; tz: string } => ({
+  from_ms: nowMs - USAGE_RANGE_MS[range],
+  to_ms: nowMs,
+  tz,
+});
 
-  const models = Array.from(byModel.entries())
-    .filter(([, accumulator]) => accumulator.requests > 0)
-    .map(([model, accumulator]) => {
-      const sorted = [...accumulator.latencies].sort((a, b) => a - b);
-      return {
-        model,
-        requests: accumulator.requests,
-        failed: accumulator.failed,
-        tokens: accumulator.tokens,
-        p50: percentile(sorted, 0.5),
-        p95: percentile(sorted, 0.95),
-        truncated: accumulator.truncated,
-      };
-    })
-    .sort(
-      (a, b) => b.requests - a.requests || b.tokens - a.tokens || a.model.localeCompare(b.model)
-    );
+export type UsageCardKey = 'requests' | 'tokens' | 'cost' | 'failures';
+export type UsageCardDeltaUnit = 'percent' | 'points';
 
-  return {
-    requests: models.reduce((sum, row) => sum + row.requests, 0),
-    failed: models.reduce((sum, row) => sum + row.failed, 0),
-    tokens: models.reduce((sum, row) => sum + row.tokens, 0),
-    models: models.slice(0, modelLimit),
-    failures: failures.sort((a, b) => b.timeMs - a.timeMs).slice(0, failureLimit),
-    coverageStartMs,
-  };
+export interface UsageCard {
+  key: UsageCardKey;
+  value: string;
+  /** Full value for a title, when the display form is rounded or compact. */
+  title?: string;
+  delta: UsageDelta | null;
+  deltaUnit: UsageCardDeltaUnit;
+  /** Estimated and unpriced marks of the cost card. */
+  estimate: boolean;
+  unpriced: number;
+}
+
+const count = (value: number, locale: string): string => value.toLocaleString(locale);
+
+/** The four cards of the section, in reading order. */
+export function buildUsageCards(summary: UsageSummaryResponse, locale: string): UsageCard[] {
+  const { totals, previous } = summary;
+  return [
+    {
+      key: 'requests',
+      value: count(totals.requests, locale),
+      delta: computeUsageDelta(totals.requests, previous.requests),
+      deltaUnit: 'percent',
+      estimate: false,
+      unpriced: 0,
+    },
+    {
+      key: 'tokens',
+      value: formatTokenCount(totals.total_tokens, locale),
+      title: count(totals.total_tokens, locale),
+      delta: computeUsageDelta(totals.total_tokens, previous.total_tokens),
+      deltaUnit: 'percent',
+      estimate: false,
+      unpriced: 0,
+    },
+    {
+      key: 'cost',
+      value: formatMicroUsd(totals.cost_micro_usd, locale),
+      title: formatMicroUsdExact(totals.cost_micro_usd, locale),
+      delta: computeUsageDelta(totals.cost_micro_usd, previous.cost_micro_usd),
+      deltaUnit: 'percent',
+      estimate: isCostEstimated(totals),
+      unpriced: hasUnpricedRequests(totals) ? totals.unpriced_requests : 0,
+    },
+    {
+      key: 'failures',
+      value: formatUsageRate(totals.failure_rate, locale),
+      delta: computeUsageRateDelta(
+        totals.failure_rate,
+        previous.failure_rate,
+        previous.requests
+      ),
+      deltaUnit: 'points',
+      estimate: false,
+      unpriced: 0,
+    },
+  ];
+}
+
+/** Request totals per bucket, in time order; the sparkline has no gaps to fill. */
+export function usageSparkPoints(series: UsageTimeseriesResponse | null): number[] {
+  return series ? series.points.map((point) => point.counters.requests) : [];
+}
+
+/** Top models by the order the API returned (requests, descending by default). */
+export function topUsageModels(
+  breakdown: UsageBreakdownResponse | null,
+  limit = 5
+): UsageBreakdownItem[] {
+  return breakdown ? breakdown.items.slice(0, limit) : [];
 }
