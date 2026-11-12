@@ -12,6 +12,7 @@ interface PriceSyncPanelProps {
   config: PriceSyncConfigState | null;
   result: UsagePriceSyncResponse | null;
   error: string | null;
+  statusError: string | null;
   syncing: boolean;
   onSync: () => void;
 }
@@ -24,6 +25,7 @@ export function PriceSyncPanel({
   config,
   result,
   error,
+  statusError,
   syncing,
   onSync,
 }: PriceSyncPanelProps) {
@@ -95,6 +97,11 @@ export function PriceSyncPanel({
       {status?.last_error ? (
         <p className={styles.errorText} role="alert">
           {t('usage_prices.sync.last_error')}: {status.last_error}
+        </p>
+      ) : null}
+      {statusError ? (
+        <p className={styles.errorText} role="alert">
+          {t('usage_prices.load_error')} {statusError}
         </p>
       ) : null}
 

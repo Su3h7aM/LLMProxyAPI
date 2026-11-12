@@ -187,8 +187,7 @@ export function PricesPage() {
     setForm({ mode: 'create', initial: emptyPriceForm(seed) });
   };
 
-  const listError =
-    list.error && !isUsageDisabledError(list.error) && !list.data ? list.error : null;
+  const listError = list.error && !isUsageDisabledError(list.error) ? list.error : null;
   const data = list.data?.prices ?? [];
   const filtered = Boolean(
     filters.provider.trim() || filters.source.trim() || filters.q.trim()
@@ -224,6 +223,7 @@ export function PricesPage() {
             config={syncConfig}
             result={syncResult}
             error={syncError}
+            statusError={status.error && !disabled ? status.error.message : null}
             syncing={syncing}
             onSync={() => void handleSync()}
           />
@@ -241,7 +241,8 @@ export function PricesPage() {
                   {t('usage_prices.retry')}
                 </Button>
               </div>
-            ) : (
+            ) : null}
+            {listError && data.length === 0 ? null : (
               <PricesTable
                 prices={data}
                 total={total}

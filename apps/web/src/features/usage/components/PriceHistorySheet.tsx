@@ -23,6 +23,65 @@ interface PriceHistorySheetProps {
   onClose: () => void;
 }
 
+export function PriceHistoryTable({
+  versions,
+  locale,
+}: {
+  versions: UsagePriceItem[];
+  locale: string;
+}) {
+  const { t } = useTranslation();
+
+  if (versions.length === 0) {
+    return <p className="hint">{t('usage_prices.history.empty')}</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t('usage_prices.history.from')}</TableHead>
+          <TableHead>{t('usage_prices.history.to')}</TableHead>
+          <TableHead>{t('usage_prices.history.source')}</TableHead>
+          <TableHead alignRight>{t('usage_prices.history.input')}</TableHead>
+          <TableHead alignRight>{t('usage_prices.history.output')}</TableHead>
+          <TableHead alignRight>{t('usage_prices.history.cache_read')}</TableHead>
+          <TableHead alignRight>{t('usage_prices.history.cache_write')}</TableHead>
+          <TableHead alignRight>{t('usage_prices.history.reasoning')}</TableHead>
+          <TableHead>{t('usage_prices.history.note')}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {versions.map((version) => (
+          <TableRow key={version.id}>
+            <TableCell>
+              {version.valid_from_ms > 0
+                ? formatDateTimeValue(version.valid_from_ms, locale)
+                : t('usage_prices.sync.never')}
+            </TableCell>
+            <TableCell>
+              {version.valid_to_ms === null
+                ? t('usage_prices.history.current')
+                : formatDateTimeValue(version.valid_to_ms, locale)}
+            </TableCell>
+            <TableCell>
+              <span className="pill">{version.source}</span>
+            </TableCell>
+            <TableCell alignRight>{formatPriceRate(version.input, locale)}</TableCell>
+            <TableCell alignRight>{formatPriceRate(version.output, locale)}</TableCell>
+            <TableCell alignRight>{formatPriceRate(version.cache_read, locale)}</TableCell>
+            <TableCell alignRight>{formatPriceRate(version.cache_write, locale)}</TableCell>
+            <TableCell alignRight>
+              {version.reasoning === null ? '—' : formatPriceRate(version.reasoning, locale)}
+            </TableCell>
+            <TableCell>{version.note || '—'}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 export function PriceHistorySheet({ open, provider, model, onClose }: PriceHistorySheetProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
@@ -73,51 +132,8 @@ export function PriceHistorySheet({ open, provider, model, onClose }: PriceHisto
             {t('usage_prices.retry')}
           </Button>
         </div>
-      ) : versions.length === 0 ? (
-        <p className="hint">{t('usage_prices.history.empty')}</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('usage_prices.history.from')}</TableHead>
-              <TableHead>{t('usage_prices.history.to')}</TableHead>
-              <TableHead>{t('usage_prices.history.source')}</TableHead>
-              <TableHead alignRight>{t('usage_prices.history.input')}</TableHead>
-              <TableHead alignRight>{t('usage_prices.history.output')}</TableHead>
-              <TableHead alignRight>{t('usage_prices.history.cache_read')}</TableHead>
-              <TableHead alignRight>{t('usage_prices.history.cache_write')}</TableHead>
-              <TableHead alignRight>{t('usage_prices.history.reasoning')}</TableHead>
-              <TableHead>{t('usage_prices.history.note')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {versions.map((version) => (
-              <TableRow key={version.id}>
-                <TableCell>
-                  {version.valid_from_ms > 0
-                    ? formatDateTimeValue(version.valid_from_ms, locale)
-                    : t('usage_prices.sync.never')}
-                </TableCell>
-                <TableCell>
-                  {version.valid_to_ms === null
-                    ? t('usage_prices.history.current')
-                    : formatDateTimeValue(version.valid_to_ms, locale)}
-                </TableCell>
-                <TableCell>
-                  <span className="pill">{version.source}</span>
-                </TableCell>
-                <TableCell alignRight>{formatPriceRate(version.input, locale)}</TableCell>
-                <TableCell alignRight>{formatPriceRate(version.output, locale)}</TableCell>
-                <TableCell alignRight>{formatPriceRate(version.cache_read, locale)}</TableCell>
-                <TableCell alignRight>{formatPriceRate(version.cache_write, locale)}</TableCell>
-                <TableCell alignRight>
-                  {version.reasoning === null ? '—' : formatPriceRate(version.reasoning, locale)}
-                </TableCell>
-                <TableCell>{version.note || '—'}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <PriceHistoryTable versions={versions} locale={locale} />
       )}
     </Sheet>
   );
