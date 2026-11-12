@@ -192,9 +192,9 @@ func (f UsageFilter) whereEvents() (string, []any) {
 }
 
 // whereHourly builds the WHERE clause on usage_hourly. The status filter
-// maps to status_class here: hourly rows mix failed and ok requests inside
-// one status class only when a failure carries a 2xx code, so the two paths
-// can differ by that edge. Callers must use the returned args in order.
+// maps to status_class here: failed means every class except 2xx, because a
+// failed record is never stored as 2xx. Callers must use the returned args
+// in order.
 func (f UsageFilter) whereHourly() (string, []any) {
 	var sb strings.Builder
 	var args []any
@@ -209,7 +209,7 @@ func (f UsageFilter) whereHourly() (string, []any) {
 	case "ok":
 		sb.WriteString(" AND status_class = '2xx'")
 	case "failed":
-		sb.WriteString(" AND status_class IN ('4xx','5xx','other')")
+		sb.WriteString(" AND status_class IN ('4xx','5xx','error','other')")
 	}
 	if f.Stream != nil {
 		if *f.Stream {

@@ -262,10 +262,12 @@ func TestStatusClassTable(t *testing.T) {
 		want   string
 	}{
 		{"success", false, 0, "2xx"},
-		{"failed 200", true, 200, "2xx"},
+		{"failed 200", true, 200, "error"},
+		{"failed 201", true, 201, "error"},
 		{"failed 404", true, 404, "4xx"},
 		{"failed 503", true, 503, "5xx"},
-		{"failed zero", true, 0, "other"},
+		{"failed 302", true, 302, "other"},
+		{"failed zero", true, 0, "error"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

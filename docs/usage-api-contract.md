@@ -19,7 +19,7 @@ Base path: `/v8/management/observability/usage`. Auth: as all management routes.
 | `from_ms`, `to_ms` | Range, `from` inclusive, `to` exclusive | last 24 hours |
 | `tz` | IANA zone for day and week buckets and the heatmap | `UTC` |
 | `provider`, `model`, `alias`, `auth_id`, `api_key_id` | Exact match; repeat the parameter for several values (OR) | none |
-| `status` | `ok` or `failed` | both |
+| `status` | `ok` (class `2xx`) or `failed` (every class except `2xx`) | both |
 | `stream` | `true` or `false` | both |
 | `q` | Text search in `request_id`, `trace_id`, `model`, `alias`, `account_label`, `fail_summary` (events and failures only) | none |
 
@@ -100,7 +100,7 @@ Parameters: common, plus `group_by` (required): `model`, `provider`, `alias`, `c
 }
 ```
 
-`share` is the share of requests in the filtered range. `label`: for `credential` the credential label from the auth manager, else the latest stored `account_label`, else the id; for `api_key` the label from key labels, else `key-<first 6 of id>`; else the key. `meta` carries extra fields per group (`provider` for model; `auth_type` and `provider` for credential).
+`share` is the share of requests in the filtered range. `label`: for `credential` the credential label from the auth manager, else the latest stored `account_label`, else the id; for `api_key` the label from key labels, else `key-<first 6 of id>`; else the key. `meta` carries extra fields per group (`provider` for model; `auth_type` and `provider` for credential). `status_class` is one of `2xx`, `4xx`, `5xx`, `error`, `other`; a failed record is never `2xx` (`error` covers failed 2xx and missing codes).
 
 ## GET /events
 

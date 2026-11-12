@@ -255,19 +255,23 @@ func truncateUTF8Bytes(value string, maxBytes int) string {
 	return strings.TrimSpace(value[:limit])
 }
 
-// statusClass maps the failure status: 2xx ok, 4xx, 5xx, other.
+// statusClass maps the failure status: 2xx ok, 4xx, 5xx, error, other.
 // Success (Failed == false) is 2xx; the record carries no success status code.
+// A failed record is never 2xx: a failed 2xx or missing code becomes error,
+// so hourly failures always equal the sum over non-2xx classes.
 func statusClass(record coreusage.Record) string {
 	if !record.Failed {
 		return "2xx"
 	}
 	switch code := record.Fail.StatusCode; {
-	case code >= 200 && code < 300:
-		return "2xx"
 	case code >= 400 && code < 500:
 		return "4xx"
 	case code >= 500 && code < 600:
 		return "5xx"
+	case code >= 200 && code < 300:
+		return "error"
+	case code == 0:
+		return "error"
 	default:
 		return "other"
 	}

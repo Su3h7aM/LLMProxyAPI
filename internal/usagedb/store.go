@@ -20,7 +20,7 @@ import (
 const (
 	// SchemaVersion is the current migration version. Open refuses a database
 	// file with a newer version.
-	SchemaVersion = 3
+	SchemaVersion = 4
 
 	// readPoolSize bounds the read connection pool. Writes use one connection.
 	readPoolSize = 4
@@ -297,6 +297,61 @@ var migrations = []migration{
 			`CREATE INDEX IF NOT EXISTS idx_usage_events_provider_ts ON usage_events(provider, ts_ms)`,
 			`CREATE INDEX IF NOT EXISTS idx_usage_events_failed_ts ON usage_events(failed, ts_ms)`,
 			`CREATE INDEX IF NOT EXISTS idx_usage_events_status_ts ON usage_events(status_class, ts_ms)`,
+		},
+	},
+	{
+		version: 4,
+		stmts: []string{
+			// A failed record is never 2xx (see statusClass): a failed
+			// 2xx or missing code is error. Fix rows stored before the
+			// rule. The error class is new, so every failed error row
+			// below is a moved one.
+			`UPDATE usage_events SET status_class = 'error' WHERE failed = 1 AND status_class = '2xx'`,
+			// Drop the hourly rows of affected groups: 2xx rows that
+			// mixed moved failures in, plus any error rows.
+			`DELETE FROM usage_hourly AS h WHERE h.status_class IN ('2xx', 'error') AND EXISTS (
+					SELECT 1 FROM usage_events e
+					WHERE e.failed = 1 AND e.status_class = 'error'
+					AND e.ts_ms / 3600000 * 3600000 = h.hour_ms
+					AND e.provider = h.provider
+					AND e.model = h.model
+					AND e.alias = h.alias
+					AND e.auth_id = h.auth_id
+					AND e.api_key_id = h.api_key_id
+					AND e.stream = h.stream
+				)`,
+			// Rebuild the dropped rows from the fixed events. Cost,
+			// late-cost, unpriced, latency, and TTFT math matches the
+			// writer (see InsertBatch).
+			`INSERT INTO usage_hourly (
+					hour_ms, provider, model, alias, auth_id, api_key_id, status_class, stream,
+					requests, failures, input_tokens, output_tokens, reasoning_tokens,
+					cache_read_tokens, cache_write_tokens, cost_micro_usd, unpriced_requests,
+					latency_sum_ms, latency_max_ms, ttft_sum_ms, ttft_count, late_cost_micro_usd
+				) SELECT e.ts_ms / 3600000 * 3600000, e.provider, e.model, e.alias,
+					e.auth_id, e.api_key_id, e.status_class, e.stream,
+					COUNT(*), COALESCE(SUM(e.failed), 0),
+					COALESCE(SUM(e.input_tokens), 0), COALESCE(SUM(e.output_tokens), 0),
+					COALESCE(SUM(e.reasoning_tokens), 0),
+					COALESCE(SUM(e.cache_read_tokens), 0), COALESCE(SUM(e.cache_write_tokens), 0),
+					COALESCE(SUM(e.cost_micro_usd), 0),
+					COALESCE(SUM(CASE WHEN e.cost_micro_usd IS NULL THEN 1 ELSE 0 END), 0),
+					COALESCE(SUM(e.latency_ms), 0), COALESCE(MAX(e.latency_ms), 0),
+					COALESCE(SUM(CASE WHEN e.ttft_ms > 0 THEN e.ttft_ms ELSE 0 END), 0),
+					COALESCE(SUM(CASE WHEN e.ttft_ms > 0 THEN 1 ELSE 0 END), 0),
+					COALESCE(SUM(CASE WHEN e.cost_source = 'price-book-late' THEN e.cost_micro_usd ELSE 0 END), 0)
+				FROM usage_events e WHERE EXISTS (
+					SELECT 1 FROM usage_events m
+					WHERE m.failed = 1 AND m.status_class = 'error'
+					AND m.ts_ms / 3600000 * 3600000 = e.ts_ms / 3600000 * 3600000
+					AND m.provider = e.provider
+					AND m.model = e.model
+					AND m.alias = e.alias
+					AND m.auth_id = e.auth_id
+					AND m.api_key_id = e.api_key_id
+					AND m.stream = e.stream
+				) GROUP BY e.ts_ms / 3600000 * 3600000, e.provider, e.model, e.alias,
+					e.auth_id, e.api_key_id, e.status_class, e.stream`,
 		},
 	},
 }

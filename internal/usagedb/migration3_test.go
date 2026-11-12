@@ -126,8 +126,8 @@ func TestMigration3BackfillsLateCost(t *testing.T) {
 		t.Fatalf("Open after v2: %v", err)
 	}
 	defer func() { _ = store.Close() }()
-	if SchemaVersion != 3 {
-		t.Fatalf("SchemaVersion = %d, want 3", SchemaVersion)
+	if SchemaVersion != 4 {
+		t.Fatalf("SchemaVersion = %d, want 4", SchemaVersion)
 	}
 
 	type hourly struct {
