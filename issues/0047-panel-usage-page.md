@@ -81,6 +81,12 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
   lint, area tests, `tokens:check` pass. Full `verify` has one failure
   in `versionFailure.test.ts` that also fails on clean `main`
   (pre-existing full-run flake, unrelated).
+- 2026-11-12: Step 5 lands (breakdown tabs with contract sort keys,
+  limit and offset paging, row-click filters, inline key-label edit
+  with optimistic update and rollback). Found and fixed a duplicate
+  `col_latency` key inside the new `usage_page` block (renamed the
+  breakdown column to `col_avg_latency` in all 4 locales, commit
+  `049a8548`). Gate: type-check, lint, area tests pass.
 - 2026-11-12: Steps 3 and 4 land in one commit (six summary cards
   with deltas and marks; timeline with metric switch, auto buckets,
   top-5-plus-other grouping). Gate: type-check, lint, area tests pass.

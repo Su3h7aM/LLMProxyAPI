@@ -27,6 +27,8 @@ import { UsageFilterBar } from './components/UsageFilterBar';
 import { UsageSummaryCards } from './components/UsageSummaryCards';
 import { UsageTimeline } from './components/UsageTimeline';
 import { UsageBreakdown } from './components/UsageBreakdown';
+import { UsageFailures } from './components/UsageFailures';
+import { UsageHeatmap } from './components/UsageHeatmap';
 import type { UsageSectionProps } from './components/usageSection';
 import styles from './UsagePage.module.scss';
 
@@ -210,6 +212,8 @@ export function UsagePage() {
           <UsageSummaryCards summary={summary.data} />
           <UsageTimeline {...sections} />
           <UsageBreakdown {...sections} />
+          <UsageFailures {...sections} />
+          <UsageHeatmap {...sections} />
         </>
       )}
     </div>
