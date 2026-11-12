@@ -1,0 +1,257 @@
+// Package usagedb persists usage records in an embedded SQLite database.
+//
+// The database lives in the auth directory (`usage.db` by default) and uses
+// a pure-Go driver, so the container binary stays static (CGO_ENABLED=0).
+// Writes go through one writer goroutine in batches; reads use a small pool.
+package usagedb
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+
+	_ "modernc.org/sqlite"
+)
+
+const (
+	// SchemaVersion is the current migration version. Open refuses a database
+	// file with a newer version.
+	SchemaVersion = 1
+
+	// readPoolSize bounds the read connection pool. Writes use one connection.
+	readPoolSize = 4
+
+	// pruneBatchSize deletes raw events in small batches with a pause between
+	// them, so retention never holds the write lock for long.
+	pruneBatchSize = 5000
+)
+
+// Store is an opened usage database: one writer connection plus a small
+// read pool on the same file.
+type Store struct {
+	path    string
+	writeDB *sql.DB
+	readDB  *sql.DB
+}
+
+// Open creates parent directories when needed, applies the pragmas from the
+// design (WAL, NORMAL, 5000 ms busy timeout, foreign keys), runs pending
+// migrations, and refuses a file with a newer schema version.
+func Open(path string) (*Store, error) {
+	trimmed := strings.TrimSpace(path)
+	if trimmed == "" {
+		return nil, errors.New("usagedb: empty database path")
+	}
+	abs, err := filepath.Abs(trimmed)
+	if err != nil {
+		return nil, fmt.Errorf("usagedb: resolve path: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(abs), 0o755); err != nil {
+		return nil, fmt.Errorf("usagedb: create parent directory: %w", err)
+	}
+	writeDB, err := sql.Open("sqlite", dataSourceName(abs, true))
+	if err != nil {
+		return nil, fmt.Errorf("usagedb: open writer: %w", err)
+	}
+	writeDB.SetMaxOpenConns(1)
+	writeDB.SetMaxIdleConns(1)
+	readDB, err := sql.Open("sqlite", dataSourceName(abs, false))
+	if err != nil {
+		_ = writeDB.Close()
+		return nil, fmt.Errorf("usagedb: open reader: %w", err)
+	}
+	readDB.SetMaxOpenConns(readPoolSize)
+	readDB.SetMaxIdleConns(readPoolSize)
+	store := &Store{path: abs, writeDB: writeDB, readDB: readDB}
+	var mode string
+	if err := writeDB.QueryRow(`PRAGMA journal_mode`).Scan(&mode); err != nil {
+		_ = store.Close()
+		return nil, fmt.Errorf("usagedb: read journal mode: %w", err)
+	}
+	if !strings.EqualFold(strings.TrimSpace(mode), "wal") {
+		_ = store.Close()
+		return nil, fmt.Errorf("usagedb: journal mode is %q, want WAL", mode)
+	}
+	if err := migrate(writeDB); err != nil {
+		_ = store.Close()
+		return nil, err
+	}
+	return store, nil
+}
+
+// Close releases both pools.
+func (s *Store) Close() error {
+	if s == nil {
+		return nil
+	}
+	writeErr := s.writeDB.Close()
+	readErr := s.readDB.Close()
+	if writeErr != nil {
+		return writeErr
+	}
+	return readErr
+}
+
+// Path returns the absolute database file path.
+func (s *Store) Path() string {
+	if s == nil {
+		return ""
+	}
+	return s.path
+}
+
+func dataSourceName(path string, writer bool) string {
+	uriPath := filepath.ToSlash(path)
+	if !strings.HasPrefix(uriPath, "/") {
+		uriPath = "/" + uriPath
+	}
+	dsn := &url.URL{Scheme: "file", Path: uriPath}
+	query := dsn.Query()
+	if writer {
+		query.Add("_txlock", "immediate")
+	}
+	query.Add("_pragma", "journal_mode(WAL)")
+	query.Add("_pragma", "synchronous(NORMAL)")
+	query.Add("_pragma", "busy_timeout(5000)")
+	query.Add("_pragma", "foreign_keys(ON)")
+	dsn.RawQuery = query.Encode()
+	return dsn.String()
+}
+
+// migration is one ordered schema step.
+type migration struct {
+	version int
+	stmts   []string
+}
+
+var migrations = []migration{
+	{
+		version: 1,
+		stmts: []string{
+			`CREATE TABLE IF NOT EXISTS schema_migrations (
+				version INTEGER PRIMARY KEY,
+				applied_at_ms INTEGER NOT NULL
+			)`,
+			`CREATE TABLE IF NOT EXISTS usage_events (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				request_id TEXT NOT NULL UNIQUE,
+				trace_id TEXT NOT NULL DEFAULT '',
+				ts_ms INTEGER NOT NULL,
+				provider TEXT NOT NULL DEFAULT '',
+				model TEXT NOT NULL DEFAULT '',
+				alias TEXT NOT NULL DEFAULT '',
+				executor TEXT NOT NULL DEFAULT '',
+				auth_id TEXT NOT NULL DEFAULT '',
+				auth_index TEXT NOT NULL DEFAULT '',
+				auth_type TEXT NOT NULL DEFAULT '',
+				account_label TEXT NOT NULL DEFAULT '',
+				api_key_id TEXT NOT NULL DEFAULT '',
+				access_provider TEXT NOT NULL DEFAULT '',
+				session_id TEXT NOT NULL DEFAULT '',
+				stream INTEGER NOT NULL DEFAULT 0,
+				status_class TEXT NOT NULL DEFAULT '',
+				failed INTEGER NOT NULL DEFAULT 0,
+				fail_code TEXT NOT NULL DEFAULT '',
+				fail_summary TEXT NOT NULL DEFAULT '',
+				latency_ms INTEGER NOT NULL DEFAULT 0,
+				ttft_ms INTEGER NOT NULL DEFAULT 0,
+				input_tokens INTEGER NOT NULL DEFAULT 0,
+				output_tokens INTEGER NOT NULL DEFAULT 0,
+				reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+				total_tokens INTEGER NOT NULL DEFAULT 0,
+				service_tier TEXT NOT NULL DEFAULT '',
+				reasoning_effort TEXT NOT NULL DEFAULT '',
+				cost_micro_usd INTEGER NULL,
+				cost_source TEXT NULL
+			)`,
+			`CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_events_request_id ON usage_events(request_id)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_ts ON usage_events(ts_ms)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_auth_ts ON usage_events(auth_id, ts_ms)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_model_ts ON usage_events(model, ts_ms)`,
+			`CREATE INDEX IF NOT EXISTS idx_usage_events_apikey_ts ON usage_events(api_key_id, ts_ms)`,
+			`CREATE TABLE IF NOT EXISTS usage_hourly (
+				hour_ms INTEGER NOT NULL,
+				provider TEXT NOT NULL DEFAULT '',
+				model TEXT NOT NULL DEFAULT '',
+				alias TEXT NOT NULL DEFAULT '',
+				auth_id TEXT NOT NULL DEFAULT '',
+				api_key_id TEXT NOT NULL DEFAULT '',
+				status_class TEXT NOT NULL DEFAULT '',
+				stream INTEGER NOT NULL DEFAULT 0,
+				requests INTEGER NOT NULL DEFAULT 0,
+				failures INTEGER NOT NULL DEFAULT 0,
+				input_tokens INTEGER NOT NULL DEFAULT 0,
+				output_tokens INTEGER NOT NULL DEFAULT 0,
+				reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+				cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+				unpriced_requests INTEGER NOT NULL DEFAULT 0,
+				latency_sum_ms INTEGER NOT NULL DEFAULT 0,
+				latency_max_ms INTEGER NOT NULL DEFAULT 0,
+				ttft_sum_ms INTEGER NOT NULL DEFAULT 0,
+				ttft_count INTEGER NOT NULL DEFAULT 0,
+				PRIMARY KEY (hour_ms, provider, model, alias, auth_id, api_key_id, status_class, stream)
+			)`,
+			`CREATE TABLE IF NOT EXISTS settings (
+				key TEXT PRIMARY KEY,
+				value TEXT NOT NULL DEFAULT ''
+			)`,
+		},
+	},
+}
+
+func migrate(db *sql.DB) error {
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
+		version INTEGER PRIMARY KEY,
+		applied_at_ms INTEGER NOT NULL
+	)`); err != nil {
+		return fmt.Errorf("usagedb: create migrations table: %w", err)
+	}
+	var current int
+	if err := db.QueryRow(`SELECT COALESCE(MAX(version), 0) FROM schema_migrations`).Scan(&current); err != nil {
+		return fmt.Errorf("usagedb: read schema version: %w", err)
+	}
+	if current > SchemaVersion {
+		return fmt.Errorf("usagedb: database schema version %d is newer than supported %d", current, SchemaVersion)
+	}
+	for _, step := range migrations {
+		if step.version <= current {
+			continue
+		}
+		if step.version > SchemaVersion {
+			return fmt.Errorf("usagedb: migration %d is newer than supported %d", step.version, SchemaVersion)
+		}
+		if err := applyMigration(db, step); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func applyMigration(db *sql.DB, step migration) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("usagedb: begin migration %d: %w", step.version, err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	for _, stmt := range step.stmts {
+		if _, err := tx.Exec(stmt); err != nil {
+			return fmt.Errorf("usagedb: apply migration %d: %w", step.version, err)
+		}
+	}
+	if _, err := tx.Exec(`INSERT INTO schema_migrations(version, applied_at_ms) VALUES (?, ?)`,
+		step.version, unixMilliNow()); err != nil {
+		return fmt.Errorf("usagedb: record migration %d: %w", step.version, err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("usagedb: commit migration %d: %w", step.version, err)
+	}
+	return nil
+}
