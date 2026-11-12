@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0043-usage-db-store-collector
 type: backend (Go)
 agent: muse-spark-1.3-contributor
