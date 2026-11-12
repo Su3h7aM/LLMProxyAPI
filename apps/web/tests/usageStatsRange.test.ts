@@ -14,7 +14,7 @@ import {
   toUsageQueryString,
   usageQueryPath,
   withUsageCursor,
-} from '@/features/usage/logic/query';
+} from '@/utils/usageQuery';
 
 const NOW = Date.parse('2026-11-11T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;

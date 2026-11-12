@@ -10,7 +10,7 @@
 
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { apiClient } from './client';
-import { usageQueryPath } from '@/features/usage/logic/query';
+import { usageQueryPath } from '@/utils/usageQuery';
 import type {
   UsageBreakdownResponse,
   UsageDbStatus,
