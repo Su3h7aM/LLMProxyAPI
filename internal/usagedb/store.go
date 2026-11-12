@@ -20,7 +20,7 @@ import (
 const (
 	// SchemaVersion is the current migration version. Open refuses a database
 	// file with a newer version.
-	SchemaVersion = 1
+	SchemaVersion = 2
 
 	// readPoolSize bounds the read connection pool. Writes use one connection.
 	readPoolSize = 4
@@ -36,6 +36,7 @@ type Store struct {
 	path    string
 	writeDB *sql.DB
 	readDB  *sql.DB
+	prices  priceIndexHolder
 }
 
 // Open creates parent directories when needed, applies the pragmas from the
@@ -77,6 +78,10 @@ func Open(path string) (*Store, error) {
 		return nil, fmt.Errorf("usagedb: journal mode is %q, want WAL", mode)
 	}
 	if err := migrate(writeDB); err != nil {
+		_ = store.Close()
+		return nil, err
+	}
+	if err := store.reloadPrices(); err != nil {
 		_ = store.Close()
 		return nil, err
 	}
@@ -203,6 +208,58 @@ var migrations = []migration{
 				key TEXT PRIMARY KEY,
 				value TEXT NOT NULL DEFAULT ''
 			)`,
+		},
+	},
+	{
+		version: 2,
+		stmts: []string{
+			// Price rows are append-only: code never UPDATEs a price row
+			// except to set valid_to_ms once when a newer version starts,
+			// and never DELETEs one. The UNIQUE index also serves lookups
+			// by (provider_key, model_id, valid_from_ms).
+			`CREATE TABLE IF NOT EXISTS model_prices (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				provider_key TEXT NOT NULL,
+				model_id TEXT NOT NULL,
+				valid_from_ms INTEGER NOT NULL,
+				valid_to_ms INTEGER NULL,
+				input INTEGER NOT NULL DEFAULT 0,
+				output INTEGER NOT NULL DEFAULT 0,
+				cache_read INTEGER NOT NULL DEFAULT 0,
+				cache_write INTEGER NOT NULL DEFAULT 0,
+				reasoning INTEGER NULL,
+				source TEXT NOT NULL DEFAULT '',
+				synced_at_ms INTEGER NOT NULL DEFAULT 0,
+				note TEXT NOT NULL DEFAULT ''
+			)`,
+			`CREATE UNIQUE INDEX IF NOT EXISTS idx_model_prices_version
+				ON model_prices(provider_key, model_id, valid_from_ms)`,
+			`CREATE TABLE IF NOT EXISTS model_price_tiers (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				price_id INTEGER NOT NULL REFERENCES model_prices(id),
+				kind TEXT NOT NULL DEFAULT '',
+				threshold_tokens INTEGER NOT NULL DEFAULT 0,
+				service TEXT NOT NULL DEFAULT '',
+				input INTEGER NULL,
+				output INTEGER NULL,
+				cache_read INTEGER NULL,
+				cache_write INTEGER NULL
+			)`,
+			`CREATE INDEX IF NOT EXISTS idx_model_price_tiers_price
+				ON model_price_tiers(price_id)`,
+			`CREATE TABLE IF NOT EXISTS cost_corrections (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				created_at_ms INTEGER NOT NULL,
+				from_ms INTEGER NOT NULL,
+				to_ms INTEGER NOT NULL,
+				provider_key TEXT NOT NULL DEFAULT '',
+				model_id TEXT NOT NULL DEFAULT '',
+				old_cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+				new_cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+				reason TEXT NOT NULL DEFAULT '',
+				actor TEXT NOT NULL DEFAULT ''
+			)`,
+			`ALTER TABLE usage_events ADD COLUMN price_id INTEGER NULL`,
 		},
 	},
 }

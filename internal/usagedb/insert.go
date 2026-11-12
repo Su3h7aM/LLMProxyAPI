@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	coreusage "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/usage"
 )
 
 func unixMilliNow() int64 { return time.Now().UnixMilli() }
@@ -16,8 +18,8 @@ const insertEventSQL = `INSERT INTO usage_events (
 	fail_code, fail_summary, latency_ms, ttft_ms,
 	input_tokens, output_tokens, reasoning_tokens,
 	cache_read_tokens, cache_write_tokens, total_tokens,
-	service_tier, reasoning_effort, cost_micro_usd, cost_source
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	service_tier, reasoning_effort, cost_micro_usd, cost_source, price_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(request_id) DO NOTHING`
 
 const upsertHourlySQL = `INSERT INTO usage_hourly (
@@ -49,9 +51,55 @@ func boolInt(value bool) int64 {
 	return 0
 }
 
+// resolveRowCost fills the cost fields of one row inside the writer
+// transaction, before insert. An upstream-reported cost wins and is stored
+// with cost_source=upstream. Else the price version valid at the event time
+// prices the non-overlapping token buckets with cost_source=price-book.
+// Without a matching version the cost stays NULL with cost_source=none.
+func (s *Store) resolveRowCost(row *UsageRow) {
+	if row.UpstreamCostMicroUSD != nil {
+		cost := *row.UpstreamCostMicroUSD
+		row.CostMicroUSD = &cost
+		source := CostSourceUpstream
+		row.CostSource = &source
+		row.PriceID = nil
+		return
+	}
+	detail := rowCostDetail(*row)
+	uncached, cacheRead, cacheWrite, output, reasoning := detail.PricedBuckets(row.Provider, row.Executor)
+	price := s.lookupPrice(row.Provider, row.Model, row.Alias, row.TsMs)
+	if price == nil {
+		row.CostMicroUSD = nil
+		source := CostSourceNone
+		row.CostSource = &source
+		row.PriceID = nil
+		return
+	}
+	cost := price.ComputeCost(row.ServiceTier, uncached, cacheRead, cacheWrite, output, reasoning)
+	row.CostMicroUSD = &cost
+	source := CostSourcePriceBook
+	row.CostSource = &source
+	id := price.ID
+	row.PriceID = &id
+}
+
+// rowCostDetail rebuilds the usage detail behind one row for cost math.
+func rowCostDetail(row UsageRow) coreusage.Detail {
+	return coreusage.Detail{
+		InputTokens:         row.InputTokens,
+		OutputTokens:        row.OutputTokens,
+		ReasoningTokens:     row.ReasoningTokens,
+		CacheReadTokens:     row.CacheReadTokens,
+		CacheCreationTokens: row.CacheWriteTokens,
+		TotalTokens:         row.TotalTokens,
+	}
+}
+
 // InsertBatch inserts rows in one transaction. A duplicate request_id is
 // skipped, and only inserted rows count in the hourly rollup, so a duplicate
-// never counts twice. It returns the inserted row count.
+// never counts twice. Cost is resolved in the same transaction, before
+// insert, so the event and its hourly rollup always agree. It returns the
+// inserted row count.
 func (s *Store) InsertBatch(rows []UsageRow) (int64, error) {
 	if s == nil {
 		return 0, fmt.Errorf("usagedb: nil store")
@@ -67,6 +115,7 @@ func (s *Store) InsertBatch(rows []UsageRow) (int64, error) {
 	var inserted int64
 	for i := range rows {
 		row := rows[i]
+		s.resolveRowCost(&row)
 		result, err := tx.Exec(insertEventSQL,
 			row.RequestID, row.TraceID, row.TsMs, row.Provider, row.Model, row.Alias, row.Executor,
 			row.AuthID, row.AuthIndex, row.AuthType, row.AccountLabel, row.APIKeyID,
@@ -74,7 +123,7 @@ func (s *Store) InsertBatch(rows []UsageRow) (int64, error) {
 			row.FailCode, row.FailSummary, row.LatencyMs, row.TTFTMs,
 			row.InputTokens, row.OutputTokens, row.ReasoningTokens,
 			row.CacheReadTokens, row.CacheWriteTokens, row.TotalTokens,
-			row.ServiceTier, row.ReasoningEffort, row.CostMicroUSD, row.CostSource,
+			row.ServiceTier, row.ReasoningEffort, row.CostMicroUSD, row.CostSource, row.PriceID,
 		)
 		if err != nil {
 			return inserted, fmt.Errorf("usagedb: insert event: %w", err)

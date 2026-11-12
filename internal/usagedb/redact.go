@@ -3,6 +3,7 @@ package usagedb
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"math"
 	"strings"
 	"unicode/utf8"
 
@@ -53,6 +54,13 @@ type UsageRow struct {
 	ReasoningEffort  string
 	CostMicroUSD     *int64
 	CostSource       *string
+	// UpstreamCostMicroUSD carries the upstream-reported cost (from
+	// Detail.CostDetails, converted to micro-USD) for the writer to store
+	// with cost_source=upstream. It is in-memory only: the database keeps
+	// the resolved CostMicroUSD and CostSource.
+	UpstreamCostMicroUSD *int64
+	// PriceID is set by the writer to the price version used, if any.
+	PriceID *int64
 }
 
 // RecordToRow converts a usage record to a storage row. It is pure: the same
@@ -94,7 +102,35 @@ func RecordToRow(record coreusage.Record) UsageRow {
 		row.Alias = row.Model
 	}
 	row.HourMs = row.TsMs / millisPerHour * millisPerHour
+	row.UpstreamCostMicroUSD = upstreamCostMicroUSD(record.Detail.CostDetails)
 	return row
+}
+
+// upstreamCostMicroUSD converts the upstream-reported cost to micro-USD.
+// First non-nil wins: Cost (USD), UpstreamInferenceCost (USD), then the
+// prompt+completions split when both parts are present. CostInUSDTicks is
+// not used: its unit is not defined. It returns nil when no usable cost
+// is present.
+func upstreamCostMicroUSD(cost *coreusage.CostDetails) *int64 {
+	if cost == nil {
+		return nil
+	}
+	var usd *float64
+	switch {
+	case cost.Cost != nil:
+		usd = cost.Cost
+	case cost.UpstreamInferenceCost != nil:
+		usd = cost.UpstreamInferenceCost
+	case cost.UpstreamInferencePromptCost != nil && cost.UpstreamInferenceCompletionsCost != nil:
+		sum := *cost.UpstreamInferencePromptCost + *cost.UpstreamInferenceCompletionsCost
+		usd = &sum
+	}
+	if usd == nil || math.IsNaN(*usd) || math.IsInf(*usd, 0) || *usd < 0 {
+		return nil
+	}
+	value := int64(math.Round(*usd * 1e6))
+	out := value
+	return &out
 }
 
 // apiKeyID returns the first 16 hex of sha256(key), or empty when no key.

@@ -399,3 +399,43 @@ func nonNegativeSum(values ...int64) (int64, bool) {
 	}
 	return total, true
 }
+
+// PricedBuckets splits the detail into non-overlapping token buckets for cost
+// math: uncached input, cache read, cache write, non-reasoning output, and
+// reasoning. It uses the canonical TokenBreakdown for the provider, so subset
+// protocols (cache inside input, reasoning inside output) never double count.
+// Unknown or inconsistent protocols fall back to clamped raw buckets with
+// subtractive math; a fully unclassified total is priced as input.
+func (d Detail) PricedBuckets(provider, executorType string) (input, cacheRead, cacheWrite, output, reasoning int64) {
+	ensured := EnsureTokenBreakdownForProvider(d, provider, executorType)
+	breakdown := ensured.TokenBreakdown
+	if breakdown.Valid() && breakdown.UnclassifiedTokens == 0 {
+		return breakdown.Input.UncachedTokens,
+			breakdown.Input.CacheReadTokens,
+			breakdown.Input.CacheWriteTokens,
+			breakdown.Output.NonReasoningTokens,
+			breakdown.Output.ReasoningTokens
+	}
+	if breakdown.Valid() && breakdown.UnclassifiedTokens > 0 {
+		return breakdown.UnclassifiedTokens, 0, 0, 0, 0
+	}
+	read := maxInt64(d.CacheReadTokens, 0)
+	write := maxInt64(d.CacheCreationTokens, 0)
+	rawReasoning := maxInt64(d.ReasoningTokens, 0)
+	input = maxInt64(d.InputTokens, 0) - read - write
+	if input < 0 {
+		input = 0
+	}
+	output = maxInt64(d.OutputTokens, 0) - rawReasoning
+	if output < 0 {
+		output = 0
+	}
+	return input, read, write, output, rawReasoning
+}
+
+func maxInt64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}
