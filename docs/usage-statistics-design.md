@@ -32,6 +32,13 @@ The proxy keeps its own usage database and serves its own statistics dashboard. 
 | 12 | Scope phase 1 | Dashboard usage section, Usage analytics page, request history table, model prices page, maintenance (retention, vacuum, stats, export). | Core and useful rows of CPAMP. |
 | 13 | Not in phase 1 | Auto-disable on quota, auth-issue queue, Codex inspection, CPAMP data import, manager update, Home mode capture. | The fork has its own quota and routing. Home mode disables the local management API. |
 
+## Price timing rules
+
+- The first price version of a model starts at time 0, so events that exist before the first sync still get a price.
+- A synced version starts at the time the sync detected the change. models.dev does not give the real change time. Events between the real change and the next sync keep the old price (at most the sync interval, default 24 h). A manual price can set an explicit effective date.
+- A manual price with a past effective date does not change events that already have a cost. Use "price unpriced events" or the audited correction for them.
+- The writer reads the price for an event by `(model, ts_ms)` from an in-memory index that reloads when a version is added.
+
 ## Data model (target)
 
 `usage_events`: `id`, `request_id` (unique), `trace_id`, `ts_ms`, `provider`, `model`, `alias`, `executor`, `auth_id`, `auth_index`, `auth_type`, `account_label` (masked), `api_key_id`, `access_provider`, `session_id`, `stream`, `status_class`, `failed`, `fail_code`, `fail_summary`, `latency_ms`, `ttft_ms`, `input_tokens`, `output_tokens`, `reasoning_tokens`, `cache_read_tokens`, `cache_write_tokens`, `total_tokens`, `service_tier`, `reasoning_effort`, `cost_micro_usd` (nullable), `cost_source` (`upstream`, `price-book`, `none`), `price_id` (nullable, the price version used).
