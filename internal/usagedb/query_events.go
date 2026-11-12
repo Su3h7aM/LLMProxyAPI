@@ -201,21 +201,21 @@ func (s *Store) QueryEvents(f UsageFilter, limit int, cursor, order string) (Eve
 }
 
 // estimateTotal counts matching events exactly up to maxExactTotalRows.
-// Above it, without text search the hourly rollup estimates the total
+// Above it, without text search the routed rollup estimates the total
 // (marked inexact: retention may have pruned raw rows); with text search the
 // full count runs and stays exact. A plain range (no filter set) reads the
-// hourly sum first: small totals still confirm with the capped count, large
+// rollup sum first: small totals still confirm with the capped count, large
 // ones skip its 100000-row scan and return the rollup estimate.
 func (s *Store) estimateTotal(f UsageFilter) (int64, bool, error) {
 	if f.isPlainRange() {
-		hourlyWhere, hourlyArgs := f.whereHourly()
-		var hourly int64
-		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM usage_hourly WHERE `+
-			hourlyWhere, hourlyArgs...).Scan(&hourly); err != nil {
+		sel := f.rollup(true)
+		var gated int64
+		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM `+
+			sel.table+` WHERE `+sel.where, sel.args...).Scan(&gated); err != nil {
 			return 0, false, fmt.Errorf("usagedb: estimate total: %w", err)
 		}
-		if hourly > maxExactTotalRows {
-			return hourly, false, nil
+		if gated > maxExactTotalRows {
+			return gated, false, nil
 		}
 	}
 	where, args := f.whereEvents()
@@ -235,10 +235,10 @@ func (s *Store) estimateTotal(f UsageFilter) (int64, bool, error) {
 		}
 		return total, true, nil
 	}
-	hourlyWhere, hourlyArgs := f.whereHourly()
+	sel := f.rollup(true)
 	var total int64
-	if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM usage_hourly WHERE `+
-		hourlyWhere, hourlyArgs...).Scan(&total); err != nil {
+	if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM `+
+		sel.table+` WHERE `+sel.where, sel.args...).Scan(&total); err != nil {
 		return 0, false, fmt.Errorf("usagedb: estimate total: %w", err)
 	}
 	return total, false, nil
@@ -502,19 +502,20 @@ func (s *Store) LatestAuthFields(ids []string) map[string][2]string {
 }
 
 // TopModelProviders returns the top provider per model by requests in the
-// filter, for breakdown meta.
+// filter, for breakdown meta. It reads the routed rollup like the breakdown.
 func (s *Store) TopModelProviders(f UsageFilter, models []string) map[string]string {
 	out := make(map[string]string)
 	if s == nil || len(models) == 0 {
 		return out
 	}
-	where, args := f.whereHourly()
+	sel := f.rollup(true)
+	where, args := sel.where, sel.args
 	placeholders := make([]string, 0, len(models))
 	for _, model := range models {
 		placeholders = append(placeholders, "?")
 		args = append(args, model)
 	}
-	rows, err := s.readDB.Query(`SELECT model, provider, SUM(requests) FROM usage_hourly WHERE `+
+	rows, err := s.readDB.Query(`SELECT model, provider, SUM(requests) FROM `+sel.table+` WHERE `+
 		where+` AND model IN (`+strings.Join(placeholders, ",")+`) GROUP BY model, provider`, args...)
 	if err != nil {
 		return out

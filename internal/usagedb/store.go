@@ -20,7 +20,7 @@ import (
 const (
 	// SchemaVersion is the current migration version. Open refuses a database
 	// file with a newer version.
-	SchemaVersion = 4
+	SchemaVersion = 5
 
 	// readPoolSize bounds the read connection pool. Writes use one connection.
 	readPoolSize = 4
@@ -364,6 +364,59 @@ var migrations = []migration{
 					AND m.stream = e.stream
 				) GROUP BY e.ts_ms / 3600000 * 3600000, e.provider, e.model, e.alias,
 					e.auth_id, e.api_key_id, e.status_class, e.stream`,
+		},
+	},
+	{
+		version: 5,
+		stmts: []string{
+			// usage_daily is the internal day rollup for wide ranges: same
+			// dimensions as usage_hourly, UTC day grain, same counters.
+			// Routes never expose it; they read it for ranges over 14 days
+			// with whole-day bounds (see UsageFilter.useDaily).
+			`CREATE TABLE IF NOT EXISTS usage_daily (
+				day_ms INTEGER NOT NULL,
+				provider TEXT NOT NULL DEFAULT '',
+				model TEXT NOT NULL DEFAULT '',
+				alias TEXT NOT NULL DEFAULT '',
+				auth_id TEXT NOT NULL DEFAULT '',
+				api_key_id TEXT NOT NULL DEFAULT '',
+				status_class TEXT NOT NULL DEFAULT '',
+				stream INTEGER NOT NULL DEFAULT 0,
+				requests INTEGER NOT NULL DEFAULT 0,
+				failures INTEGER NOT NULL DEFAULT 0,
+				input_tokens INTEGER NOT NULL DEFAULT 0,
+				output_tokens INTEGER NOT NULL DEFAULT 0,
+				reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+				cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+				cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+				unpriced_requests INTEGER NOT NULL DEFAULT 0,
+				latency_sum_ms INTEGER NOT NULL DEFAULT 0,
+				latency_max_ms INTEGER NOT NULL DEFAULT 0,
+				ttft_sum_ms INTEGER NOT NULL DEFAULT 0,
+				ttft_count INTEGER NOT NULL DEFAULT 0,
+				late_cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+				PRIMARY KEY (day_ms, provider, model, alias, auth_id, api_key_id, status_class, stream)
+			)`,
+			// Backfill from the hourly rollup (not the events: raw rows
+			// may be pruned, the rollup stays). A UTC day truncates the
+			// UTC hour the same way the writer does.
+			`INSERT INTO usage_daily (
+				day_ms, provider, model, alias, auth_id, api_key_id, status_class, stream,
+				requests, failures, input_tokens, output_tokens, reasoning_tokens,
+				cache_read_tokens, cache_write_tokens, cost_micro_usd, unpriced_requests,
+				latency_sum_ms, latency_max_ms, ttft_sum_ms, ttft_count, late_cost_micro_usd
+			) SELECT hour_ms / 86400000 * 86400000, provider, model, alias,
+				auth_id, api_key_id, status_class, stream,
+				SUM(requests), SUM(failures),
+				SUM(input_tokens), SUM(output_tokens), SUM(reasoning_tokens),
+				SUM(cache_read_tokens), SUM(cache_write_tokens),
+				SUM(cost_micro_usd), SUM(unpriced_requests),
+				SUM(latency_sum_ms), MAX(latency_max_ms),
+				SUM(ttft_sum_ms), SUM(ttft_count), SUM(late_cost_micro_usd)
+			FROM usage_hourly
+			GROUP BY hour_ms / 86400000 * 86400000, provider, model, alias,
+				auth_id, api_key_id, status_class, stream`,
 		},
 	},
 }

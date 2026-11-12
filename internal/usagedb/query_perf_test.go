@@ -71,7 +71,10 @@ func runPerfProfile(t *testing.T, profile string) {
 		t.Fatalf("count events: %v", err)
 	}
 	t.Logf("rows: events=%d hourly=%d", eventRows, hourlyRows)
-	filter := UsageFilter{FromMs: now - spanMs, ToMs: now, TZ: "UTC", Loc: time.UTC}
+	// Day-aligned whole-day bounds: wide ranges read the internal day
+	// rollup, as the panel sends them.
+	alignedTo := now / millisPerDay * millisPerDay
+	filter := UsageFilter{FromMs: alignedTo - spanMs, ToMs: alignedTo, TZ: "UTC", Loc: time.UTC}
 	// Cold: fresh connections (SQLite caches empty) after close and reopen.
 	// The OS page cache stays warm from seeding, so this is SQLite-cold.
 	if err := store.Close(); err != nil {

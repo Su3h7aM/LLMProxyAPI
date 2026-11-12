@@ -44,6 +44,28 @@ DO UPDATE SET
 	ttft_sum_ms = usage_hourly.ttft_sum_ms + excluded.ttft_sum_ms,
 	ttft_count = usage_hourly.ttft_count + excluded.ttft_count`
 
+const upsertDailySQL = `INSERT INTO usage_daily (
+	day_ms, provider, model, alias, auth_id, api_key_id, status_class, stream,
+	requests, failures, input_tokens, output_tokens, reasoning_tokens,
+	cache_read_tokens, cache_write_tokens, cost_micro_usd, unpriced_requests,
+	latency_sum_ms, latency_max_ms, ttft_sum_ms, ttft_count, late_cost_micro_usd
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(day_ms, provider, model, alias, auth_id, api_key_id, status_class, stream)
+DO UPDATE SET
+	requests = usage_daily.requests + 1,
+	failures = usage_daily.failures + excluded.failures,
+	input_tokens = usage_daily.input_tokens + excluded.input_tokens,
+	output_tokens = usage_daily.output_tokens + excluded.output_tokens,
+	reasoning_tokens = usage_daily.reasoning_tokens + excluded.reasoning_tokens,
+	cache_read_tokens = usage_daily.cache_read_tokens + excluded.cache_read_tokens,
+	cache_write_tokens = usage_daily.cache_write_tokens + excluded.cache_write_tokens,
+	cost_micro_usd = usage_daily.cost_micro_usd + excluded.cost_micro_usd,
+	unpriced_requests = usage_daily.unpriced_requests + excluded.unpriced_requests,
+	latency_sum_ms = usage_daily.latency_sum_ms + excluded.latency_sum_ms,
+	latency_max_ms = max(usage_daily.latency_max_ms, excluded.latency_max_ms),
+	ttft_sum_ms = usage_daily.ttft_sum_ms + excluded.ttft_sum_ms,
+	ttft_count = usage_daily.ttft_count + excluded.ttft_count`
+
 func boolInt(value bool) int64 {
 	if value {
 		return 1
@@ -159,6 +181,17 @@ func (s *Store) InsertBatch(rows []UsageRow) (int64, error) {
 			row.LatencyMs, row.LatencyMs, ttftSum, ttftCount, 0,
 		); err != nil {
 			return inserted, fmt.Errorf("usagedb: upsert hourly: %w", err)
+		}
+		// The day rollup carries the same dimensions at UTC day grain, in
+		// the same transaction, so wide ranges can read it instead.
+		if _, err := tx.Exec(upsertDailySQL,
+			row.HourMs/millisPerDay*millisPerDay, row.Provider, row.Model, row.Alias,
+			row.AuthID, row.APIKeyID, row.StatusClass, boolInt(row.Stream),
+			failures, row.InputTokens, row.OutputTokens, row.ReasoningTokens,
+			row.CacheReadTokens, row.CacheWriteTokens, cost, unpriced,
+			row.LatencyMs, row.LatencyMs, ttftSum, ttftCount, 0,
+		); err != nil {
+			return inserted, fmt.Errorf("usagedb: upsert daily: %w", err)
 		}
 		inserted++
 	}

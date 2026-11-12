@@ -199,6 +199,17 @@ func (s *Store) fillBatch(afterID int64, scope FillScope, keyOnly *[2]string, so
 			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
 			return result, lastID, fmt.Errorf("usagedb: fill hourly: %w", err)
 		}
+		if _, err := tx.Exec(`UPDATE usage_daily
+			SET cost_micro_usd = cost_micro_usd + ?,
+				late_cost_micro_usd = late_cost_micro_usd + ?,
+				unpriced_requests = CASE WHEN unpriced_requests > 0 THEN unpriced_requests - 1 ELSE 0 END
+			WHERE day_ms = ? AND provider = ? AND model = ? AND alias = ?
+				AND auth_id = ? AND api_key_id = ? AND status_class = ? AND stream = ?`,
+			event.cost, event.cost, event.hourMs/millisPerDay*millisPerDay,
+			event.provider, event.model, event.alias,
+			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
+			return result, lastID, fmt.Errorf("usagedb: fill daily: %w", err)
+		}
 		result.Priced++
 	}
 	if err := tx.Commit(); err != nil {
@@ -396,6 +407,20 @@ func (s *Store) CorrectCosts(scope FillScope, reason, actor string) (correctionI
 			event.hourMs, event.provider, event.model, event.alias,
 			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
 			return 0, 0, 0, 0, fmt.Errorf("usagedb: correct hourly: %w", err)
+		}
+		if _, err := tx.Exec(`UPDATE usage_daily
+			SET cost_micro_usd = cost_micro_usd + ?,
+				late_cost_micro_usd = CASE WHEN late_cost_micro_usd + ? < 0 THEN 0
+					ELSE late_cost_micro_usd + ? END,
+				unpriced_requests = CASE WHEN unpriced_requests + ? < 0 THEN 0
+					ELSE unpriced_requests + ? END
+			WHERE day_ms = ? AND provider = ? AND model = ? AND alias = ?
+				AND auth_id = ? AND api_key_id = ? AND status_class = ? AND stream = ?`,
+			delta, lateDelta, lateDelta, unpricedDelta, unpricedDelta,
+			event.hourMs/millisPerDay*millisPerDay,
+			event.provider, event.model, event.alias,
+			event.authID, event.apiKeyID, event.statusClass, event.stream); err != nil {
+			return 0, 0, 0, 0, fmt.Errorf("usagedb: correct daily: %w", err)
 		}
 		updated++
 	}

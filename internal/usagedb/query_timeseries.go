@@ -119,9 +119,11 @@ type hourlyAggRow struct {
 	latencySum, latencyMax, ttftSum, ttftCount int64
 }
 
-// fetchHourlyAgg reads grouped hourly sums for the filter. groupBy is "" for
-// no grouping or a validated group_by value.
-func (s *Store) fetchHourlyAgg(f UsageFilter, groupBy string) ([]hourlyAggRow, error) {
+// fetchHourlyAgg reads grouped rollup sums for the filter: the day table
+// for wide day-aligned ranges (except hour-bucketed series), else the hourly
+// table. groupBy is "" for no grouping or a validated group_by value. The
+// name stays: history and callers call it hourly.
+func (s *Store) fetchHourlyAgg(f UsageFilter, groupBy string, hourOK bool) ([]hourlyAggRow, error) {
 	selectCol := ""
 	groupSuffix := ""
 	if groupBy != "" {
@@ -137,15 +139,15 @@ func (s *Store) fetchHourlyAgg(f UsageFilter, groupBy string) ([]hourlyAggRow, e
 			groupSuffix = ", " + column
 		}
 	}
-	where, args := f.whereHourly()
-	query := `SELECT hour_ms` + selectCol + `,
+	sel := f.rollup(hourOK)
+	query := `SELECT ` + sel.timeCol + selectCol + `,
 		SUM(requests), SUM(failures),
 		SUM(input_tokens), SUM(output_tokens), SUM(reasoning_tokens),
 		SUM(cache_read_tokens), SUM(cache_write_tokens),
 		SUM(cost_micro_usd), SUM(late_cost_micro_usd), SUM(unpriced_requests),
 		SUM(latency_sum_ms), MAX(latency_max_ms), SUM(ttft_sum_ms), SUM(ttft_count)
-		FROM usage_hourly WHERE ` + where + ` GROUP BY hour_ms` + groupSuffix
-	rows, err := s.readDB.Query(query, args...)
+		FROM ` + sel.table + ` WHERE ` + sel.where + ` GROUP BY ` + sel.timeCol + groupSuffix
+	rows, err := s.readDB.Query(query, sel.args...)
 	if err != nil {
 		return nil, fmt.Errorf("usagedb: hourly aggregate: %w", err)
 	}
@@ -233,7 +235,7 @@ func (s *Store) QueryTimeseries(f UsageFilter, bucket, groupBy string, top int) 
 	if top > 20 {
 		return result, &QueryError{Msg: "invalid top"}
 	}
-	rows, err := s.fetchHourlyAgg(f, groupBy)
+	rows, err := s.fetchHourlyAgg(f, groupBy, kind != "hour")
 	if err != nil {
 		return result, err
 	}
@@ -417,7 +419,7 @@ func (s *Store) QueryBreakdown(f UsageFilter, groupBy, sort, order string, limit
 	if offset < 0 {
 		return nil, 0, &QueryError{Msg: "invalid offset"}
 	}
-	rows, err := s.fetchHourlyAgg(f, groupBy)
+	rows, err := s.fetchHourlyAgg(f, groupBy, true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -532,6 +534,8 @@ func (s *Store) QueryHeatmap(f UsageFilter, metric string) (HeatmapResult, error
 		return result, &QueryError{Msg: "invalid metric"}
 	}
 	where, args := f.whereHourly()
+	// The heatmap needs hour-of-day, so it always reads the hourly rollup,
+	// never the day table.
 	rows, err := s.readDB.Query(`SELECT hour_ms, `+column+` FROM usage_hourly WHERE `+where+` GROUP BY hour_ms`, args...)
 	if err != nil {
 		return result, fmt.Errorf("usagedb: heatmap: %w", err)
@@ -611,18 +615,18 @@ func (s *Store) QueryLatencyPercentiles(f UsageFilter) (*int64, *int64, string, 
 	if s == nil {
 		return nil, nil, "", fmt.Errorf("usagedb: nil store")
 	}
-	// Without text search the hourly rollup bounds the event count from
-	// above (retention prunes raw rows, never the rollup), so an over-limit
+	// Without text search the routed rollup bounds the event count from
+	// above (retention prunes raw rows, never the rollups), so an over-limit
 	// rollup sum skips the raw count and both sorts. Exactness is kept:
 	// the gate only fires when the raw count must also be over the limit.
 	if !f.HasQ() {
-		hourlyWhere, hourlyArgs := f.whereHourly()
-		var hourly int64
-		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM usage_hourly WHERE `+
-			hourlyWhere, hourlyArgs...).Scan(&hourly); err != nil {
+		sel := f.rollup(true)
+		var gated int64
+		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM `+
+			sel.table+` WHERE `+sel.where, sel.args...).Scan(&gated); err != nil {
 			return nil, nil, "", fmt.Errorf("usagedb: percentile gate: %w", err)
 		}
-		if hourly > maxExactPercentileRows {
+		if gated > maxExactPercentileRows {
 			return nil, nil, "hourly", nil
 		}
 	}

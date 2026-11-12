@@ -75,8 +75,8 @@ func TestMigration4FixesFailed2xx(t *testing.T) {
 		t.Fatalf("Open after v3: %v", err)
 	}
 	defer func() { _ = store.Close() }()
-	if SchemaVersion != 4 {
-		t.Fatalf("SchemaVersion = %d, want 4", SchemaVersion)
+	if SchemaVersion != 5 {
+		t.Fatalf("SchemaVersion = %d, want 5", SchemaVersion)
 	}
 
 	var leaked int

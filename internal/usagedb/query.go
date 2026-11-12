@@ -236,6 +236,65 @@ func (f UsageFilter) whereHourly() (string, []any) {
 	return sb.String(), args
 }
 
+// useDaily reports whether the range reads the internal day rollup: a span
+// over 14 days with whole-day UTC bounds. Day rows cannot serve partial
+// days, so unaligned ranges stay on the hourly rollup.
+func (f UsageFilter) useDaily() bool {
+	if f.ToMs-f.FromMs <= 14*millisPerDay {
+		return false
+	}
+	return f.FromMs%millisPerDay == 0 && f.ToMs%millisPerDay == 0
+}
+
+// whereDaily builds the WHERE clause on usage_daily: same dimensions as
+// whereHourly, day grain. Callers must use the returned args in order.
+func (f UsageFilter) whereDaily() (string, []any) {
+	var sb strings.Builder
+	var args []any
+	sb.WriteString("day_ms >= ? AND day_ms < ?")
+	args = append(args, f.FromMs/millisPerDay*millisPerDay, f.ToMs)
+	appendIn(&sb, &args, "provider", f.Providers)
+	appendIn(&sb, &args, "model", f.Models)
+	appendIn(&sb, &args, "alias", f.Aliases)
+	appendIn(&sb, &args, "auth_id", f.AuthIDs)
+	appendIn(&sb, &args, "api_key_id", f.APIKeyIDs)
+	switch f.Status {
+	case "ok":
+		sb.WriteString(" AND status_class = '2xx'")
+	case "failed":
+		sb.WriteString(" AND status_class IN ('4xx','5xx','error','other')")
+	}
+	if f.Stream != nil {
+		if *f.Stream {
+			sb.WriteString(" AND stream = 1")
+		} else {
+			sb.WriteString(" AND stream = 0")
+		}
+	}
+	return sb.String(), args
+}
+
+// rollupSel is one rollup read: table plus its time column, WHERE, and args.
+type rollupSel struct {
+	table   string
+	timeCol string
+	where   string
+	args    []any
+}
+
+// rollup picks the rollup table for the filter: usage_daily for wide
+// day-aligned ranges, else usage_hourly. Hour-bucketed series always need the
+// hourly grain, and the heatmap needs hour-of-day, so those callers pass
+// hourOK=false and stay on usage_hourly.
+func (f UsageFilter) rollup(hourOK bool) rollupSel {
+	if hourOK && f.useDaily() {
+		where, args := f.whereDaily()
+		return rollupSel{table: "usage_daily", timeCol: "day_ms", where: where, args: args}
+	}
+	where, args := f.whereHourly()
+	return rollupSel{table: "usage_hourly", timeCol: "hour_ms", where: where, args: args}
+}
+
 // UsageCounters is the counters object shared by summary, timeseries,
 // breakdown, and the panel. EstimatedCostMicroUSD is the late-priced part of
 // CostMicroUSD.
@@ -303,19 +362,22 @@ func (s *Store) QueryCounters(f UsageFilter) (UsageCounters, error) {
 	return s.countersFromHourly(f)
 }
 
-const countersHourlySQL = `SELECT COALESCE(SUM(requests),0), COALESCE(SUM(failures),0),
+const countersRollupSQL = `SELECT COALESCE(SUM(requests),0), COALESCE(SUM(failures),0),
 	COALESCE(SUM(input_tokens),0), COALESCE(SUM(output_tokens),0), COALESCE(SUM(reasoning_tokens),0),
 	COALESCE(SUM(cache_read_tokens),0), COALESCE(SUM(cache_write_tokens),0),
 	COALESCE(SUM(cost_micro_usd),0), COALESCE(SUM(late_cost_micro_usd),0), COALESCE(SUM(unpriced_requests),0),
 	COALESCE(SUM(latency_sum_ms),0), COALESCE(MAX(latency_max_ms),0),
 	COALESCE(SUM(ttft_sum_ms),0), COALESCE(SUM(ttft_count),0)
-	FROM usage_hourly WHERE `
+	FROM %s WHERE `
 
+// countersFromHourly reads the routed rollup: the day table for wide
+// day-aligned ranges, else the hourly table. The name stays: callers and
+// history call it hourly.
 func (s *Store) countersFromHourly(f UsageFilter) (UsageCounters, error) {
-	where, args := f.whereHourly()
+	sel := f.rollup(true)
 	var requests, failures, input, output, reasoning, cacheRead, cacheWrite int64
 	var cost, estimated, unpriced, latencySum, latencyMax, ttftSum, ttftCount int64
-	if err := s.readDB.QueryRow(countersHourlySQL+where, args...).Scan(
+	if err := s.readDB.QueryRow(fmt.Sprintf(countersRollupSQL, sel.table)+sel.where, sel.args...).Scan(
 		&requests, &failures, &input, &output, &reasoning, &cacheRead, &cacheWrite,
 		&cost, &estimated, &unpriced, &latencySum, &latencyMax, &ttftSum, &ttftCount); err != nil {
 		return UsageCounters{}, fmt.Errorf("usagedb: hourly counters: %w", err)
