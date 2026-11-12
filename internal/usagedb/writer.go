@@ -29,7 +29,7 @@ type Writer struct {
 	store *Store
 	ch    chan UsageRow
 
-	maxTries   int
+	maxTries    int
 	baseBackoff time.Duration
 	maxBackoff  time.Duration
 

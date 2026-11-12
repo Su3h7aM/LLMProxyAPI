@@ -12,24 +12,24 @@ import (
 
 func testRecord() coreusage.Record {
 	return coreusage.Record{
-		RequestID:     "req-1",
-		TraceID:       "trace-abcdef",
-		Provider:      "codex",
-		ExecutorType:  "codex",
-		Model:         "gpt-5",
-		Alias:         "work",
-		APIKey:        "secret-client-key",
-		AuthID:        "auth1",
-		AuthIndex:     "0",
-		AuthType:      "oauth",
-		Source:        "alice@example.com",
+		RequestID:      "req-1",
+		TraceID:        "trace-abcdef",
+		Provider:       "codex",
+		ExecutorType:   "codex",
+		Model:          "gpt-5",
+		Alias:          "work",
+		APIKey:         "secret-client-key",
+		AuthID:         "auth1",
+		AuthIndex:      "0",
+		AuthType:       "oauth",
+		Source:         "alice@example.com",
 		AccessProvider: "config-inline",
-		SessionID:     "session-1",
-		Stream:        true,
-		RequestedAt:   time.UnixMilli(1720000000000),
-		Latency:       120 * time.Millisecond,
-		TTFT:          30 * time.Millisecond,
-		ServiceTier:   "default",
+		SessionID:      "session-1",
+		Stream:         true,
+		RequestedAt:    time.UnixMilli(1720000000000),
+		Latency:        120 * time.Millisecond,
+		TTFT:           30 * time.Millisecond,
+		ServiceTier:    "default",
 		Detail: coreusage.Detail{
 			InputTokens:         10,
 			OutputTokens:        20,
@@ -126,10 +126,10 @@ func TestFailSummaryCutAndRedacted(t *testing.T) {
 
 func TestStatusClassTable(t *testing.T) {
 	cases := []struct {
-		name string
+		name   string
 		failed bool
-		code int
-		want string
+		code   int
+		want   string
 	}{
 		{"success", false, 0, "2xx"},
 		{"failed 200", true, 200, "2xx"},
