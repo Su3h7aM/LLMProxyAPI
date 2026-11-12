@@ -1,5 +1,5 @@
 ---
-status: done
+status: in-progress
 branch: issue/0049-usage-db-hardening
 type: backend (Go, security and performance)
 agent: muse-spark-1.3-contributor
