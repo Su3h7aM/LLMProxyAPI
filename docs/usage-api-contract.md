@@ -148,6 +148,8 @@ Parameters: common (with `q`), plus `limit` (default 50, max 200), `cursor` (opa
 
 `total_estimate` is exact when the range holds up to 100000 matching rows, else an estimate (field `total_exact: false` is added). `fail_summary` is NOT in the list.
 
+`account_label` holds a masked email (`ab***@example.com`) only when the record source is an email; else it is empty. Free-text columns (`session_id`, `service_tier`, `reasoning_effort`, `access_provider`, `executor`, `auth_type`, `fail_code`) keep only values of letters, digits, `.`, `_`, `-`, `:` of at most 64 characters, else empty.
+
 ## GET /events/{id}
 
 All list fields plus `fail_summary`, `session_id`, `access_provider`, `auth_index`, `price_id`, `price` (the price version used: `provider`, `model`, `valid_from_ms`, `input`, `output`, `cache_read`, `cache_write`, `source`; null if none).

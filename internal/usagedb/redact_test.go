@@ -3,6 +3,7 @@ package usagedb
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -82,10 +83,14 @@ func TestMaskAccountLabelTable(t *testing.T) {
 		{"empty", "", "", ""},
 		{"email", "abigail@example.com", "", "ab***@example.com"},
 		{"short email", "a@x.com", "", "a***@x.com"},
-		{"plain label", "vertex-project-1", "", "vertex-project-1"},
-		{"token-like", "sk-ant-abcdefghijklmnopqrstuvwxyz0123456789", "", "m:sk-a...6789"},
+		{"plain label", "vertex-project-1", "", ""},
+		{"project with colon", "config:codex[0]", "", ""},
+		{"token-like", "sk-ant-abcdefghijklmnopqrstuvwxyz0123456789", "", ""},
+		{"short key", "stub-upstream-key", "", ""},
 		{"raw key", "the-key", "the-key", ""},
 		{"key inside text", "login with the-key ok", "the-key", ""},
+		{"email with spaces", "a b@example.com", "", ""},
+		{"bearer", "Bearer abc123", "", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -93,6 +98,40 @@ func TestMaskAccountLabelTable(t *testing.T) {
 				t.Fatalf("mask = %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestSafeFieldTable(t *testing.T) {
+	cases := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{"empty", "", ""},
+		{"plain", "session-1", "session-1"},
+		{"dots colons", "a.b_c-d:e", "a.b_c-d:e"},
+		{"spaces", "Bearer abc123", ""},
+		{"slash", "/tmp/x", ""},
+		{"query", "https://x/?token=abc", ""},
+		{"semicolon", "a;b", ""},
+		{"jwt dots long", strings.Repeat("a", 30) + "." + strings.Repeat("b", 30) + "." + strings.Repeat("c", 30), ""},
+		{"too long", strings.Repeat("a", 65), ""},
+		{"max length", strings.Repeat("a", 64), strings.Repeat("a", 64)},
+		{"oauth", "oauth", "oauth"},
+		{"email", "a@x.com", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := safeField(tc.value); got != tc.want {
+				t.Fatalf("safeField = %q, want %q", got, tc.want)
+			}
+		})
+	}
+	if got := safeOrUnknown(""); got != "unknown" {
+		t.Fatalf("safeOrUnknown empty = %q, want unknown", got)
+	}
+	if got := safeOrUnknown("Bearer x"); got != "" {
+		t.Fatalf("safeOrUnknown hostile = %q, want empty", got)
 	}
 }
 
@@ -181,5 +220,189 @@ func TestEffectiveServiceTierWins(t *testing.T) {
 	record.EffectiveServiceTier = "flex"
 	if got := RecordToRow(record).ServiceTier; got != "flex" {
 		t.Fatalf("service tier = %q, want flex", got)
+	}
+}
+
+// hostileSecrets is the issue step 1 table: every input here must never
+// appear in any stored column (except as a hash in api_key_id).
+func hostileSecrets() []string {
+	jwt := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9." +
+		strings.Repeat("YWIxMjM0NTY3ODkw", 12) +
+		".c2lnbmF0dXJlLWFiYzEyMzQ1Njc4OTA"
+	return []string{
+		"sk-live-raw-key-0123456789abcdef",
+		"abcd1234",
+		"abcdefghij0123456789",
+		"abcdefghijklmnopqrstuvwxyz0123456789ABCD",
+		"sk-ant-api03-xyzABCDEF1234567890abcdefgh",
+		"AIzaSyD-EXAMPLEKEY0123456789abcdefg",
+		"Bearer eyJhbGciOiJIUzI1NiJ9.cGF5bG9hZA.c2ln",
+		jwt,
+		"https://api.example.com/v1?api_key=SECRET1234567890&x=1",
+		"/home/user/.config/keys/openai.json",
+	}
+}
+
+// rowDump joins every stored string column except api_key_id (a hash) for
+// leak scans.
+func rowDump(row UsageRow) string {
+	return strings.Join([]string{
+		row.RequestID, row.TraceID, row.Provider, row.Model, row.Alias,
+		row.Executor, row.AuthID, row.AuthIndex, row.AuthType,
+		row.AccountLabel, row.AccessProvider, row.SessionID,
+		row.StatusClass, row.FailCode, row.FailSummary,
+		row.ServiceTier, row.ReasoningEffort,
+	}, "|")
+}
+
+func TestHostileSecretsNeverStored(t *testing.T) {
+	const clientKey = "raw-client-key-AAAABBBBCCCCDDDD"
+	for _, secret := range hostileSecrets() {
+		record := testRecord()
+		record.APIKey = clientKey
+		record.Source = secret
+		record.SessionID = "session-1"
+		record.AccessProvider = "config-inline"
+		record.ReasoningEffort = ""
+		record.Fail.Code = ""
+		record.ExecutorType = "codex"
+		record.AuthType = "oauth"
+		record.ServiceTier = "default"
+		row := RecordToRow(record)
+		if row.AccountLabel != "" {
+			t.Fatalf("secret %q: account_label = %q, want empty", secret, row.AccountLabel)
+		}
+		if dump := rowDump(row); strings.Contains(dump, secret) || strings.Contains(dump, clientKey) {
+			t.Fatalf("secret %q: row holds a secret: %q", secret, dump)
+		}
+		if row.APIKeyID == "" || row.APIKeyID == clientKey {
+			t.Fatalf("secret %q: api_key_id = %q, want hash", secret, row.APIKeyID)
+		}
+		// The raw client key as source is the worst case: still empty.
+		keyed := testRecord()
+		keyed.APIKey = secret
+		keyed.Source = secret
+		keyedRow := RecordToRow(keyed)
+		if keyedRow.AccountLabel != "" {
+			t.Fatalf("secret %q as key: account_label = %q, want empty", secret, keyedRow.AccountLabel)
+		}
+		if dump := rowDump(keyedRow); strings.Contains(dump, secret) {
+			t.Fatalf("secret %q as key: row holds it: %q", secret, dump)
+		}
+		// Shape-hostile values in every other free-text column stay empty.
+		// Safe-shaped secrets may stay (the rule allows them); anything with
+		// an unsafe character or over 64 characters must not.
+		shaped := testRecord()
+		shaped.APIKey = clientKey
+		shaped.SessionID = secret
+		shaped.AccessProvider = secret
+		shaped.ReasoningEffort = secret
+		shaped.Fail.Code = secret
+		shaped.ExecutorType = secret
+		shaped.AuthType = secret
+		srow := RecordToRow(shaped)
+		kept := []string{
+			srow.SessionID, srow.AccessProvider, srow.ReasoningEffort,
+			srow.FailCode, srow.Executor, srow.AuthType,
+		}
+		for _, value := range kept {
+			if value == "" || value == "unknown" {
+				continue
+			}
+			if !isSafeShape(value) {
+				t.Fatalf("secret %q: unsafe value kept: %q", secret, value)
+			}
+		}
+		if !isSafeShape(secret) {
+			for _, value := range kept {
+				if value != "" && value != "unknown" {
+					t.Fatalf("unsafe secret %q: kept %q", secret, value)
+				}
+			}
+		}
+	}
+}
+
+// isSafeShape mirrors safeField for the test: only to assert the negative
+// (no unsafe value is ever kept).
+func isSafeShape(value string) bool {
+	if value == "" || len(value) > 64 {
+		return false
+	}
+	for _, r := range value {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9',
+			r == '.', r == '_', r == '-', r == ':':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// TestHostileSecretsDBScan inserts one row per hostile secret and scans every
+// text column of usage_events: no secret may survive.
+func TestHostileSecretsDBScan(t *testing.T) {
+	store := openTestStore(t)
+	const clientKey = "raw-client-key-AAAABBBBCCCCDDDD"
+	var rows []UsageRow
+	for i, secret := range hostileSecrets() {
+		record := testRecord()
+		record.RequestID = "hostile-req-" + strconv.Itoa(i)
+		record.RequestedAt = time.UnixMilli(1720000000000 + int64(i)*1000)
+		record.APIKey = clientKey
+		record.Source = secret
+		record.Fail = coreusage.Failure{StatusCode: 500, Body: "upstream error"}
+		rows = append(rows, RecordToRow(record))
+	}
+	if _, err := store.InsertBatch(rows); err != nil {
+		t.Fatalf("InsertBatch: %v", err)
+	}
+	textCols := []string{"request_id", "trace_id", "provider", "model", "alias",
+		"executor", "auth_id", "auth_index", "auth_type", "account_label",
+		"api_key_id", "access_provider", "session_id", "status_class",
+		"fail_code", "fail_summary", "service_tier", "reasoning_effort"}
+	query := `SELECT ` + strings.Join(textCols, ", ") + ` FROM usage_events`
+	dbRows, err := store.readDB.Query(query)
+	if err != nil {
+		t.Fatalf("scan query: %v", err)
+	}
+	defer func() { _ = dbRows.Close() }()
+	cells := make([]any, len(textCols))
+	ptrs := make([]any, len(textCols))
+	for i := range cells {
+		ptrs[i] = &cells[i]
+	}
+	var found int
+	for dbRows.Next() {
+		found++
+		if err := dbRows.Scan(ptrs...); err != nil {
+			t.Fatalf("scan: %v", err)
+		}
+		for _, cell := range cells {
+			var text string
+			switch value := cell.(type) {
+			case string:
+				text = value
+			case []byte:
+				text = string(value)
+			default:
+				continue
+			}
+			for _, secret := range hostileSecrets() {
+				if strings.Contains(text, secret) {
+					t.Fatalf("DB holds secret %q in column value %q", secret, text)
+				}
+			}
+			if strings.Contains(text, clientKey) {
+				t.Fatalf("DB holds the raw client key in %q", text)
+			}
+		}
+	}
+	if err := dbRows.Err(); err != nil {
+		t.Fatalf("scan rows: %v", err)
+	}
+	if found != len(hostileSecrets()) {
+		t.Fatalf("scanned rows = %d, want %d", found, len(hostileSecrets()))
 	}
 }

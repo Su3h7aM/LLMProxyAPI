@@ -51,6 +51,7 @@ Fix four findings from the review of issues 0043 to 0045 before the usage DB shi
 
 - Set `status: in-progress`. Work on branch `issue/0049-usage-db-hardening` (cut from local `main` at 364747cb, which already holds 0043-0045).
 - Context read: `redact.go`, `insert.go`, `store.go` (schema 3), `query.go`, `query_events.go`, `query_timeseries.go`, `query_perf_test.go`, `redact_test.go`, `query_test.go`, `store_test.go`, contract, design doc, 0045 Result/Log (perf 8.1s cold uniform, smoke `account_label` leak, question 1), `resolveUsageSource` (email, vertex project, account info, metadata email, auth api_key attr, else raw client key).
+- Step 1 done: `maskAccountLabel` is now email-only (masked `ab***@domain`, else empty; token-like branch and passthrough removed); new `safeField` (letters, digits, `.`, `_`, `-`, `:`; at most 64 chars) guards `session_id`, `service_tier`, `reasoning_effort`, `access_provider`, `fail_code`, and via `safeOrUnknown` (empty keeps `unknown`) `executor`, `auth_type`. Empty `service_tier` still defaults to `default`; empty tier is safe for `ComputeCost` (base rates). Tests: updated mask table, new `safeField` table, `TestHostileSecretsNeverStored` (10-input table as source/key/shape-hostile) and `TestHostileSecretsDBScan` (all text columns of `usage_events` scanned). Docs: design decision 5 and contract `account_label` text updated. `go build ./...` needs the gitignored `apps/web/dist/management.html` stub (pre-existing).
 
 ## Follow-ups
 

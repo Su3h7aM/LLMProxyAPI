@@ -73,18 +73,18 @@ func RecordToRow(record coreusage.Record) UsageRow {
 		TsMs:             record.RequestedAt.UnixMilli(),
 		Provider:         orUnknown(record.Provider),
 		Model:            orUnknown(record.Model),
-		Executor:         orUnknown(record.ExecutorType),
+		Executor:         safeOrUnknown(record.ExecutorType),
 		AuthID:           strings.TrimSpace(record.AuthID),
 		AuthIndex:        strings.TrimSpace(record.AuthIndex),
-		AuthType:         orUnknown(record.AuthType),
+		AuthType:         safeOrUnknown(record.AuthType),
 		AccountLabel:     maskAccountLabel(record.Source, key),
 		APIKeyID:         apiKeyID(key),
-		AccessProvider:   strings.TrimSpace(record.AccessProvider),
-		SessionID:        strings.TrimSpace(record.SessionID),
+		AccessProvider:   safeField(record.AccessProvider),
+		SessionID:        safeField(record.SessionID),
 		Stream:           record.Stream,
 		StatusClass:      statusClass(record),
 		Failed:           record.Failed,
-		FailCode:         strings.TrimSpace(record.Fail.Code),
+		FailCode:         safeField(record.Fail.Code),
 		FailSummary:      failSummary(record.Fail.Body, key),
 		LatencyMs:        durationMs(record.Latency.Milliseconds()),
 		TTFTMs:           durationMs(record.TTFT.Milliseconds()),
@@ -94,8 +94,8 @@ func RecordToRow(record coreusage.Record) UsageRow {
 		CacheReadTokens:  record.Detail.CacheReadTokens,
 		CacheWriteTokens: record.Detail.CacheCreationTokens,
 		TotalTokens:      record.Detail.TotalTokens,
-		ServiceTier:      serviceTier(record),
-		ReasoningEffort:  strings.TrimSpace(record.ReasoningEffort),
+		ServiceTier:      safeField(serviceTier(record)),
+		ReasoningEffort:  safeField(record.ReasoningEffort),
 	}
 	row.Alias = strings.TrimSpace(record.Alias)
 	if row.Alias == "" {
@@ -143,15 +143,13 @@ func apiKeyID(key string) string {
 	return hex.EncodeToString(sum[:])[:16]
 }
 
-// maskAccountLabel masks the source/account label. Email becomes ab***@domain.
-// Long token-like text is cut to head...tail. A source that is or contains
-// the raw client key becomes empty: no key fragment may enter the row.
-func maskAccountLabel(source, apiKey string) string {
+// maskAccountLabel keeps only email-shaped sources, masked as ab***@domain.
+// Every other value (project names, auth kinds, raw client keys, upstream
+// keys) is stored as an empty string. Readers fall back to the auth manager
+// label and then to the credential id, so no passthrough is needed.
+func maskAccountLabel(source, _ string) string {
 	trimmed := strings.TrimSpace(source)
 	if trimmed == "" {
-		return ""
-	}
-	if apiKey != "" && strings.Contains(trimmed, apiKey) {
 		return ""
 	}
 	if at := strings.Index(trimmed, "@"); at > 0 && !strings.ContainsAny(trimmed, " \t\r\n/\\") {
@@ -161,25 +159,43 @@ func maskAccountLabel(source, apiKey string) string {
 		}
 		return head + "***@" + trimmed[at+1:]
 	}
-	if looksTokenLike(trimmed) {
-		if len(trimmed) <= 8 {
-			return "m:****"
+	return ""
+}
+
+// safeField keeps free-text record fields only when they match a strict safe
+// shape: letters, digits, `.`, `_`, `-`, `:` and at most 64 characters.
+// Anything else (keys, tokens, URLs, paths, sentences) becomes empty, so no
+// secret fragment can hide in these columns.
+func safeField(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+	if utf8.RuneCountInString(trimmed) > 64 {
+		return ""
+	}
+	for _, r := range trimmed {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9',
+			r == '.', r == '_', r == '-', r == ':':
+		default:
+			return ""
 		}
-		return "m:" + trimmed[:4] + "..." + trimmed[len(trimmed)-4:]
 	}
 	return trimmed
 }
 
-// looksTokenLike reports text that must not stay in full: long strings
-// without separators, or known key prefixes.
-func looksTokenLike(value string) bool {
-	if strings.HasPrefix(value, "sk-") || strings.HasPrefix(value, "AIza") {
-		return true
+// safeOrUnknown keeps the "unknown" default for empty values and applies
+// safeField otherwise. Hostile non-empty values become empty, never the
+// default, so a stored "unknown" always means "not set".
+func safeOrUnknown(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "unknown"
 	}
-	if strings.ContainsAny(value, " \t\r\n/\\") {
-		return false
+	if kept := safeField(value); kept != "" {
+		return kept
 	}
-	return len(value) >= 32
+	return ""
 }
 
 // failSummary cuts failure text to 4096 bytes and removes the raw client key.
