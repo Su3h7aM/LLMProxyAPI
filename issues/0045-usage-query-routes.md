@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0045-usage-query-routes
 type: backend (Go)
 agent: muse-spark-1.3-contributor
@@ -54,6 +54,9 @@ Implement the read side of the usage DB (issues 0043 and 0044 are merged) exactl
 3. At the end: `status: done`, fill `## Result` (what landed, schema changes, benchmark numbers against the targets, known gaps, deviations from the contract if any with the reason), commit, report. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- Set `status: in-progress`. Work on branch `issue/0045-usage-query-routes` (checkout branch `t3/usage-query-routes` is at same tip as `main`, 45a67d12; created issue branch from it).
+- Context read: contract, design doc, DECISIONS, `store.go`, `insert.go`, `writer.go`, `collector.go`, `redact.go`, `prices.go`, `prices_fill.go`, `retention.go`, `usage_db_status.go`, `usage_prices.go`, `server_management_v8.go`, handler auth/labels, 0043/0044 logs.
 
 ## Follow-ups
 
