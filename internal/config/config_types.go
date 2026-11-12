@@ -489,6 +489,57 @@ func (cfg *Config) EffectiveKVStorePath() string {
 	return cfg.KVStore.EffectivePathForAuthDir(cfg.AuthDir)
 }
 
+// UsageDBConfig holds configuration for the embedded usage SQLite database.
+type UsageDBConfig struct {
+	// Enabled toggles the built-in usage database writer. Default true.
+	Enabled bool `yaml:"enabled" json:"enabled"`
+	// Path is the file system path to the usage database file.
+	// When empty, it defaults to "<auth-dir>/usage.db".
+	// A path change needs a restart to take effect.
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	// RetentionDays keeps raw usage events this many days; 0 keeps all. Default 90.
+	// Rollups stay after raw prune.
+	RetentionDays int `yaml:"retention-days" json:"retention-days"`
+	// BufferSize bounds the in-process usage writer channel. Default 4096.
+	// A size change needs a restart to take effect.
+	BufferSize int `yaml:"buffer-size" json:"buffer-size"`
+}
+
+// WithDefaults fills zero values with the documented defaults.
+// Enabled is set to true before YAML unmarshal, so only RetentionDays
+// and BufferSize need normalization here.
+func (c UsageDBConfig) WithDefaults() UsageDBConfig {
+	if c.RetentionDays < 0 {
+		c.RetentionDays = DefaultUsageDBRetentionDays
+	}
+	if c.BufferSize <= 0 {
+		c.BufferSize = DefaultUsageDBBufferSize
+	}
+	return c
+}
+
+// EffectivePathForAuthDir returns the trimmed Path when explicitly configured,
+// or joins the given authDir (falling back to the XDG data directory when authDir is empty)
+// with DefaultUsageDBPath ("<auth-dir>/usage.db").
+func (c UsageDBConfig) EffectivePathForAuthDir(authDir string) string {
+	if trimmed := strings.TrimSpace(c.Path); trimmed != "" {
+		return trimmed
+	}
+	baseDir := strings.TrimSpace(authDir)
+	if baseDir == "" {
+		baseDir = DefaultDataDir()
+	}
+	return filepath.Join(baseDir, DefaultUsageDBPath)
+}
+
+// EffectiveUsageDBPath returns the configured UsageDB.Path or "<auth-dir>/usage.db" when empty.
+func (cfg *Config) EffectiveUsageDBPath() string {
+	if cfg == nil {
+		return filepath.Join(DefaultDataDir(), DefaultUsageDBPath)
+	}
+	return cfg.UsageDB.EffectivePathForAuthDir(cfg.AuthDir)
+}
+
 // DiscoveryConfig controls local network mDNS / DNS-SD service advertising.
 type DiscoveryConfig struct {
 	// Enabled toggles mDNS service advertising on the local network (default: false).

@@ -28,6 +28,9 @@ func ParseConfigBytes(data []byte) (*Config, error) {
 	cfg.ErrorLogsMaxFiles = 10
 	cfg.UsageStatisticsEnabled = false
 	cfg.RedisUsageQueueRetentionSeconds = 60
+	cfg.UsageDB.Enabled = true
+	cfg.UsageDB.RetentionDays = DefaultUsageDBRetentionDays
+	cfg.UsageDB.BufferSize = DefaultUsageDBBufferSize
 	cfg.DisableCooling = false
 	cfg.SaveCooldownStatus = false
 	cfg.TransientErrorCooldownSeconds = 0
@@ -85,6 +88,8 @@ func ParseConfigBytes(data []byte) (*Config, error) {
 	}
 
 	cfg.KVStore.Path = strings.TrimSpace(cfg.KVStore.Path)
+	cfg.UsageDB.Path = strings.TrimSpace(cfg.UsageDB.Path)
+	cfg.UsageDB = cfg.UsageDB.WithDefaults()
 
 	if cfg.LogsMaxTotalSizeMB < 0 {
 		cfg.LogsMaxTotalSizeMB = 0

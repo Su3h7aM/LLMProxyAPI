@@ -1292,6 +1292,19 @@ observability:
     # Default: 60. Max: 3600.
     redis-usage-queue-retention-seconds: 60
 
+  # Built-in usage database (SQLite, pure Go). One file usage.db in the auth dir.
+  usage-db:
+    # When true, persist every usage record to the embedded DB.
+    enabled: true
+    # Explicit DB file path. Empty defaults to <auth-dir>/usage.db.
+    # A path change needs a restart to take effect.
+    # path: ""
+    # Raw events older than this many days are pruned daily; 0 keeps all.
+    # Rollups stay. Default: 90.
+    retention-days: 90
+    # In-process writer channel size. A size change needs a restart to take effect.
+    # buffer-size: 4096
+
   # Enable pprof HTTP debug server (host:port). Keep it bound to localhost for safety.
   pprof:
     enable: false
