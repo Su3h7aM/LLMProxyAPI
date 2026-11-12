@@ -14,7 +14,10 @@ Format: date, context, decision, reason. Newest first.
   v8 routes only; config section `observability.usage-db`. Not in phase 1:
   auto-disable, auth-issue queue, Codex inspection, CPAMP import, Home mode
   capture. Update 2026-11-12: developer asked for the models.dev sync (first
-  draft had no fetch). Full design: `docs/usage-statistics-design.md`. Reason:
+  draft had no fetch) and for frozen history: the price book is versioned
+  by date, cost uses the price valid at the event time, a price change never
+  rewrites old cost; no automatic recompute (only fill of unpriced events and
+  an audited, explicit correction). Full design: `docs/usage-statistics-design.md`. Reason:
   developer order; fork runs as one unit on a server.
 
 - 2026-11-11: Panel migration done and merged to `main` (issues 0018 to
