@@ -2,6 +2,19 @@
 
 Format: date, context, decision, reason. Newest first.
 
+- 2026-11-12: Built-in usage statistics (after triage 0041 and 0042).
+  The fork gets its own usage DB and dashboard, so it needs no external
+  CPAMP container. Decisions: SQLite (`modernc.org/sqlite`, pure Go) in
+  `<auth-dir>/usage.db`; in-process `usage.Plugin` with a bounded buffer
+  and one batch writer (no Redis queue); raw API keys never stored (hashed
+  id); raw table plus one hourly rollup written in the same transaction;
+  raw retention 90 days by default; prices in a price book, cost stored at
+  insert, unknown model is NULL (not 0); no automatic price fetch; additive
+  v8 routes only; config section `observability.usage-db`. Not in phase 1:
+  auto-disable, auth-issue queue, Codex inspection, CPAMP import, Home mode
+  capture. Full design: `docs/usage-statistics-design.md`. Reason:
+  developer order; fork runs as one unit on a server.
+
 - 2026-11-11: Panel migration done and merged to `main` (issues 0018 to
   0040). Gate at merge: `bun run verify` 2096 tests, `go build`, `go vet`,
   `go test`, `gofmt` all clean; smoke test serves the panel and the v8
