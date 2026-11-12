@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 branch: issue/0049-usage-db-hardening
 type: backend (Go, security and performance)
 agent: muse-spark-1.3-contributor
@@ -71,6 +71,31 @@ Fix four findings from the review of issues 0043 to 0045 before the usage DB shi
 - Panel status lists (issues 0046 to 0048, already closed on `main`): the `status_class` value `error` is new (failed 2xx or missing code). Any panel filter or label list built against `2xx/4xx/5xx/other` should gain `error`.
 - See the open question in the Log on summary-120d exact percentiles at the 1M boundary.
 
-## Follow-ups
-
 ## Result
+
+Landed on branch `issue/0049-usage-db-hardening` (no merge to `main`).
+
+What landed (all four findings, contract shapes unchanged):
+
+- Security 1, account labels: `account_label` is stored only for email-shaped sources (masked `ab***@domain`), else empty. `session_id`, `service_tier`, `reasoning_effort`, `access_provider`, `executor`, `auth_type`, `fail_code` keep only letters, digits, `.`, `_`, `-`, `:` of at most 64 characters, else empty (empty keeps `unknown` for executor and auth type, `default` for the tier). Hostile-input table tests plus a full `usage_events` column scan. Docs updated.
+- Security 2, failure text: `fail_summary` scrubs `Bearer` tokens, `Authorization` values, `sk-`/`AIza`/GitHub tokens, JWT shapes, secret query and JSON values (names stay), and 32-plus base64/hex runs to `[redacted]`; first 4096 bytes kept after scrubbing. Realistic-body and seeded fuzz tests. Docs updated.
+- Status consistency: failed records are never `2xx` (`error` covers failed 2xx and missing codes); hourly `failed` filter is every class but `2xx`; contract lists the values. Migration 4 fixes old rows and rebuilds affected hourly groups in one transaction. Tests on a v3 DB and on the writer path.
+- Query speed: realistic `usageperf` profile (12 models, 8 credentials, 4 keys, credential-centric concentration, hour-of-day bursts; uniform kept as worst case); read pragmas (`cache_size` 32 MiB per conn, `mmap_size` 256 MiB cap, `temp_store MEMORY`; EXPLAIN shows PK search plus temp b-tree for groups); plain-range events totals via the rollup first; hourly upper-bound gate for the percentile over-limit path; internal `usage_daily` rollup (migration 5, same transactions, backfilled from hourly) routed for ranges over 14 days with whole-day UTC bounds (counters, day/week series, breakdown, gates; hour series and heatmap stay hourly). Handler test with populated auth manager; over-limit unit tests (limits are vars now, defaults unchanged).
+
+Schema changes: 4 (`status_class` fix plus hourly rebuild) and 5 (`usage_daily` plus backfill).
+
+Benchmark numbers (warm; targets: summary/timeseries/breakdown 300 ms no percentiles, events 150 ms, failures/heatmap 500 ms, 7d percentiles 1s):
+
+| Route | Uniform (365k hourly) | Realistic (86k hourly) |
+|---|---|---|
+| summary 120d | 3.33s MISS | 6.49s MISS |
+| summary 7d percentiles | 223ms PASS | 378ms PASS |
+| timeseries day grouped | 35ms PASS | 22ms PASS |
+| breakdown model | 34ms PASS | 22ms PASS |
+| events page | 7ms PASS | 4ms PASS |
+| failures 30d | ~15ms PASS | ~17ms PASS |
+| heatmap 30d | ~63ms PASS | ~18ms PASS |
+
+The two summary misses share one cause: exact P50/P95 at exactly 1M events needs two 1M-row sorts (~3s uniform, ~6.5s realistic). Above 1M the gate returns null fast; the boundary pays the sorts. See the open question in the Log.
+
+Known gaps: summary-120d exact percentiles at the 1M boundary (question above); the uniform worst case is reported only per the issue; panel status lists may need the new `error` class (Follow-ups).
