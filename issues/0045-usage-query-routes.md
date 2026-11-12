@@ -57,6 +57,19 @@ Implement the read side of the usage DB (issues 0043 and 0044 are merged) exactl
 
 - Set `status: in-progress`. Work on branch `issue/0045-usage-query-routes` (checkout branch `t3/usage-query-routes` is at same tip as `main`, 45a67d12; created issue branch from it).
 - Context read: contract, design doc, DECISIONS, `store.go`, `insert.go`, `writer.go`, `collector.go`, `redact.go`, `prices.go`, `prices_fill.go`, `retention.go`, `usage_db_status.go`, `usage_prices.go`, `server_management_v8.go`, handler auth/labels, 0043/0044 logs.
+- Step 1 done (commit d1ba717d): migration 3 (`late_cost_micro_usd` with backfill from `price-book-late` events, `api_key_labels`, provider/failed/status_class range indexes; each index proven by EXPLAIN QUERY PLAN in `TestMigration3BackfillsLateCost`), late fill adds to the late part, audited correction removes it when it reprices a late event to `price-book`.
+- Step 2 done (commit 51cf8c1a): `Filter` parse/validate (366-day cap), bound-only builders, hourly counters (or events with `q`), timeseries buckets with tz day/week and gap fill, breakdown sort/page, Monday-first heatmap, exact percentiles to 1M rows, `(ts_ms, id)` cursor, keyset export paging.
+- Step 3 done (commit 81f7ade0): all routes wired in the v8 group (auth from the group middleware); 503 body is exactly `{"error":"usage db disabled"}`; labels from auth manager else stored label else id; `q` refused on rollup-only routes.
+- Fixes after review: filter errors are `QueryError` (400, not 500); timeseries points nest `counters`; export JSONL always has `fail_summary`; `top` is validated with or without `group_by`.
+- Step 4/5 implementation done; step 6 perf run started in background (`-tags usageperf`, 1M rows); step 8 docs rows done.
+- Open questions for the coordinator (defaults used, change on decision):
+  1. `status` filter maps to `failed` on raw events but to `status_class` on the hourly rollup (`ok`=`2xx`, `failed`=`4xx/5xx/other`). A failed record with a 2xx code counts as ok in rollup totals. Keep the mapping or extend the hourly key with `failed`?
+  2. `summary.first_event_ms` is the global oldest event (not range-bound). Keep?
+  3. Timeseries week buckets use ISO weeks (Monday). Keep?
+  4. `total_estimate` above 100000 rows uses the hourly sum (marked `total_exact:false`); with `q` it runs the full exact count. Keep?
+  5. Percentile rank method is nearest-rank (rank ceil(p*N)). Keep?
+  6. Manager credential label uses auth `Label`; provider meta prefers the manager provider, auth_type comes from the latest stored event. Keep?
+  7. Maintenance `checkpoint` response adds `busy`, `log_frames`, `checkpointed` next to `duration_ms`. Keep?
 
 ## Follow-ups
 
