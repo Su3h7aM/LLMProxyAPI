@@ -76,6 +76,15 @@ Do NOT do in this issue: prices page, maintenance UI, System page status (issue 
   (`nav.usage_statistics`, `/usage` route, `IconSidebarUsage`), and the
   old page with its callers. Plan: shell first, then sections in small
   commits.
+- 2026-11-12: Steps 1 and 2 land in one commit (route, sidebar under
+  `usage_page` keys, full `usage_page` locale set for all 11 steps,
+  shell with summary-driven states, filter bar, dashboard `/usage`
+  link; old page, guard, `types/usage`, `utils/usageStats`,
+  `getStatisticsEnabled` removed). Gate: type-check, lint,
+  area tests, `tokens:check` pass. Full `verify` has one failure in
+  `versionFailure.test.ts` that also fails on clean `main`
+  (pre-existing full-run flake, unrelated). Build not run yet in this
+  checkout; it runs at the next checkpoint.
 
 ## Follow-ups
 
