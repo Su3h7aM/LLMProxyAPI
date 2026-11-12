@@ -203,8 +203,21 @@ func (s *Store) QueryEvents(f UsageFilter, limit int, cursor, order string) (Eve
 // estimateTotal counts matching events exactly up to maxExactTotalRows.
 // Above it, without text search the hourly rollup estimates the total
 // (marked inexact: retention may have pruned raw rows); with text search the
-// full count runs and stays exact.
+// full count runs and stays exact. A plain range (no filter set) reads the
+// hourly sum first: small totals still confirm with the capped count, large
+// ones skip its 100000-row scan and return the rollup estimate.
 func (s *Store) estimateTotal(f UsageFilter) (int64, bool, error) {
+	if f.isPlainRange() {
+		hourlyWhere, hourlyArgs := f.whereHourly()
+		var hourly int64
+		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM usage_hourly WHERE `+
+			hourlyWhere, hourlyArgs...).Scan(&hourly); err != nil {
+			return 0, false, fmt.Errorf("usagedb: estimate total: %w", err)
+		}
+		if hourly > maxExactTotalRows {
+			return hourly, false, nil
+		}
+	}
 	where, args := f.whereEvents()
 	cappedArgs := append(append([]any{}, args...), maxExactTotalRows+1)
 	var capped int64

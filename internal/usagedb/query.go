@@ -13,13 +13,19 @@ const (
 	maxUsageRangeMs = int64(366 * 24 * 60 * 60 * 1000)
 	// millisPerDay is one UTC day in milliseconds.
 	millisPerDay = int64(24 * 60 * 60 * 1000)
-	// maxExactTotalRows caps the cheap exact total: up to this many
-	// matching events the count is exact, above it the route estimates.
-	maxExactTotalRows = 100000
-	// maxExactPercentileRows caps exact P50/P95 math on raw events.
-	maxExactPercentileRows = 1000000
 	// exportPageSize pages export streams on (ts_ms, id).
 	exportPageSize = 2000
+)
+
+// maxExactTotalRows caps the cheap exact total: up to this many matching
+// events the count is exact, above it the route estimates.
+// maxExactPercentileRows caps exact P50/P95 math on raw events.
+// Both are vars (not consts) so unit tests can shrink them and cover the
+// over-limit branches without million-row fixtures. Production defaults stay
+// as documented in the contract.
+var (
+	maxExactTotalRows      int64 = 100000
+	maxExactPercentileRows int64 = 1000000
 )
 
 // UsageFilter holds the parsed common query parameters of the usage routes.
@@ -46,6 +52,15 @@ type UsageFilter struct {
 
 // HasQ reports whether text search is active.
 func (f UsageFilter) HasQ() bool { return strings.TrimSpace(f.Q) != "" }
+
+// isPlainRange reports a filter with only a time range (plus tz): no
+// dimension, status, stream, or text constraints. The events page loads with
+// this shape, so it gets the cheapest total.
+func (f UsageFilter) isPlainRange() bool {
+	return len(f.Providers) == 0 && len(f.Models) == 0 && len(f.Aliases) == 0 &&
+		len(f.AuthIDs) == 0 && len(f.APIKeyIDs) == 0 &&
+		f.Status == "" && f.Stream == nil && !f.HasQ()
+}
 
 // ParseUsageFilter parses and validates the common usage query parameters.
 // nowMs supplies the default range end (last 24 hours). An error means the

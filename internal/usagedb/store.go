@@ -123,6 +123,18 @@ func dataSourceName(path string, writer bool) string {
 	query.Add("_pragma", "synchronous(NORMAL)")
 	query.Add("_pragma", "busy_timeout(5000)")
 	query.Add("_pragma", "foreign_keys(ON)")
+	if !writer {
+		// Read tuning (writes keep the durable defaults above):
+		// - cache_size -32768: 32 MiB page cache per read connection
+		//   (4 conns, 128 MiB worst case) for the hourly full scans.
+		// - mmap_size 268435456: 256 MiB mmap cap; the OS pages it, so it
+		//   never commits RAM, and cold scans skip read() copies.
+		// - temp_store MEMORY: grouped aggregates sort temp b-trees in
+		//   RAM instead of temp files.
+		query.Add("_pragma", "cache_size(-32768)")
+		query.Add("_pragma", "mmap_size(268435456)")
+		query.Add("_pragma", "temp_store(MEMORY)")
+	}
 	dsn.RawQuery = query.Encode()
 	return dsn.String()
 }

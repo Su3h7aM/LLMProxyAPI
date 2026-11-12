@@ -2,6 +2,7 @@ package management
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/Su3h7aM/LLMProxyAPI/internal/config"
 	"github.com/Su3h7aM/LLMProxyAPI/internal/usagedb"
+	coreauth "github.com/Su3h7aM/LLMProxyAPI/sdk/cliproxy/auth"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -309,6 +311,58 @@ func TestUsageBreakdownRoute(t *testing.T) {
 		if rec := getUsage(t, h, withRange(target, base)); rec.Code != http.StatusBadRequest {
 			t.Fatalf("GET %s status = %d, want 400", target, rec.Code)
 		}
+	}
+}
+
+func TestUsageCredentialLabelFromManager(t *testing.T) {
+	withUsageDB(t, 90)
+	base := seedUsageQueryRows(t)
+	manager := coreauth.NewManager(nil, nil, nil)
+	if _, err := manager.Register(context.Background(), &coreauth.Auth{
+		ID: "auth-codex-1", FileName: "codex-1.json",
+		Label: "Manager Credential", Provider: "codex",
+	}); err != nil {
+		t.Fatalf("register auth: %v", err)
+	}
+	h := &Handler{authManager: manager}
+	rec := getUsage(t, h, withRange("/v8/management/observability/usage/breakdown?group_by=credential", base))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("breakdown status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	payload := decodePriceBody(t, rec)
+	items, _ := payload["items"].([]any)
+	if len(items) != 1 {
+		t.Fatalf("items = %d, want 1", len(items))
+	}
+	item := items[0].(map[string]any)
+	if item["key"] != "codex-1.json" || item["label"] != "Manager Credential" {
+		t.Fatalf("item key/label = %v/%v, want codex-1.json/Manager Credential", item["key"], item["label"])
+	}
+	meta, _ := item["meta"].(map[string]any)
+	if meta["provider"] != "codex" {
+		t.Fatalf("meta provider = %v, want codex", meta["provider"])
+	}
+	// The failures route uses the same lookup for auth_label.
+	rec = getUsage(t, h, withRange("/v8/management/observability/usage/failures", base))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("failures status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	failed := decodePriceBody(t, rec)
+	groups, _ := failed["groups"].([]any)
+	if len(groups) != 1 {
+		t.Fatalf("failure groups = %d, want 1", len(groups))
+	}
+	group := groups[0].(map[string]any)
+	if group["auth_label"] != "Manager Credential" {
+		t.Fatalf("failure auth_label = %v, want Manager Credential", group["auth_label"])
+	}
+	// Without a manager the stored account label applies.
+	plain := &Handler{}
+	rec = getUsage(t, plain, withRange("/v8/management/observability/usage/breakdown?group_by=credential", base))
+	plainPayload := decodePriceBody(t, rec)
+	plainItems, _ := plainPayload["items"].([]any)
+	if len(plainItems) != 1 || plainItems[0].(map[string]any)["label"] != "ab***@example.com" {
+		t.Fatalf("fallback label = %v", plainItems)
 	}
 }
 

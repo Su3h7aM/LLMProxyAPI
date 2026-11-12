@@ -424,6 +424,61 @@ func TestQueryPercentiles(t *testing.T) {
 	}
 }
 
+func TestQueryOverLimitPaths(t *testing.T) {
+	base := int64(1719997200000)
+	store := seedQueryStore(t, base)
+	filter := mustFilter(t, "", base+48*60*60*1000)
+	filter.FromMs = base
+	filter.ToMs = base + 48*60*60*1000
+
+	// Shrink the limits so the 5-row fixture crosses them. Production
+	// defaults are restored after.
+	oldTotal, oldPct := maxExactTotalRows, maxExactPercentileRows
+	maxExactTotalRows = 2
+	maxExactPercentileRows = 2
+	defer func() { maxExactTotalRows, maxExactPercentileRows = oldTotal, oldPct }()
+
+	// Percentile over-limit: nulls with hourly source.
+	p50, p95, source, err := store.QueryLatencyPercentiles(filter)
+	if err != nil {
+		t.Fatalf("over-limit percentiles: %v", err)
+	}
+	if p50 != nil || p95 != nil || source != "hourly" {
+		t.Fatalf("over-limit percentiles = %v/%v/%s, want nil/nil/hourly", p50, p95, source)
+	}
+	// Summary carries the hourly fallback through.
+	summary, err := store.QuerySummary(filter)
+	if err != nil {
+		t.Fatalf("over-limit summary: %v", err)
+	}
+	if summary.P50Ms != nil || summary.P95Ms != nil || summary.LatencySource != "hourly" {
+		t.Fatalf("summary latency = %v/%v/%s, want nil/nil/hourly",
+			summary.P50Ms, summary.P95Ms, summary.LatencySource)
+	}
+	if summary.Totals.Requests != 5 {
+		t.Fatalf("summary totals = %d, want 5", summary.Totals.Requests)
+	}
+	// Total over-limit on a plain range: the hourly estimate without the
+	// capped scan, marked inexact.
+	page, err := store.QueryEvents(filter, 50, "", "desc")
+	if err != nil {
+		t.Fatalf("over-limit events: %v", err)
+	}
+	if page.TotalEstimate != 5 || page.TotalExact {
+		t.Fatalf("over-limit total = %d exact %v, want 5 false", page.TotalEstimate, page.TotalExact)
+	}
+	// A filtered range still runs the capped count and stays exact.
+	filtered := filter
+	filtered.Models = []string{"gpt-6"}
+	exact, err := store.QueryEvents(filtered, 50, "", "desc")
+	if err != nil {
+		t.Fatalf("filtered events: %v", err)
+	}
+	if exact.TotalEstimate != 1 || !exact.TotalExact {
+		t.Fatalf("filtered total = %d exact %v, want 1 true", exact.TotalEstimate, exact.TotalExact)
+	}
+}
+
 func TestQueryLabels(t *testing.T) {
 	base := int64(1719997200000)
 	store := seedQueryStore(t, base)

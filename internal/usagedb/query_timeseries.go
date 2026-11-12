@@ -611,6 +611,21 @@ func (s *Store) QueryLatencyPercentiles(f UsageFilter) (*int64, *int64, string, 
 	if s == nil {
 		return nil, nil, "", fmt.Errorf("usagedb: nil store")
 	}
+	// Without text search the hourly rollup bounds the event count from
+	// above (retention prunes raw rows, never the rollup), so an over-limit
+	// rollup sum skips the raw count and both sorts. Exactness is kept:
+	// the gate only fires when the raw count must also be over the limit.
+	if !f.HasQ() {
+		hourlyWhere, hourlyArgs := f.whereHourly()
+		var hourly int64
+		if err := s.readDB.QueryRow(`SELECT COALESCE(SUM(requests),0) FROM usage_hourly WHERE `+
+			hourlyWhere, hourlyArgs...).Scan(&hourly); err != nil {
+			return nil, nil, "", fmt.Errorf("usagedb: percentile gate: %w", err)
+		}
+		if hourly > maxExactPercentileRows {
+			return nil, nil, "hourly", nil
+		}
+	}
 	where, args := f.whereEvents()
 	var count int64
 	if err := s.readDB.QueryRow(`SELECT COUNT(*) FROM usage_events WHERE `+where, args...).Scan(&count); err != nil {
