@@ -1,5 +1,5 @@
 ---
-status: todo
+status: in-progress
 branch: issue/0042-triage-fork-usage-capabilities
 type: triage (read-only, no code changes)
 agent: deepseek-v4.1-flash
@@ -42,6 +42,10 @@ The fork needs a built-in usage DB and statistics dashboard (see issue 0041 for 
 3. At the end set `status: done`, fill `## Result`, commit, and report to the coordinator. Do not merge to `main`; the coordinator merges.
 
 ## Log
+
+- 2026-11-11: Set `status: in-progress`. Read `AGENTS.md`, this issue,
+  `DECISIONS.md`, issues 0027 and 0032 (panel usage port/hide), and the
+  Go usage path. Read-only; only this file changes.
 
 ## Follow-ups
 
