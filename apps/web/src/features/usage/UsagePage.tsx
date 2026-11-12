@@ -8,7 +8,7 @@
  * never blanks the page.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
@@ -24,6 +24,9 @@ import { usageFiltersToQuery } from '@/features/usage/logic/filters';
 import { getBrowserTimeZone } from '@/features/usage/logic/range';
 import { useUsageQuery } from '@/features/usage/hooks/useUsageQuery';
 import { UsageFilterBar } from './components/UsageFilterBar';
+import { UsageSummaryCards } from './components/UsageSummaryCards';
+import { UsageTimeline } from './components/UsageTimeline';
+import type { UsageSectionProps } from './components/usageSection';
 import styles from './UsagePage.module.scss';
 
 export interface UsagePageBody {
@@ -108,6 +111,9 @@ export function UsagePage() {
   const tz = useMemo(() => getBrowserTimeZone(), []);
   // Minute clock: range presets end "now" without an impure render call.
   const nowMs = useNow(enabled);
+  // One refresh action reloads every section.
+  const [generation, setGeneration] = useState(0);
+  const refreshAll = () => setGeneration((value) => value + 1);
   const summaryQuery = useMemo(
     () =>
       usageFiltersToQuery(
@@ -142,17 +148,17 @@ export function UsagePage() {
   const summaryKey = summaryQuery ? JSON.stringify(summaryQuery) : 'invalid-range';
 
   const summary = useUsageQuery({
-    queryKey: `usage-summary|${summaryKey}`,
+    queryKey: `usage-summary|${summaryKey}|${generation}`,
     enabled: enabled && summaryQuery !== null,
     load: (signal) => usageApi.getSummary(summaryQuery ?? {}, { signal }),
   });
-  useHeaderRefresh(() => {
-    void summary.refresh().catch(() => undefined);
-  }, enabled);
+  useHeaderRefresh(refreshAll, enabled);
 
-  const refresh = () => {
-    void summary.refresh().catch(() => undefined);
-  };
+  const sections: UsageSectionProps | null =
+    enabled && summaryQuery
+      ? { query: summaryQuery, queryKey: `${summaryKey}|${generation}`, enabled: true, tz }
+      : null;
+  const ready = summary.data !== null && summary.data.totals.requests > 0;
 
   return (
     <div className={styles.page}>
@@ -170,7 +176,7 @@ export function UsagePage() {
         }
         actions={
           <RefreshButton
-            onClick={refresh}
+            onClick={refreshAll}
             label={t('common.refresh')}
             refreshing={summary.loading}
           />
@@ -195,8 +201,14 @@ export function UsagePage() {
       ) : (
         <UsagePageContent
           body={{ data: summary.data, error: summary.error, loading: summary.loading }}
-          onRetry={refresh}
+          onRetry={refreshAll}
         />
+      )}
+      {ready && sections && summary.data && (
+        <>
+          <UsageSummaryCards summary={summary.data} />
+          <UsageTimeline {...sections} />
+        </>
       )}
     </div>
   );
