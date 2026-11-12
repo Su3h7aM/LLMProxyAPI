@@ -16,8 +16,10 @@ Format: date, context, decision, reason. Newest first.
   capture. Update 2026-11-12: developer asked for the models.dev sync (first
   draft had no fetch) and for frozen history: the price book is versioned
   by date, cost uses the price valid at the event time, a price change never
-  rewrites old cost; no automatic recompute (only fill of unpriced events and
-  an audited, explicit correction). Full design: `docs/usage-statistics-design.md`. Reason:
+  rewrites old cost; no automatic recompute of priced events. Unpriced events (no price when
+  they arrived) are filled automatically when a price for the model appears
+  (nearest version, marked `price-book-late` as an estimate); an audited,
+  explicit correction exists for wrong prices. Full design: `docs/usage-statistics-design.md`. Reason:
   developer order; fork runs as one unit on a server.
 
 - 2026-11-11: Panel migration done and merged to `main` (issues 0018 to
