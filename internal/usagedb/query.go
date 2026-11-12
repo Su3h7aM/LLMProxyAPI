@@ -19,13 +19,15 @@ const (
 
 // maxExactTotalRows caps the cheap exact total: up to this many matching
 // events the count is exact, above it the route estimates.
-// maxExactPercentileRows caps exact P50/P95 math on raw events.
+// maxExactPercentileRows caps exact P50/P95 math on raw events: exact only
+// when the matching events are at most 250,000 (coordinator decision 0049);
+// above, p50/p95 are null with hourly source.
 // Both are vars (not consts) so unit tests can shrink them and cover the
 // over-limit branches without million-row fixtures. Production defaults stay
 // as documented in the contract.
 var (
 	maxExactTotalRows      int64 = 100000
-	maxExactPercentileRows int64 = 1000000
+	maxExactPercentileRows int64 = 250000
 )
 
 // UsageFilter holds the parsed common query parameters of the usage routes.

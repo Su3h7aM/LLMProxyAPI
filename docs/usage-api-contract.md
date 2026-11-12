@@ -63,7 +63,7 @@ Totals for the range and for the previous period of the same length.
 }
 ```
 
-`latency.p50_ms` and `p95_ms` are null with `source:"hourly"` when the range holds too many events (see 0045 limits).
+`latency.p50_ms` and `p95_ms` are exact up to 250,000 matching events, else null with `source:"hourly"`.
 
 ## GET /timeseries
 
@@ -196,6 +196,6 @@ Body `{"action":"prune"|"vacuum"|"checkpoint"}`. `prune` runs retention now. `va
 | Route | Data | Target |
 |---|---|---|
 | `summary`, `timeseries`, `breakdown` (no percentiles) | 1M events, 120-day range | under 300 ms (hourly table) |
-| `summary` percentiles | 7 days, up to 1M events | under 1 s; above the limit return null with `source:"hourly"` |
+| `summary` percentiles | up to 250,000 matching events | under 1 s; above the limit return null with `source:"hourly"` |
 | `events` page | 1M events, any indexed filter | under 150 ms |
 | `heatmap`, `failures` | 1M events, 30-day range | under 500 ms |
